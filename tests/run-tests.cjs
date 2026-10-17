@@ -135,7 +135,7 @@ try{
   const statuses=[],failures=[];
   const lf=new LocalFeed({onState:s=>statuses.push(s),onError:e=>failures.push(e)});
   lf.start(temp);
-  ok(statuses.length>=6,'initial live event sample parsed');
+  ok(statuses.length===1,'initial live event sample parsed in one update');
   const last=statuses.at(-1);
   ok(last.enemies.length===2&&last.observedInventories===2,'two hero inventories observed in demo');
   ok(last.ownHero==='KELVIN','sample local hero');
