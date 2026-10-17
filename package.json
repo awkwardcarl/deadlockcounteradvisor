@@ -47,8 +47,7 @@
         "nsis"
       ],
       "artifactName": "Deadlock-Counter-Advisor-Setup-${version}.${ext}",
-      "signAndEditExecutable": false,
-      "signExecutable": false
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,

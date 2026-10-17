@@ -10,6 +10,7 @@ ok(pkg.build.publish.releaseType==='draft','review before publishing');
 ok(pkg.build.win.target.includes('nsis'),'NSIS installer enables updates');
 ok(pkg.dependencies['electron-updater'],'updater shipped as production dependency');
 ok(pkg.build.win.signAndEditExecutable===false,'mitigate local signing utility issues');
+ok(!Object.hasOwn(pkg.build.win,'signExecutable'),'reject unsupported electron-builder win.signExecutable key');
 ok(pkg.build.nsis.deleteAppDataOnUninstall===false,'local preferences retained');
 const workflow=read('.github/workflows/windows-release.yml');
 ok(workflow.includes('workflow_dispatch'),'manual preview build');
