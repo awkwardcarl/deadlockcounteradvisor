@@ -66,22 +66,24 @@ class OverwolfGepAdapter {
   }
   async detected(event,id,name) {
     if(!this.active || id!==DEADLOCK_GEP_ID)return;
+    // Enable synchronously, before any await, as Overwolf's ow-electron sample
+    // does: event.enable() belongs inside the game-detected handler itself.
+    event.enable();
+    this.gameId=id;
+    this.state.clear();
     // Check capability before registering; do not silently assume match_info exists.
     try{
       const available=await this.gep.getFeatures(id);
       if(!this.active)return;
-      if(!Array.isArray(available)||!available.includes('match_info')) {this.onStatus('Deadlock match_info is not available in this environment');return;}
+      if(!Array.isArray(available)||!available.includes('match_info')) {this.gameId=null;this.onStatus('Deadlock match_info is not available in this environment');return;}
       await this.gep.setRequiredFeatures(id,FEATURES.filter(x=>available.includes(x)));
       if(!this.active)return;
-      event.enable();
-      this.gameId=id;
-      this.state.clear();
       this.onStatus('GEP attached to approved Deadlock event stream');
       if(typeof this.gep.getInfo==='function'){
         const info=await this.gep.getInfo(id);
         if(this.active)this.consume(id,info);
       }
-    }catch(e){this.onStatus('GEP initialization failed: '+String(e.message).slice(0,150));}
+    }catch(e){this.gameId=null;this.onStatus('GEP initialization failed: '+String(e.message).slice(0,150));}
   }
   consume(id,raw) {
     if(!this.active||this.gameId!==id) return;
