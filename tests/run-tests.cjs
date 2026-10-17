@@ -59,6 +59,8 @@ const event=(key,data)=>({feature:'match_info',key,data:JSON.stringify(data)});
 const replayData=[event('roster_0',{player_name:'Me',hero_name:'KELVIN',team_name:'Amber',is_local:true}),event('roster_1',{player_name:'Them',hero_name:'HAZE',team_name:'Sapphire',is_local:false}),event('items_1',{player_name:'Them',items:[{name:'Rapid Rounds'}]})];
 const replayed=replay(replayData);ok(replayed.enemies.length===1,'replay opponent extracted');ok(replayed.enemies[0].items==='Rapid Rounds','replay purchases extracted');ok(!replay(replayData.slice(1)).enemies.length,'fail closed if local team unknown');ok(!replay([event('roster_0',{player_name:'Me',hero_name:'KELVIN',team_name:'Amber',is_local:true})]).enemies.length,'no fabricated opponents');
 assert.throws(()=>replay(Array(301).fill({})));tests++;
+ok(replay([...replayData.slice(0,2),event('items_1',{player_name:'Someone else',items:[{name:'Leech'}]})]).enemies[0].items==='','replay never joins items to a different player');
+ok(replay({events:replayData}).enemies.length===1,'replay accepts an {events:[...]} wrapper');
 const security=require('../desktop/security.cjs');
 ok(security.permittedImageURL('https://deadlock.io/assets/game/panorama/images/heroes/kelvin.png'),'provider imagery permitted');
 for(const url of ['http://deadlock.io/assets/game/panorama/images/heroes/x.png','https://deadlock.io/api/v1/items.json','https://evil.example/assets/game/panorama/images/x.png','http://127.0.0.1:3000/test','https://deadlock.io/assets/game/../../admin.png']) {ok(!security.permittedImageURL(url),'external network not image-approved '+url);}

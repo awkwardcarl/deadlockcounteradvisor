@@ -37,6 +37,22 @@ class MockGep extends EventEmitter {
   update('items_1',{player_name:'Them',items:[{name:'Headshot Booster'}]});
   test(()=>assert.equal(matches.at(-1).enemies[0].items,'Headshot Booster'));
   B.stop();
+  // enable() must run inside the game-detected handler, before any await.
+  const order=[];
+  const slow=new MockGep();
+  slow.getFeatures=async()=>{order.push('getFeatures');return slow.features;};
+  const C=new OverwolfGepAdapter({gep:slow,approval:{overwolfWhitelist:true,gameComplianceConfirmed:true}});
+  C.start();
+  const pending=C.detected({enable(){order.push('enable');}},DEADLOCK_GEP_ID,'Deadlock');
+  test(()=>assert.deepEqual(order,['enable','getFeatures'],'enable() is called synchronously, first'));
+  await pending;C.stop();
+  // A game without match_info detaches instead of accepting events.
+  const bare=new MockGep();bare.features=['game_info'];const seen=[];
+  const D=new OverwolfGepAdapter({gep:bare,approval:{overwolfWhitelist:true,gameComplianceConfirmed:true},onMatch:x=>seen.push(x)});
+  D.start();await D.detected({enable(){}},DEADLOCK_GEP_ID,'Deadlock');
+  bare.emit('new-info-update',{},DEADLOCK_GEP_ID,{feature:'match_info',key:'roster_0',data:'{}'});
+  test(()=>assert.ok(D.gameId===null&&seen.length===0&&bare.registered.length===0,'no match_info: detached, nothing registered or consumed'));
+  D.stop();
   test(()=>assert.equal(removeUnapprovedInventory({feature:'match_info',key:'items_1',data:{}},false),null));
   test(()=>assert.ok(removeUnapprovedInventory({feature:'match_info',key:'items_1',data:{}},true)));
   console.log(`${checks} Overwolf adapter tests passed (simulated API only)`);
