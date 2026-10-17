@@ -76,7 +76,7 @@ for(const [url,type,blocked] of [
 }
 let permissionCalls=0;permission(null,'camera',allowed=>{permissionCalls++;ok(allowed===false,'no media permissions');});ok(permissionCalls===1,'permissions callback invoked');
 const pkg=JSON.parse(read('package.json'));
-ok(pkg.version==='0.7.0','version correct');
+ok(pkg.version==='0.7.1','version correct');
 ok(pkg.scripts['build:win'].includes('electron-packager'),'working Windows folder builder retained');
 ok(fs.existsSync(path.join(basePath,'Build-EXE-Folder.cmd')),'folder builder exists');
 ok(read('desktop/main.cjs').includes('sandbox: true')&&read('desktop/main.cjs').includes('contextIsolation: true'),'secure renderer');

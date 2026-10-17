@@ -3,7 +3,7 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
 const root=path.join(__dirname,'..');const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 let n=0;const ok=(x,m)=>{assert.ok(x,m);n++;};
 const pkg=JSON.parse(read('package.json'));
-ok(pkg.version==='0.7.0','v0.7 package version');
+ok(pkg.version==='0.7.1','v0.7.1 package version');
 ok(pkg.repository.url.includes('awkwardcarl/deadlockcounteradvisor.git'),'correct GitHub remote');
 ok(pkg.build.publish.owner==='awkwardcarl'&&pkg.build.publish.repo==='deadlockcounteradvisor','pin update destination');
 ok(pkg.build.publish.releaseType==='draft','review before publishing');
@@ -19,6 +19,7 @@ ok(workflow.includes('GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}'),'CI token only');
 ok(workflow.includes('version v$version'),'release tag matches package version');
 ok(workflow.includes('npm run build:win:installer')&&workflow.includes('npm run release:win'),'separate preview and publish builds');
 ok(workflow.includes('npm test'),'CI tests');
+ok(read('index.html').includes('v0.7.1 · Update-channel verification'),'visible marker confirms installed update');
 const main=read('desktop/main.cjs'), preload=read('desktop/preload.cjs'), js=read('js/ui.js'), html=read('index.html');
 ok(main.includes("'app-update.yml'"),'updater gated on installer metadata');
 ok(main.includes('setTimeout(()=>void updates.check(),8000)'),'startup check only');

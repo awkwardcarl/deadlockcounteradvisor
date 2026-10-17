@@ -25,7 +25,7 @@ ok(html.includes('id="quickBuys"') && js.includes('class="quickArt') && js.inclu
 ok(js.includes('WHY IT HELPS') && js.includes('BUYABLE NOW'),'explainable quick picks');
 ok(js.includes("'.itemIcon img, .quickArt img'"),'missing artwork graceful fallback');
 ok(css.includes('.quickCost') && css.includes('.quickFoot'),'pricing and affordability visually grouped');
-ok(pkg.version==='0.7.0','correct release version');
+ok(pkg.version==='0.7.1','correct release version');
 ok(pkg.scripts['build:win'].includes('electron-packager'),'working folder packaging remains default');
 const main=fs.readFileSync(path.join(root,'desktop/main.cjs'),'utf8');
 ok(!js.includes('process.memory') && !main.includes('ReadProcessMemory'),'UI update does not add process memory API');
