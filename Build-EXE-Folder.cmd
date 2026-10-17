@@ -4,7 +4,7 @@ cd /d "%~dp0"
 title Deadlock Counter Advisor - Windows EXE Folder Builder
 where node >nul 2>nul
 if errorlevel 1 (echo Install Node.js LTS first from https://nodejs.org & pause & exit /b 1)
-call npm install --no-audit --no-fund
+call npm ci --no-audit --no-fund
 if errorlevel 1 goto fail
 call npm test
 if errorlevel 1 goto fail

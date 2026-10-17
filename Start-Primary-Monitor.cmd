@@ -9,7 +9,7 @@ if errorlevel 1 (
   exit /b 1
 )
 if not exist "node_modules\electron\cli.js" (
-  call npm install
+  call npm ci
   if errorlevel 1 (pause & exit /b 1)
 )
 echo Starting on PRIMARY monitor for troubleshooting...

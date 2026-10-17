@@ -14,7 +14,7 @@ if errorlevel 1 (
   exit /b 1
 )
 echo [1/3] Installing the packaging tools (internet required)...
-call npm install --no-audit --no-fund
+call npm ci --no-audit --no-fund
 if errorlevel 1 goto fail
 echo.
 echo [2/3] Running the safety and roster tests...

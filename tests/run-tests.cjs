@@ -76,7 +76,7 @@ for(const [url,type,blocked] of [
 }
 let permissionCalls=0;permission(null,'camera',allowed=>{permissionCalls++;ok(allowed===false,'no media permissions');});ok(permissionCalls===1,'permissions callback invoked');
 const pkg=JSON.parse(read('package.json'));
-ok(pkg.version==='0.7.1','version correct');
+ok(/^\d+\.\d+\.\d+$/.test(pkg.version),'package version is plain semver (release tags are v<version>)');
 ok(pkg.scripts['build:win'].includes('electron-packager'),'working Windows folder builder retained');
 ok(fs.existsSync(path.join(basePath,'Build-EXE-Folder.cmd')),'folder builder exists');
 ok(read('desktop/main.cjs').includes('sandbox: true')&&read('desktop/main.cjs').includes('contextIsolation: true'),'secure renderer');
@@ -90,6 +90,8 @@ ok(read('index.html').includes('id="heroPortrait"')&&read('js/ui.js').includes('
 // PNG and Windows ICO packaging regression.
 const icon=fs.readFileSync(path.join(basePath,'assets/icon.ico'));const n=icon.readUInt16LE(4);ok(n>=2,'multires icon');
 let has256=false;for(let i=0;i<n;i++){const pos=6+16*i;if((icon[pos]||256)===256&&(icon[pos+1]||256)===256)has256=true;}ok(has256,'256px icon retained');
+const windowIcon=/icon:\s*path\.join\(__dirname,\s*'\.\.',\s*'assets',\s*'([^']+)'\)/.exec(read('desktop/main.cjs'));
+ok(windowIcon&&fs.existsSync(path.join(basePath,'assets',windowIcon[1])),'window icon file referenced by main.cjs exists');
 
 // v0.5: explicit Windows process-name-only checks; zero game memory access.
 const processDetection=require('../live/process-detection.cjs');
