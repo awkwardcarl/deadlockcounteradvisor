@@ -3,7 +3,8 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
 const root=path.join(__dirname,'..');const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 let n=0;const ok=(x,m)=>{assert.ok(x,m);n++;};
 const pkg=JSON.parse(read('package.json'));
-ok(pkg.version==='0.7.1','v0.7.1 package version');
+// The footer is how users confirm an update installed, so it must track the version.
+ok(read('index.html').includes(`<footer>v${pkg.version} `),`footer shows package version v${pkg.version}`);
 ok(pkg.repository.url.includes('awkwardcarl/deadlockcounteradvisor.git'),'correct GitHub remote');
 ok(pkg.build.publish.owner==='awkwardcarl'&&pkg.build.publish.repo==='deadlockcounteradvisor','pin update destination');
 ok(pkg.build.publish.releaseType==='draft','review before publishing');
@@ -19,8 +20,12 @@ ok(workflow.includes('GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}'),'CI token only');
 ok(workflow.includes('version v$version'),'release tag matches package version');
 ok(workflow.includes('npm run build:win:installer')&&workflow.includes('npm run release:win'),'separate preview and publish builds');
 ok(workflow.includes('npm test'),'CI tests');
-ok(read('index.html').includes('v0.7.1 · Update-channel verification'),'visible marker confirms installed update');
+const lock=JSON.parse(read('package-lock.json'));
+const locked=name=>lock.packages?.['node_modules/'+name]?.version;
+ok(Object.entries({...pkg.dependencies,...pkg.devDependencies}).every(([name,version])=>locked(name)===version),'package-lock.json matches package.json');
+ok(workflow.includes('npm ci')&&!workflow.includes('npm install'),'CI installs exactly the locked dependencies');
 const main=read('desktop/main.cjs'), preload=read('desktop/preload.cjs'), js=read('js/ui.js'), html=read('index.html');
+ok(main.includes('requestSingleInstanceLock()')&&main.includes("'second-instance'"),'second launch focuses the running window');
 ok(main.includes("'app-update.yml'"),'updater gated on installer metadata');
 ok(main.includes('setTimeout(()=>void updates.check(),8000)'),'startup check only');
 ok(preload.includes('updates:download')&&preload.includes('updates:install'),'narrow update IPC');

@@ -136,7 +136,7 @@ function createWindow() {
     skipTaskbar: false,
     show: false,
     backgroundColor: '#0d1522',
-    icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+    icon: path.join(__dirname, '..', 'assets', 'icon.ico'),
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
@@ -194,7 +194,18 @@ function createWindow() {
   mainWindow.on('close', () => { clearTimeout(saveTimer); persistBounds(); });
   mainWindow.on('closed', () => { mainWindow = null; });
 }
+// A second copy would race the first over window-bounds.json, the catalog
+// cache and update downloads; bring the running window forward instead.
+const primaryInstance = app.requestSingleInstanceLock();
+if (!primaryInstance) app.quit();
+app.on('second-instance', () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+});
 app.whenReady().then(() => {
+  if (!primaryInstance) return;
   // Local assets load, external network requests fail; callbacks must complete.
   registerOfflineRestrictions(session.defaultSession);
   console.log('[Counter Advisor] Offline security rules installed.');

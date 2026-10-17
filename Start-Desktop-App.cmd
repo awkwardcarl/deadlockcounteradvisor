@@ -11,7 +11,7 @@ if errorlevel 1 (
 )
 if not exist "node_modules\electron\cli.js" (
   echo Installing Electron runtime - internet required the first time.
-  call npm install
+  call npm ci
   if errorlevel 1 (
     echo Installation failed. Check your internet connection.
     pause
