@@ -1,0 +1,52 @@
+name: Windows installer and release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write # Needed only when publishing a version tag.
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate release tag matches package version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          if ($env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME does not match package.json version v$version"
+          }
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Run tests
+        run: npm test
+      - name: Build installer and update manifest (no publication)
+        if: github.event_name == 'workflow_dispatch'
+        run: npm run build:win:installer
+      - name: Upload test build artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deadlock-counter-advisor-windows-test-installer
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/*.yml
+          if-no-files-found: error
+      - name: Publish versioned Windows release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: npm run release:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signing credentials can be added as Actions secrets later.

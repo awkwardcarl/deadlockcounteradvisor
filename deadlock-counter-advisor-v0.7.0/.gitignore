@@ -1,0 +1,11 @@
+node_modules/
+release/
+*.log
+dist/
+.env
+*.pfx
+*.pem
+*.key
+*.cer
+*.crt
+.DS_Store
