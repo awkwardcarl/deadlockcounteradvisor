@@ -144,6 +144,17 @@ function createCatalog(base,snapshot){
   items:snapshot.items.map(i=>({...i,icon:iconPath(i.icon)})),
   enemyItems:base.enemyItems,complete:true,build:snapshot.build,generatedAt:snapshot.generatedAt};
 }
+// Player-facing threat level for a team pressure score. One profiled hero adds
+// 0.9 to its tags and each enemy is capped at 2.3 per tag, so roughly: Low is a
+// single hint, Medium is one committed enemy, High is several enemies or one
+// heavily invested enemy.
+const threatLevel=score=>score>=2.5?'high':score>=1.2?'medium':'low';
+// Map typed text to the catalog's spelling of a recognized item ("mystic burst"
+// -> "Mystic Burst"); unrecognized text is returned trimmed, unchanged.
+function resolveItemName(catalog,raw){
+ const text=String(raw||'').trim();
+ return itemSuggestions(catalog).find(name=>norm(name)===norm(text))||text;
+}
 // Names for the item-entry suggestions: every item the app recognizes. The
 // offline starter catalog's items are only the counter picks, so the curated
 // enemy-item names are added too.
@@ -280,9 +291,9 @@ function recommend(state,catalog,options={}){
  else if(sort==='cost')all.sort((a,b)=>a.effectiveCost-b.effectiveCost||b.score-a.score);
  const filtered=all.filter(r=>(!options.category||options.category==='all'||r.category===options.category)&&(!options.affordableOnly||r.affordable));
  const quality=!catalog.complete?'Starter catalog':profiledHeroes===0?'Limited profiles':listedItems>0&&knownItems<listedItems?'Partial item recognition':listedItems===0?'Hero profiles only':'Hero + recognized item evidence';
- return {results:filtered.slice(0,12),quickBuys,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
+ return {results:filtered.slice(0,12),quickBuys,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,level:threatLevel(value.score),coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
  patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,recommend,itemSuggestions,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
+root.DeadlockEngine={createCatalog,recommend,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
 })(typeof window!=='undefined'?window:globalThis);

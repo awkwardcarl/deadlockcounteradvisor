@@ -32,26 +32,27 @@
         <button id="nextDisplay" class="toolbarButton" type="button">↗ Move display</button>
       </div>
     </header>
-    <div class="topNotice">
+    <div class="topNotice" id="topNotice">
       <span class="noticeIcon">ⓘ</span>
       <div><strong>Independent second-screen app.</strong> Manual recommendations remain available. Game detection checks only Windows process names; live inventory needs a separate, authorized game-data provider. This app does not read Deadlock memory or inject an overlay.</div>
+      <button id="dismissNotice" class="noticeDismiss" type="button" aria-label="Dismiss this notice (it stays under About &amp; safety)" title="Dismiss (it stays under About &amp; safety)">×</button>
     </div>
     <div class="workspace">
       <aside class="leftPanel" id="inputPanel">
         <section class="card enemyBlock">
           <div class="sectionHeading"><div><div class="overline">01 / OPPOSITION</div><h2>Enemy lineup</h2></div><button id="addEnemy" class="addButton" type="button">+ Add enemy</button></div>
-          <p class="supportText">Choose enemy heroes and optionally enter <em>visible</em> purchased items. Up to six opponents.</p>
+          <p class="supportText">Pick up to six enemy heroes and add items you can <em>see</em> them buy.</p>
           <div id="enemies" class="enemyList" aria-label="Enemy lineup editor"></div>
           <div class="actionRow"><button id="demo" type="button" class="muted">Load example match</button><button id="clear" type="button" class="muted">Reset match</button></div>
         </section>
         <section class="card heroCard">
           <div class="sectionHeading"><div><div class="overline">02 / YOUR CHARACTER</div><h2>Build context</h2></div><span class="sectionSymbol">◈</span></div>
           <div class="formgrid">
-            <label>PLAYING AS<div class="heroPicker"><img id="heroPortrait" alt="" class="heroPortrait" hidden><select id="hero" aria-label="Your hero"></select></div></label>
-            <label>AVAILABLE SOULS<input id="souls" type="number" min="0" max="999999" step="100" value="1600"></label>
+            <label>PLAYING AS<div class="heroPicker"><img id="heroPortrait" alt="" class="heroPortrait" hidden><select id="hero" aria-label="Your hero"></select><button class="pickHero" type="button" data-target="own" aria-label="Choose your hero from portraits" title="Choose from portraits">⊞</button></div></label>
+            <label for="souls">AVAILABLE SOULS<div class="soulsControl"><button class="soulsStep" type="button" data-step="-500" aria-label="500 fewer souls">−500</button><input id="souls" type="number" min="0" max="999999" step="100" value="1600"><button class="soulsStep" type="button" data-step="500" aria-label="500 more souls">+500</button></div></label>
           </div>
-          <label class="field">YOUR OWNED ITEMS<input id="owned" type="text" maxlength="1500" list="itemNames" placeholder="e.g. Extra Spirit, Extra Health"></label>
-          <p class="supportText">Comma-separated names. Catalog recognition highlights owned items, enemy purchases, and affordable counters.</p><datalist id="itemNames"></datalist>
+          <label class="field" for="owned">YOUR OWNED ITEMS<div class="chipBox" id="ownedChips"></div></label>
+          <p class="supportText">Type an item and press Enter. Owned items are left out of the picks, and owned components lower upgrade prices.</p><datalist id="itemNames"></datalist>
         </section>
         <!-- Used once per session, so tucked away; the summary shows the status. -->
         <details class="setupPanel" id="setupPanel">
@@ -75,7 +76,8 @@
       </aside>
       <section class="rightPanel">
         <div class="card recommCard">
-          <div class="sectionHeading recommendationHeading"><div><div class="overline">03 / PURCHASE PRIORITIES</div><h2>Recommended counters</h2><p class="supportText subTitle">Explainable counters based on enemy lineup, purchased items, your hero, and available souls. Suggestions are heuristic, not win-rate predictions.</p></div><div class="rightActions"><span class="miniPill" id="matchLabel">Waiting</span><button id="focus" class="iconButton" type="button" title="Show or hide input panel">Hide inputs</button></div></div>
+          <div class="sectionHeading recommendationHeading"><div><div class="overline">03 / PURCHASE PRIORITIES</div><h2>Recommended counters</h2></div><div class="rightActions"><span class="miniPill" id="matchLabel">Waiting</span><div class="viewButtons"><button id="glance" class="iconButton" type="button" title="Only the three picks, in large type (G)" aria-pressed="false">Glance mode</button><button id="focus" class="iconButton" type="button" title="Show or hide input panel">Hide inputs</button></div></div></div>
+          <div class="glanceBar" id="glanceBar"><span id="glanceSummary"></span><span class="glanceSouls"><button class="soulsStep" type="button" data-step="-500" aria-label="500 fewer souls">−500</button><b id="glanceSoulsValue">0</b> souls<button class="soulsStep" type="button" data-step="500" aria-label="500 more souls">+500</button></span></div>
           <div class="summaryRow"><div class="recommendationFilters"><label>Priority <select id="strategyMode" aria-label="Current purchase priority"><option value="balanced">Balanced counters</option><option value="survive">Survive damage</option><option value="escape">Escape / disables</option><option value="antiheal">Stop sustain</option></select></label><label>Show <select id="sortMode"><option value="smart">Best fit</option><option value="affordable">Affordable first</option><option value="cost">Lowest cost</option></select></label><label>Filter <select id="filterCategory"><option value="all">All categories</option><option value="weapon">Weapon</option><option value="vitality">Vitality</option><option value="spirit">Spirit</option></select></label><label><input type="checkbox" id="affordableOnly"> Affordable only</label><span id="evidenceQuality" class="evidenceQuality" role="status">Waiting for matchup</span></div></div>
           <div class="quickHeading"><div><div class="overline">QUICK PURCHASE PLAN</div><h3>Three next-item options</h3></div><small>Rankings are heuristic · verify the shop tooltip</small></div>
           <div id="quickBuys" class="quickBuys" aria-live="polite"></div>
@@ -88,10 +90,16 @@
           <div id="results" class="results" aria-live="polite"><div class="empty">Choose an enemy hero to see the first recommendations.</div></div>
           <div class="shopSummary" id="shopSummary" aria-live="polite"></div><div id="unknown" class="unknown" role="status" hidden></div>
         </div>
-        <div class="infoRow"><div><strong>How rankings work</strong><p>Enemy heroes and recognized items contribute threat scores. Each counter is ranked by relevant protections and synergy. This is a learning prototype, not a measured win-rate model.</p></div><div><strong>Game-safety boundary</strong><p>Process-name checks only, plus opt-in reading of a user-selected JSONL event feed. No memory reading, game injection, overlay, input automation, or network telemetry collector. Live item tracking still requires an authorized external data source.</p></div></div>
+        <details class="aboutPanel" id="aboutPanel"><summary>About &amp; safety</summary>
+        <div class="infoRow"><div><strong>Independent second-screen app</strong><p>Manual recommendations remain available. Game detection checks only Windows process names; live inventory needs a separate, authorized game-data provider. This app does not read Deadlock memory or inject an overlay.</p></div><div><strong>How rankings work</strong><p>Counters are explainable picks based on the enemy lineup, their visible items, your hero and your souls. Enemy heroes and recognized items contribute threat scores, and each counter is ranked by relevant protections and synergy. Suggestions are heuristics, not measured win-rate predictions.</p></div><div><strong>Game-safety boundary</strong><p>Process-name checks only, plus opt-in reading of a user-selected JSONL event feed. No memory reading, game injection, overlay, input automation, or network telemetry collector. Live item tracking still requires an authorized external data source.</p></div></div>
+        </details>
         <footer>v0.9.0 · Match-first layout · Unofficial community companion · opt-in process detection · development-only local feed · no Valve affiliation or ban-free guarantee</footer>
       </section>
     </div>
+    <dialog id="heroDialog" class="heroDialog" aria-labelledby="heroDialogTitle">
+      <div class="heroDialogHead"><h2 id="heroDialogTitle">Choose a hero</h2><input id="heroSearch" type="search" placeholder="Search heroes…" aria-label="Search heroes"><button id="heroDialogClose" class="iconButton" type="button" aria-label="Close">×</button></div>
+      <div id="heroGrid" class="heroGrid"></div>
+    </dialog>
   </main>
   <script src="js/catalog.js"></script>
   <script src="js/engine.js"></script>
