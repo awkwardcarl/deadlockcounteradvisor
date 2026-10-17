@@ -60,6 +60,10 @@ test(out.results.every(r=>r.evidence.includes('Matchup note')===(r.heroNotes.len
 test(out.results.some(r=>r.evidence.includes('Enemy purchases')&&r.evidence.includes('Item pair')),'entered items and pairs are credited');
 test(rec([]).patterns.length===0&&rec([]).abilityTips.length===0,'empty lineup returns empty pairs and tips');
 
+// Item-entry suggestions cover enemy items, not just the starter counter picks.
+const offered=E.itemSuggestions(starter);
+test(['Mystic Burst','Silencer','Tankbuster','Reactive Barrier'].every(n=>offered.includes(n)),'starter suggestions include enemy items and counter items');
+test(new Set(offered.map(E.norm)).size===offered.length&&offered.join()===[...offered].sort((a,b)=>a.localeCompare(b)).join(),'suggestions are unique and sorted');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),ui=fs.readFileSync(path.join(root,'js/ui.js'),'utf8');
 test(html.includes('id="patternInsight"')&&html.includes('id="abilityTips"'),'pair and tip areas present');
 test(ui.includes('escapeHTML(x.hero)')&&ui.includes('escapeHTML(t.note)')&&ui.includes('escapeHTML(r.evidence.join'),'pairs, tips and evidence are escaped');

@@ -67,6 +67,7 @@ test(!demo.results.some(r=>r.name==='Extra Stamina'),'owned items excluded with 
 test(demo.abilityTips.some(t=>t.hero==='Bebop'&&t.ability==='Grapple Arm')&&demo.abilityTips.every(t=>kits.get(t.hero).includes(t.ability)),'synced tips use current ability names');
 test(demo.patterns.some(p=>p.hero==='Lash'&&p.items.includes('Mystic Burst')),'demo lineup shows its item pair after sync');
 
+test(E.itemSuggestions(catalog).length===snapshot.items.length,'after sync, suggestions are exactly the real shop items');
 // Curated enemy tags override misleading shop groups.
 let out=recommend([{hero:'Haze',items:'Silencer'}]);
 test(threatNames(out).includes('control')&&!threatNames(out).includes('range'),'Silencer reads as a disable, not weapon range');

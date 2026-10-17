@@ -290,13 +290,15 @@ input,select {font-size:calc(13px * var(--ui-text-multiplier));min-height:44px;h
 .quickUpgrade {font-size:calc(11px * var(--ui-text-multiplier));color:#b9d9c7;}
 .buyNow,.saveUp {font-size:calc(11px * var(--ui-text-multiplier));}
 
-/* At ultrawide sizes, live status / catalog / build context occupy the first
-   row; enemies use the full next row. This eliminates the empty middle cell. */
+/* At ultrawide sizes, enemies use the full first row; build context and the
+   setup section share the second, with the two setup cards side by side. */
 @media (min-width: 3000px) {
  .workspace {grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);}
  .leftPanel {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:18px;}
- .leftPanel>.liveCard,.leftPanel>.syncCard,.leftPanel>.heroCard {grid-column:auto;grid-row:1;}
- .leftPanel>.enemyBlock {grid-column:1 / -1;grid-row:2;}
+ .leftPanel>.enemyBlock {grid-column:1 / -1;grid-row:1;}
+ .leftPanel>.heroCard {grid-column:1;grid-row:2;}
+ .leftPanel>.setupPanel {grid-column:2 / -1;grid-row:2;}
+ .setupPanel>.setupCards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;}
  .enemyList {grid-template-columns:repeat(2,minmax(0,1fr));}
  .liveCard,.syncCard,.heroCard {padding:clamp(16px, .8vw,22px);}
  .liveCard .actionRow {display:flex;flex-wrap:wrap;}
@@ -334,3 +336,18 @@ input,select {font-size:calc(13px * var(--ui-text-multiplier));min-height:44px;h
 .abilityTips li{line-height:1.45}
 .abilityTips li>b{color:#e6fbf8}
 .evidenceLine,.quickEvidence{font-size:.88em;color:#a7dbcb;margin:6px 0}
+
+/* Match-first layout: the picks come before the explanations, and the
+   once-per-session setup cards sit in a collapsible section. */
+.recommendationFilters{margin-bottom:0}
+.recommendationFilters .evidenceQuality{margin-left:auto}
+.whySection{margin-top:18px;padding-top:14px;border-top:1px solid #304456}
+.whySection .threats{margin-bottom:4px}
+.setupPanel{border:1px solid #2b4054;border-radius:16px;background:#111c2a}
+.setupPanel>summary{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:14px 18px;cursor:pointer;list-style:none}
+.setupPanel>summary::-webkit-details-marker{display:none}
+.setupPanel>summary::before{content:'▸';color:#74bbaa}
+.setupPanel[open]>summary::before{content:'▾'}
+.setupTitle{flex:1;letter-spacing:.15em;font-size:calc(10.5px * var(--ui-text-multiplier));font-weight:780;color:#74bbaa}
+.setupStatus{font-size:calc(11px * var(--ui-text-multiplier));color:#a3b8c6}
+.setupCards{display:flex;flex-direction:column;gap:14px;padding:0 12px 12px}

@@ -144,6 +144,14 @@ function createCatalog(base,snapshot){
   items:snapshot.items.map(i=>({...i,icon:iconPath(i.icon)})),
   enemyItems:base.enemyItems,complete:true,build:snapshot.build,generatedAt:snapshot.generatedAt};
 }
+// Names for the item-entry suggestions: every item the app recognizes. The
+// offline starter catalog's items are only the counter picks, so the curated
+// enemy-item names are added too.
+function itemSuggestions(catalog){
+ const names=new Map();
+ for(const name of [...catalog.items.map(i=>i.name),...Object.keys(catalog.enemyItems||{})])if(!names.has(norm(name)))names.set(norm(name),name);
+ return [...names.values()].sort((a,b)=>a.localeCompare(b));
+}
 // v0.6 recommendation model: explainable ordinal ranking, NOT a win-rate or
 // numerical damage model. Caps repeated pressure from the same enemy so six
 // similar purchases cannot inflate a single threat indefinitely.
@@ -276,5 +284,5 @@ function recommend(state,catalog,options={}){
  patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,recommend,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
+root.DeadlockEngine={createCatalog,recommend,itemSuggestions,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
 })(typeof window!=='undefined'?window:globalThis);
