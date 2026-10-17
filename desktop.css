@@ -319,3 +319,18 @@ input,select {font-size:calc(13px * var(--ui-text-multiplier));min-height:44px;h
 .updateLabel{font-size:var(--fs-xs,12px);color:#a8d5d5;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
 .updateButton{white-space:nowrap}
 @media(max-width:850px){.updateLabel{display:none}}
+
+/* Enemy item pairs, hero ability tips and per-item evidence */
+.patternInsight,.abilityTips{margin:9px 0 12px;padding:12px 14px;border:1px solid rgba(74,172,160,.32);background:rgba(24,71,75,.25);border-radius:10px;color:#d1f2ee;font-size:calc(12px * var(--ui-text-multiplier))}
+.patternInsight[hidden],.abilityTips[hidden]{display:none}
+.patternInsight>strong,.abilityTips>summary{display:block;font-size:.82em;font-weight:700;letter-spacing:.09em;color:#83d9cb;margin-bottom:8px}
+.abilityTips>summary{cursor:pointer;margin-bottom:0}
+.abilityTips[open]>summary{margin-bottom:8px}
+.patternInsight small,.abilityTips small{display:block;margin-top:7px;line-height:1.5;color:#a3bfca}
+.patternChips{display:flex;gap:7px;flex-wrap:wrap}
+.patternChip{padding:6px 9px;border-radius:7px;background:rgba(9,25,38,.65);border:1px solid rgba(116,182,181,.26);line-height:1.45}
+.patternChip>span{opacity:.75}
+.abilityTips ul{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 14px}
+.abilityTips li{line-height:1.45}
+.abilityTips li>b{color:#e6fbf8}
+.evidenceLine,.quickEvidence{font-size:.88em;color:#a7dbcb;margin:6px 0}

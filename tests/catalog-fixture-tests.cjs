@@ -36,6 +36,17 @@ stale=missingFrom([...new Set(snapshot.items.map(i=>i.group))],new Set(Object.ke
 test(!stale.length,'shop groups with no ENEMY_GROUPS entry: '+stale.join(', '));
 stale=snapshot.heroes.map(h=>h.name).filter(n=>!Object.prototype.hasOwnProperty.call(base.heroes,n));
 test(!stale.length,'released heroes with no curated profile: '+stale.join(', '));
+// Item pairs: both items real, recognized offline, and not one build path.
+for(const pattern of E.PURCHASE_PATTERNS){
+  const [a,b]=pattern.items.map(n=>byName.get(E.norm(n)));
+  test(a&&b,`pair items exist: ${pattern.items.join(' + ')}`);
+  test(pattern.items.every(n=>Object.keys(base.enemyItems).some(k=>E.norm(k)===E.norm(n))),`pair items have curated tags: ${pattern.items.join(' + ')}`);
+  test(!(a.components||[]).includes(b.id)&&!(b.components||[]).includes(a.id),`pair items are not one build path: ${pattern.items.join(' + ')}`);
+}
+// Ability tips must name abilities in the hero's current kit.
+const kits=new Map(snapshot.heroes.map(h=>[h.name,h.abilities||[]]));
+stale=Object.entries(E.ABILITY_CUES).flatMap(([hero,cues])=>cues.filter(c=>!(kits.get(hero)||[]).includes(c.name)).map(c=>`${hero}: ${c.name}`));
+test(!stale.length,'ability tips not in the current kit: '+stale.join(', '));
 // Starter counters must survive a sync: same item, with a reviewed rule.
 for(const starter of base.counterItems){
   const real=byName.get(E.norm(starter.name));
@@ -53,6 +64,8 @@ test(demo.knownItems===demo.listedItems&&demo.quality==='Hero + recognized item 
 test(demo.quickBuys.length===3&&demo.results.length>=6,'demo produces quick buys and ranked results');
 test(demo.results.every(r=>itemIds.has(r.id)&&byName.get(E.norm(r.name))?.id===r.id),'every result is a real item with its real name');
 test(!demo.results.some(r=>r.name==='Extra Stamina'),'owned items excluded with real names');
+test(demo.abilityTips.some(t=>t.hero==='Bebop'&&t.ability==='Grapple Arm')&&demo.abilityTips.every(t=>kits.get(t.hero).includes(t.ability)),'synced tips use current ability names');
+test(demo.patterns.some(p=>p.hero==='Lash'&&p.items.includes('Mystic Burst')),'demo lineup shows its item pair after sync');
 
 // Curated enemy tags override misleading shop groups.
 let out=recommend([{hero:'Haze',items:'Silencer'}]);
