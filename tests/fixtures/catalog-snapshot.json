@@ -1,0 +1,2764 @@
+{
+ "version": 1,
+ "source": "deadlock.io game-tracking",
+ "generatedAt": "2026-10-15T19:15:18.873Z",
+ "syncedAt": "2026-10-17T12:56:05.688Z",
+ "build": "client-6785",
+ "items": [
+  {
+   "id": "upgrade_extra_charge",
+   "name": "Extra Charge",
+   "cost": 800,
+   "tier": 1,
+   "category": "spirit",
+   "group": "ECharges",
+   "groupLabel": "Charges",
+   "icon": "/assets/game/panorama/images/items/spirit/extra_charge_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_rapid_recharge"
+   ]
+  },
+  {
+   "id": "upgrade_improved_spirit",
+   "name": "Extra Spirit",
+   "cost": 800,
+   "tier": 1,
+   "category": "spirit",
+   "group": "EMoreSpirit",
+   "groupLabel": "More Spirit",
+   "icon": "/assets/game/panorama/images/items/spirit/extra_spirit_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_soaring_spirit",
+    "upgrade_magic_storm"
+   ]
+  },
+  {
+   "id": "upgrade_goose_egg",
+   "name": "Golden Goose Egg",
+   "cost": 800,
+   "tier": 1,
+   "category": "spirit",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/spirit/goose_egg_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_magic_burst",
+   "name": "Mystic Burst",
+   "cost": 800,
+   "tier": 1,
+   "category": "spirit",
+   "group": "EBurstDamage",
+   "groupLabel": "Burst Damage",
+   "icon": "/assets/game/panorama/images/items/spirit/mystic_burst_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_magic_shock"
+   ]
+  },
+  {
+   "id": "upgrade_magic_reach",
+   "name": "Mystic Expansion",
+   "cost": 800,
+   "tier": 1,
+   "category": "spirit",
+   "group": "ESpiritRange",
+   "groupLabel": "Spirit Range",
+   "icon": "/assets/game/panorama/images/items/spirit/mystic_reach_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_bulletshredimbue",
+    "upgrade_tech_range"
+   ]
+  },
+  {
+   "id": "upgrade_mystic_regeneration",
+   "name": "Mystic Regeneration",
+   "cost": 800,
+   "tier": 1,
+   "category": "spirit",
+   "group": "EMiscSpirit",
+   "groupLabel": "Misc Spirit",
+   "icon": "/assets/game/panorama/images/items/spirit/mystic_regen_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_resonant_healing"
+   ]
+  },
+  {
+   "id": "upgrade_withering_whip",
+   "name": "Rusted Barrel",
+   "cost": 800,
+   "tier": 1,
+   "category": "spirit",
+   "group": "EAntiGun",
+   "groupLabel": "Anti Gun",
+   "icon": "/assets/game/panorama/images/items/spirit/rusted_barrel_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": [
+    "upgrade_greater_withering_whip"
+   ]
+  },
+  {
+   "id": "upgrade_acolytes_glove",
+   "name": "Spirit Strike",
+   "cost": 800,
+   "tier": 1,
+   "category": "spirit",
+   "group": "EMeleeSpirit",
+   "groupLabel": "Melee Spirit",
+   "icon": "/assets/game/panorama/images/items/spirit/spirit_strike_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_spirit_snatch"
+   ]
+  },
+  {
+   "id": "upgrade_arcane_surge",
+   "name": "Arcane Surge",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "ESpiritRange",
+   "groupLabel": "Spirit Range",
+   "icon": "/assets/game/panorama/images/items/spirit/arcane_surge_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_improved_stamina"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_bullet_resist_shredder",
+   "name": "Bullet Resist Shredder",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "EMiscSpirit",
+   "groupLabel": "Misc Spirit",
+   "icon": "/assets/game/panorama/images/items/spirit/bullet_resist_shredder_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_cold_front",
+   "name": "Cold Front",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/spirit/cold_front_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": [
+    "upgrade_arctic_blast"
+   ]
+  },
+  {
+   "id": "upgrade_magic_tempo",
+   "name": "Compress Cooldown",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "ECooldown",
+   "groupLabel": "Cooldown",
+   "icon": "/assets/game/panorama/images/items/spirit/improved_cooldown_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_cooldown_reduction"
+   ]
+  },
+  {
+   "id": "upgrade_arcane_extension",
+   "name": "Duration Extender",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "EDuration",
+   "groupLabel": "Duration",
+   "icon": "/assets/game/panorama/images/items/spirit/duration_extender_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_imbued_duration_extender"
+   ]
+  },
+  {
+   "id": "upgrade_soaring_spirit",
+   "name": "Improved Spirit",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "EMoreSpirit",
+   "groupLabel": "More Spirit",
+   "icon": "/assets/game/panorama/images/items/spirit/improved_spirit_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_improved_spirit"
+   ],
+   "upgrades": [
+    "upgrade_boundless_spirit"
+   ]
+  },
+  {
+   "id": "upgrade_magic_slow",
+   "name": "Mystic Slow",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "ESlowingMagic",
+   "groupLabel": "Slowing Magic",
+   "icon": "/assets/game/panorama/images/items/spirit/mystic_slow_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_ultimate_burst"
+   ]
+  },
+  {
+   "id": "upgrade_magic_vulnerability",
+   "name": "Mystic Vulnerability",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "EMagicVulnerability",
+   "groupLabel": "Magic Vulnerability",
+   "icon": "/assets/game/panorama/images/items/spirit/mystic_vulnerability_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_escalating_exposure"
+   ]
+  },
+  {
+   "id": "upgrade_quick_silver",
+   "name": "Quicksilver Reload",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "EBurstDamage",
+   "groupLabel": "Burst Damage",
+   "icon": "/assets/game/panorama/images/items/spirit/quicksilver_reload_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_ethereal_bullets"
+   ]
+  },
+  {
+   "id": "upgrade_containment",
+   "name": "Slowing Hex",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "ECrownControl",
+   "groupLabel": "Crown Control",
+   "icon": "/assets/game/panorama/images/items/spirit/slowing_hex_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": [
+    "upgrade_aoe_root"
+   ]
+  },
+  {
+   "id": "upgrade_spirit_sap",
+   "name": "Spirit Sap",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/spirit/spirit_sap_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": [
+    "upgrade_focus_lens"
+   ]
+  },
+  {
+   "id": "upgrade_suppressor",
+   "name": "Suppressor",
+   "cost": 1600,
+   "tier": 2,
+   "category": "spirit",
+   "group": "ESlowingMagic",
+   "groupLabel": "Slowing Magic",
+   "icon": "/assets/game/panorama/images/items/spirit/suppressor_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_rupture",
+   "name": "Decay",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/spirit/decay_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_greater_withering_whip",
+   "name": "Disarming Hex",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "EAntiGun",
+   "groupLabel": "Anti Gun",
+   "icon": "/assets/game/panorama/images/items/spirit/disarming_hex_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_withering_whip"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_tech_range",
+   "name": "Greater Expansion",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "ESpiritRange",
+   "groupLabel": "Spirit Range",
+   "icon": "/assets/game/panorama/images/items/spirit/greater_expansion_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_magic_reach"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_target_stun",
+   "name": "Knockdown",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "ECrownControl",
+   "groupLabel": "Crown Control",
+   "icon": "/assets/game/panorama/images/items/spirit/knockdown_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_resonant_healing",
+   "name": "Radiant Regeneration",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/spirit/radiant_regeneration_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_mystic_regeneration"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_rapid_recharge",
+   "name": "Rapid Recharge",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "ECharges",
+   "groupLabel": "Charges",
+   "icon": "/assets/game/panorama/images/items/spirit/rapid_recharge_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_extra_charge"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_targeted_silence",
+   "name": "Silence Wave",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/spirit/silence_glyph_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_spirit_snatch",
+   "name": "Spirit Snatch",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "EMeleeSpirit",
+   "groupLabel": "Melee Spirit",
+   "icon": "/assets/game/panorama/images/items/spirit/spirit_snatch_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_acolytes_glove"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_cooldown_reduction",
+   "name": "Superior Cooldown",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "ECooldown",
+   "groupLabel": "Cooldown",
+   "icon": "/assets/game/panorama/images/items/spirit/superior_cooldown_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_magic_tempo"
+   ],
+   "upgrades": [
+    "upgrade_transcendent_cooldown"
+   ]
+  },
+  {
+   "id": "upgrade_imbued_duration_extender",
+   "name": "Superior Duration",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "EDuration",
+   "groupLabel": "Duration",
+   "icon": "/assets/game/panorama/images/items/spirit/superior_duration_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_arcane_extension"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_magic_storm",
+   "name": "Surge of Power",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "EMoreSpirit",
+   "groupLabel": "More Spirit",
+   "icon": "/assets/game/panorama/images/items/spirit/surge_of_power_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_improved_spirit"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_magic_shock",
+   "name": "Tankbuster",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "EBurstDamage",
+   "groupLabel": "Burst Damage",
+   "icon": "/assets/game/panorama/images/items/spirit/tankbuster_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_magic_burst"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_tech_damage_pulse",
+   "name": "Torment Pulse",
+   "cost": 3200,
+   "tier": 3,
+   "category": "spirit",
+   "group": "EMiscSpirit",
+   "groupLabel": "Misc Spirit",
+   "icon": "/assets/game/panorama/images/items/spirit/torment_pulse_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_arctic_blast",
+   "name": "Arctic Blast",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/spirit/arctic_blast_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_cold_front"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_boundless_spirit",
+   "name": "Boundless Spirit",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EMoreSpirit",
+   "groupLabel": "More Spirit",
+   "icon": "/assets/game/panorama/images/items/spirit/boundless_spirit_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_soaring_spirit"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_glitch",
+   "name": "Cursed Relic",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/spirit/curse_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_ability_power_shard",
+   "name": "Echo Shard",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "ECooldown",
+   "groupLabel": "Cooldown",
+   "icon": "/assets/game/panorama/images/items/spirit/echo_shard_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_escalating_exposure",
+   "name": "Escalating Exposure",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EMagicVulnerability",
+   "groupLabel": "Magic Vulnerability",
+   "icon": "/assets/game/panorama/images/items/spirit/escalating_exposure_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_magic_vulnerability"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_self_bubble",
+   "name": "Ethereal Shift",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/spirit/ethereal_shift_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_focus_lens",
+   "name": "Focus Lens",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/spirit/focus_lens_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_spirit_sap"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_ultimate_burst",
+   "name": "Lightning Scroll",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EBurstDamage",
+   "groupLabel": "Burst Damage",
+   "icon": "/assets/game/panorama/images/items/spirit/lightning_scroll_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_magic_slow"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_magic_carpet",
+   "name": "Magic Carpet",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EDuration",
+   "groupLabel": "Duration",
+   "icon": "/assets/game/panorama/images/items/spirit/magic_carpet_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_ethereal_bullets",
+   "name": "Mercurial Magnum",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/spirit/mercurial_magnum_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_quick_silver"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_mystic_reverb",
+   "name": "Mystic Reverb",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "ESlowingMagic",
+   "groupLabel": "Slowing Magic",
+   "icon": "/assets/game/panorama/images/items/spirit/mystic_reverb_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_ability_refresher",
+   "name": "Refresher",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/spirit/refresher_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_discord",
+   "name": "Scourge",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/spirit/scourge_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_spirit_burn",
+   "name": "Spirit Burn",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "EDuration",
+   "groupLabel": "Duration",
+   "icon": "/assets/game/panorama/images/items/spirit/spirit_burn_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_transcendent_cooldown",
+   "name": "Transcendent Cooldown",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/spirit/transcendent_cooldown_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_cooldown_reduction"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_aoe_root",
+   "name": "Vortex Web",
+   "cost": 6400,
+   "tier": 4,
+   "category": "spirit",
+   "group": "ECrownControl",
+   "groupLabel": "Crown Control",
+   "icon": "/assets/game/panorama/images/items/spirit/vortex_web_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_containment"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_health",
+   "name": "Extra Health",
+   "cost": 800,
+   "tier": 1,
+   "category": "vitality",
+   "group": "EMoreHealth",
+   "groupLabel": "More Health",
+   "icon": "/assets/game/panorama/images/items/vitality/extra_health_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_colossus",
+    "upgrade_chonky"
+   ]
+  },
+  {
+   "id": "upgrade_endurance",
+   "name": "Extra Regen",
+   "cost": 800,
+   "tier": 1,
+   "category": "vitality",
+   "group": "ERevitalization",
+   "groupLabel": "Revitalization",
+   "icon": "/assets/game/panorama/images/items/vitality/extra_regen_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_healing_booster"
+   ]
+  },
+  {
+   "id": "upgrade_improved_stamina",
+   "name": "Extra Stamina",
+   "cost": 800,
+   "tier": 1,
+   "category": "vitality",
+   "group": "EMovementAndAgility",
+   "groupLabel": "Movement and Agility",
+   "icon": "/assets/game/panorama/images/items/vitality/extra_stamina_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_arcane_surge",
+    "upgrade_kinetic_sash",
+    "upgrade_superior_stamina"
+   ]
+  },
+  {
+   "id": "upgrade_grit",
+   "name": "Grit",
+   "cost": 800,
+   "tier": 1,
+   "category": "vitality",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/vitality/grit_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": [
+    "upgrade_guardian_ward",
+    "upgrade_vex_barrier",
+    "upgrade_spirit_bubble",
+    "upgrade_weapon_shielding"
+   ]
+  },
+  {
+   "id": "upgrade_health_stimpak",
+   "name": "Healing Rite",
+   "cost": 800,
+   "tier": 1,
+   "category": "vitality",
+   "group": "EHealing",
+   "groupLabel": "Healing",
+   "icon": "/assets/game/panorama/images/items/vitality/healing_rite_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": [
+    "upgrade_health_nova",
+    "upgrade_rescue_beam"
+   ]
+  },
+  {
+   "id": "upgrade_lifestrike_gauntlets",
+   "name": "Melee Lifesteal",
+   "cost": 800,
+   "tier": 1,
+   "category": "vitality",
+   "group": "EMelee",
+   "groupLabel": "Melee",
+   "icon": "/assets/game/panorama/images/items/vitality/melee_lifesteal_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_boxing_glove"
+   ]
+  },
+  {
+   "id": "upgrade_melee_rebuttal",
+   "name": "Rebuttal",
+   "cost": 800,
+   "tier": 1,
+   "category": "vitality",
+   "group": "EMelee",
+   "groupLabel": "Melee",
+   "icon": "/assets/game/panorama/images/items/vitality/rebuttal_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_sprint_booster",
+   "name": "Sprint Boots",
+   "cost": 800,
+   "tier": 1,
+   "category": "vitality",
+   "group": "EMovementAndAgility",
+   "groupLabel": "Movement and Agility",
+   "icon": "/assets/game/panorama/images/items/vitality/sprint_boots_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_cardio_calibrator",
+    "upgrade_cloaking_device_active",
+    "upgrade_trophy_collector"
+   ]
+  },
+  {
+   "id": "upgrade_regenerating_bullet_shield",
+   "name": "Battle Vest",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "EBulletProtection",
+   "groupLabel": "Bullet Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/battle_vest_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_vampire",
+   "name": "Bullet Lifesteal",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "ELifesteal",
+   "groupLabel": "Lifesteal",
+   "icon": "/assets/game/panorama/images/items/vitality/bullet_lifesteal_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_fury_trance",
+    "upgrade_damage_recycler",
+    "upgrade_surging_power"
+   ]
+  },
+  {
+   "id": "upgrade_debuff_reducer",
+   "name": "Debuff Reducer",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "EDebuffs",
+   "groupLabel": "Debuffs",
+   "icon": "/assets/game/panorama/images/items/vitality/debuff_reducer_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_spellbreaker",
+    "upgrade_unstoppable"
+   ]
+  },
+  {
+   "id": "upgrade_magic_shield",
+   "name": "Enchanter's Emblem",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "ESpiritProtection",
+   "groupLabel": "Spirit Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/enchanters_emblem_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_cardio_calibrator",
+   "name": "Enduring Speed",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "EMovementAndAgility",
+   "groupLabel": "Movement and Agility",
+   "icon": "/assets/game/panorama/images/items/vitality/enduring_speed_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_sprint_booster"
+   ],
+   "upgrades": [
+    "upgrade_juggernaut"
+   ]
+  },
+  {
+   "id": "upgrade_guardian_ward",
+   "name": "Guardian Ward",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/vitality/guardian_ward_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_grit"
+   ],
+   "upgrades": [
+    "upgrade_divine_barrier"
+   ]
+  },
+  {
+   "id": "upgrade_healbane",
+   "name": "Healbane",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "EAntiHealing",
+   "groupLabel": "Anti Healing",
+   "icon": "/assets/game/panorama/images/items/vitality/healbane_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_healing_booster",
+   "name": "Healing Booster",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "ERevitalization",
+   "groupLabel": "Revitalization",
+   "icon": "/assets/game/panorama/images/items/vitality/healing_booster_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_endurance"
+   ],
+   "upgrades": [
+    "upgrade_healbuff"
+   ]
+  },
+  {
+   "id": "upgrade_vex_barrier",
+   "name": "Reactive Barrier",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "ERevitalization",
+   "groupLabel": "Revitalization",
+   "icon": "/assets/game/panorama/images/items/vitality/reactive_barrier_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_grit"
+   ],
+   "upgrades": [
+    "upgrade_auto_cleanse"
+   ]
+  },
+  {
+   "id": "upgrade_restorative_locket",
+   "name": "Restorative Locket",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "ERevitalization",
+   "groupLabel": "Revitalization",
+   "icon": "/assets/game/panorama/images/items/vitality/restorative_locket_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_return_fire",
+   "name": "Return Fire",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "EBulletProtection",
+   "groupLabel": "Bullet Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/return_fire_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_health_stealing_magic",
+   "name": "Spirit Lifesteal",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "ELifesteal",
+   "groupLabel": "Lifesteal",
+   "icon": "/assets/game/panorama/images/items/vitality/spirit_lifesteal_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_infuser",
+    "upgrade_damage_recycler",
+    "upgrade_tech_overflow"
+   ]
+  },
+  {
+   "id": "upgrade_spirit_bubble",
+   "name": "Spirit Shielding",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "EAdditionalProtection",
+   "groupLabel": "Additional Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/spirit_shielding_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_grit"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_trophy_collector",
+   "name": "Trophy Collector",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/vitality/trophy_collector_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_sprint_booster"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_weapon_shielding",
+   "name": "Weapon Shielding",
+   "cost": 1600,
+   "tier": 2,
+   "category": "vitality",
+   "group": "EAdditionalProtection",
+   "groupLabel": "Additional Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/weapon_shielding_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_grit"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_improved_bullet_armor",
+   "name": "Bullet Resilience",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EBulletProtection",
+   "groupLabel": "Bullet Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/bullet_resilience_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_counterspell",
+   "name": "Counterspell",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/vitality/counterspell_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_reduce_debuff_duration",
+   "name": "Dispel Magic",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EDebuffs",
+   "groupLabel": "Debuffs",
+   "icon": "/assets/game/panorama/images/items/vitality/debuff_remover_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_chonky",
+   "name": "Fortitude",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EMoreHealth",
+   "groupLabel": "More Health",
+   "icon": "/assets/game/panorama/images/items/vitality/fortitude_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_health"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_fury_trance",
+   "name": "Fury Trance",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/vitality/fury_trance_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_vampire"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_health_nova",
+   "name": "Healing Nova",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EHealing",
+   "groupLabel": "Healing",
+   "icon": "/assets/game/panorama/images/items/vitality/healing_nova_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_health_stimpak"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_boxing_glove",
+   "name": "Lifestrike",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EMelee",
+   "groupLabel": "Melee",
+   "icon": "/assets/game/panorama/images/items/vitality/lifestrike_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_lifestrike_gauntlets"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_rocket_booster",
+   "name": "Majestic Leap",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EMovementAndAgility",
+   "groupLabel": "Movement and Agility",
+   "icon": "/assets/game/panorama/images/items/vitality/majestic_leap_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_metal_skin",
+   "name": "Metal Skin",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EAdditionalProtection",
+   "groupLabel": "Additional Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/metal_skin_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_rescue_beam",
+   "name": "Rescue Beam",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EHealing",
+   "groupLabel": "Healing",
+   "icon": "/assets/game/panorama/images/items/vitality/rescue_beam_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_health_stimpak"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_tech_purge",
+   "name": "Spirit Resilience",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "ESpiritProtection",
+   "groupLabel": "Spirit Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/spirit_resilience_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_superior_stamina",
+   "name": "Stamina Mastery",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EMovementAndAgility",
+   "groupLabel": "Movement and Agility",
+   "icon": "/assets/game/panorama/images/items/vitality/stamina_mastery_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_improved_stamina"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_veil_walker",
+   "name": "Veil Walker",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EAdditionalProtection",
+   "groupLabel": "Additional Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/veil_walker_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_warp_stone",
+   "name": "Warp Stone",
+   "cost": 3200,
+   "tier": 3,
+   "category": "vitality",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/vitality/warp_stone_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_cheat_death",
+   "name": "Cheat Death",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "ESpiritProtection",
+   "groupLabel": "Spirit Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/cheat_death_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_colossus",
+   "name": "Colossus",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "EMoreHealth",
+   "groupLabel": "More Health",
+   "icon": "/assets/game/panorama/images/items/vitality/colossus_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_health"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_divine_barrier",
+   "name": "Divine Barrier",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/vitality/divine_barrier_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_guardian_ward"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_diviners_kevlar",
+   "name": "Diviner's Kevlar",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "EAdditionalProtection",
+   "groupLabel": "Additional Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/diviners_kevlar_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_healbuff",
+   "name": "Healing Tempo",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "ERevitalization",
+   "groupLabel": "Revitalization",
+   "icon": "/assets/game/panorama/images/items/vitality/healing_tempo_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_healing_booster"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_auto_cleanse",
+   "name": "Indomitable",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/vitality/indomitable_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_vex_barrier"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_infuser",
+   "name": "Infuser",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "ELifesteal",
+   "groupLabel": "Lifesteal",
+   "icon": "/assets/game/panorama/images/items/vitality/infuser_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_health_stealing_magic"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_inhibitor",
+   "name": "Inhibitor",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "EDebuffs",
+   "groupLabel": "Debuffs",
+   "icon": "/assets/game/panorama/images/items/vitality/inhibitor_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_juggernaut",
+   "name": "Juggernaut",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "EMovementAndAgility",
+   "groupLabel": "Movement and Agility",
+   "icon": "/assets/game/panorama/images/items/vitality/juggernaut_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_cardio_calibrator"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_damage_recycler",
+   "name": "Leech",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "ELifesteal",
+   "groupLabel": "Lifesteal",
+   "icon": "/assets/game/panorama/images/items/vitality/leech_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_vampire",
+    "upgrade_health_stealing_magic"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_phantom_strike",
+   "name": "Phantom Strike",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "ESpiritProtection",
+   "groupLabel": "Spirit Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/phantom_strike_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_deflecting_armor",
+   "name": "Plated Armor",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "EBulletProtection",
+   "groupLabel": "Bullet Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/plated_armor_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_siphon_bullets",
+   "name": "Siphon Bullets",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "EAdditionalProtection",
+   "groupLabel": "Additional Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/siphon_bullets_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_spellbreaker",
+   "name": "Spellbreaker",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "ESpiritProtection",
+   "groupLabel": "Spirit Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/spellbreaker_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_debuff_reducer"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_unstoppable",
+   "name": "Unstoppable",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "EMoreHealth",
+   "groupLabel": "More Health",
+   "icon": "/assets/game/panorama/images/items/vitality/unstoppable_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_debuff_reducer"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_surging_power",
+   "name": "Vampiric Burst",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "ELifesteal",
+   "groupLabel": "Lifesteal",
+   "icon": "/assets/game/panorama/images/items/vitality/vampiric_burst_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_vampire"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_absorbing_armor",
+   "name": "Witchmail",
+   "cost": 6400,
+   "tier": 4,
+   "category": "vitality",
+   "group": "ESpiritProtection",
+   "groupLabel": "Spirit Protection",
+   "icon": "/assets/game/panorama/images/items/vitality/witchmail_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_close_range",
+   "name": "Close Quarters",
+   "cost": 800,
+   "tier": 1,
+   "category": "weapon",
+   "group": "EWeaponRange",
+   "groupLabel": "Weapon Range",
+   "icon": "/assets/game/panorama/images/items/weapon/close_quarters_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_close_quarter_combat"
+   ]
+  },
+  {
+   "id": "upgrade_clip_size",
+   "name": "Extended Magazine",
+   "cost": 800,
+   "tier": 1,
+   "category": "weapon",
+   "group": "EMagazines",
+   "groupLabel": "Magazines",
+   "icon": "/assets/game/panorama/images/items/weapon/basic_magazine_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_reinforcing_casings",
+    "upgrade_titan_round"
+   ]
+  },
+  {
+   "id": "upgrade_headshot_booster",
+   "name": "Headshot Booster",
+   "cost": 800,
+   "tier": 1,
+   "category": "weapon",
+   "group": "EHeadshotEnthusiasts",
+   "groupLabel": "Headshot Enthusiasts",
+   "icon": "/assets/game/panorama/images/items/weapon/headshot_booster_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_headhunter"
+   ]
+  },
+  {
+   "id": "upgrade_high_velocity_mag",
+   "name": "High-Velocity Rounds",
+   "cost": 800,
+   "tier": 1,
+   "category": "weapon",
+   "group": "EBulletVelocity",
+   "groupLabel": "Bullet Velocity",
+   "icon": "/assets/game/panorama/images/items/weapon/high_velocity_rounds_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_aprounds",
+    "upgrade_express_shot",
+    "upgrade_pristine_emblem",
+    "upgrade_sharpshooter"
+   ]
+  },
+  {
+   "id": "upgrade_non_player_bonus",
+   "name": "Monster Rounds",
+   "cost": 800,
+   "tier": 1,
+   "category": "weapon",
+   "group": "EMisc",
+   "groupLabel": "Misc",
+   "icon": "/assets/game/panorama/images/items/weapon/monster_rounds_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_non_player_bonus_sacrifice"
+   ]
+  },
+  {
+   "id": "upgrade_rapid_rounds",
+   "name": "Rapid Rounds",
+   "cost": 800,
+   "tier": 1,
+   "category": "weapon",
+   "group": "ERateOfFire",
+   "groupLabel": "Rate Of Fire",
+   "icon": "/assets/game/panorama/images/items/weapon/rapid_rounds_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_burst_fire",
+    "upgrade_blitz_bullets"
+   ]
+  },
+  {
+   "id": "upgrade_medic_bullets",
+   "name": "Restorative Shot",
+   "cost": 800,
+   "tier": 1,
+   "category": "weapon",
+   "group": "EHealing",
+   "groupLabel": "Healing",
+   "icon": "/assets/game/panorama/images/items/weapon/restorative_shot_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_active_reload",
+   "name": "Active Reload",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "EMagazines",
+   "groupLabel": "Magazines",
+   "icon": "/assets/game/panorama/images/items/weapon/active_reload_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_fleetfoot_boots",
+   "name": "Fleetfoot",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/weapon/fleetfoot_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_intensifying_clip",
+   "name": "Intensifying Magazine",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "EMagazines",
+   "groupLabel": "Magazines",
+   "icon": "/assets/game/panorama/images/items/weapon/intensifying_magazine_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_kinetic_sash",
+   "name": "Kinetic Dash",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "EMisc",
+   "groupLabel": "Misc",
+   "icon": "/assets/game/panorama/images/items/weapon/kinetic_dash_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_improved_stamina"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_long_range",
+   "name": "Long Range",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "EBulletVelocity",
+   "groupLabel": "Bullet Velocity",
+   "icon": "/assets/game/panorama/images/items/weapon/long_range_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_sharpshooter"
+   ]
+  },
+  {
+   "id": "upgrade_melee_charge",
+   "name": "Melee Charge",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "ETankingBullets",
+   "groupLabel": "Tanking Bullets",
+   "icon": "/assets/game/panorama/images/items/weapon/melee_charge_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_crushing_fists"
+   ]
+  },
+  {
+   "id": "upgrade_crackshot",
+   "name": "Mystic Shot",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "ESpiritSlinger",
+   "groupLabel": "Spirit Slinger",
+   "icon": "/assets/game/panorama/images/items/weapon/mystic_shot_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_pristine_emblem",
+   "name": "Opening Rounds",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "EBulletVelocity",
+   "groupLabel": "Bullet Velocity",
+   "icon": "/assets/game/panorama/images/items/weapon/opening_rounds_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_high_velocity_mag"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_rechargingbullets",
+   "name": "Recharging Rush",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/weapon/recharging_rounds_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_slowing_bullets",
+   "name": "Slowing Bullets",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "ESlowingBullets",
+   "groupLabel": "Slowing Bullets",
+   "icon": "/assets/game/panorama/images/items/weapon/slowing_bullets_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_weighted_shots"
+   ]
+  },
+  {
+   "id": "upgrade_tech_defense_shredders",
+   "name": "Spirit Shredder",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "ESpiritSlinger",
+   "groupLabel": "Spirit Slinger",
+   "icon": "/assets/game/panorama/images/items/weapon/spirit_shredder_bullets_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_spellslinger_headshots"
+   ]
+  },
+  {
+   "id": "upgrade_split_shot",
+   "name": "Split Shot",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "EBulletVelocity",
+   "groupLabel": "Bullet Velocity",
+   "icon": "/assets/game/panorama/images/items/weapon/split_shot_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_weapon_backstabber",
+   "name": "Stalker",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/weapon/backstabber_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_blitz_bullets",
+   "name": "Swift Striker",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "ERateOfFire",
+   "groupLabel": "Rate Of Fire",
+   "icon": "/assets/game/panorama/images/items/weapon/swift_striker_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_rapid_rounds"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_titan_round",
+   "name": "Titanic Magazine",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "EMagazines",
+   "groupLabel": "Magazines",
+   "icon": "/assets/game/panorama/images/items/weapon/titanic_magazine_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_clip_size"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_headshot_booster2",
+   "name": "Weakening Headshot",
+   "cost": 1600,
+   "tier": 2,
+   "category": "weapon",
+   "group": "EHeadshotEnthusiasts",
+   "groupLabel": "Headshot Enthusiasts",
+   "icon": "/assets/game/panorama/images/items/weapon/weakening_headshot_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_banshee_slugs"
+   ]
+  },
+  {
+   "id": "upgrade_thermal_detonator",
+   "name": "Alchemical Fire",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/weapon/alchemical_fire_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_bulletshredimbue",
+   "name": "Ballistic Enchantment",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/weapon/alchemical_seal_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_magic_reach"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_berserker",
+   "name": "Berserker",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "ETankingBullets",
+   "groupLabel": "Tanking Bullets",
+   "icon": "/assets/game/panorama/images/items/weapon/berserker_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_blood_tribute",
+   "name": "Blood Tribute",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/weapon/blood_tribute_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_burst_fire",
+   "name": "Burst Fire",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "ERateOfFire",
+   "groupLabel": "Rate Of Fire",
+   "icon": "/assets/game/panorama/images/items/weapon/burst_fire_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_rapid_rounds"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_non_player_bonus_sacrifice",
+   "name": "Cultist Sacrifice",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/weapon/cultist_sacrifice_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_non_player_bonus"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_reinforcing_casings",
+   "name": "Escalating Resilience",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EMagazines",
+   "groupLabel": "Magazines",
+   "icon": "/assets/game/panorama/images/items/weapon/escalating_resilience_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_clip_size"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_express_shot",
+   "name": "Express Shot",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/weapon/express_shot_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_high_velocity_mag"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_headhunter",
+   "name": "Headhunter",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EHeadshotEnthusiasts",
+   "groupLabel": "Headshot Enthusiasts",
+   "icon": "/assets/game/panorama/images/items/weapon/headhunter_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_headshot_booster"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_dps_aura",
+   "name": "Heroic Aura",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EActives",
+   "groupLabel": "Actives",
+   "icon": "/assets/game/panorama/images/items/weapon/heroic_aura_psd.png",
+   "active": true,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_hollow_point_rounds",
+   "name": "Hollow Point",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EMisc",
+   "groupLabel": "Misc",
+   "icon": "/assets/game/panorama/images/items/weapon/hollow_point_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_bullet_armor_reduction_aura",
+   "name": "Hunter's Aura",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EWeaponRange",
+   "groupLabel": "Weapon Range",
+   "icon": "/assets/game/panorama/images/items/weapon/hunters_aura_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_close_quarter_combat",
+   "name": "Point Blank",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EWeaponRange",
+   "groupLabel": "Weapon Range",
+   "icon": "/assets/game/panorama/images/items/weapon/point_blank_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_close_range"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_cloaking_device_active",
+   "name": "Shadow Weave",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EWeaponRange",
+   "groupLabel": "Weapon Range",
+   "icon": "/assets/game/panorama/images/items/weapon/shadow_weave_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_sprint_booster"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_sharpshooter",
+   "name": "Sharpshooter",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EBulletVelocity",
+   "groupLabel": "Bullet Velocity",
+   "icon": "/assets/game/panorama/images/items/weapon/sharp_shooter_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_long_range",
+    "upgrade_high_velocity_mag"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_spellslinger_headshots",
+   "name": "Spirit Rend",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "ESpiritSlinger",
+   "groupLabel": "Spirit Slinger",
+   "icon": "/assets/game/panorama/images/items/weapon/spellslinger_headshots_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_tech_defense_shredders"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_chain_lightning",
+   "name": "Tesla Bullets",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "ESpiritSlinger",
+   "groupLabel": "Spirit Slinger",
+   "icon": "/assets/game/panorama/images/items/weapon/tesla_bullets_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": [
+    "upgrade_capacitor"
+   ]
+  },
+  {
+   "id": "upgrade_toxic_bullets",
+   "name": "Toxic Bullets",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EMisc",
+   "groupLabel": "Misc",
+   "icon": "/assets/game/panorama/images/items/weapon/toxic_bullets_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_weighted_shots",
+   "name": "Weighted Shots",
+   "cost": 3200,
+   "tier": 3,
+   "category": "weapon",
+   "group": "EBulletVelocity",
+   "groupLabel": "Bullet Velocity",
+   "icon": "/assets/game/panorama/images/items/weapon/weighted_shots_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_slowing_bullets"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_aprounds",
+   "name": "Armor Piercer",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "EBulletVelocity",
+   "groupLabel": "Bullet Velocity",
+   "icon": "/assets/game/panorama/images/items/weapon/armor_piercing_rounds_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_high_velocity_mag"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_capacitor",
+   "name": "Capacitor",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/weapon/capacitor_psd.png",
+   "active": true,
+   "components": [
+    "upgrade_chain_lightning"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_banshee_slugs",
+   "name": "Crippling Headshot",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "EHeadshotEnthusiasts",
+   "groupLabel": "Headshot Enthusiasts",
+   "icon": "/assets/game/panorama/images/items/weapon/crippling_headshot_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_headshot_booster2"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_crushing_fists",
+   "name": "Crushing Fists",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/weapon/crushing_fists_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_melee_charge"
+   ],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_fervor",
+   "name": "Frenzy",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "ETankingBullets",
+   "groupLabel": "Tanking Bullets",
+   "icon": "/assets/game/panorama/images/items/weapon/frenzy_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_glass_cannon",
+   "name": "Glass Cannon",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "ESlowingBullets",
+   "groupLabel": "Slowing Bullets",
+   "icon": "/assets/game/panorama/images/items/weapon/glass_cannon_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_critshot",
+   "name": "Lucky Shot",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "EMisc",
+   "groupLabel": "Misc",
+   "icon": "/assets/game/panorama/images/items/weapon/lucky_shot_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_ricochet",
+   "name": "Ricochet",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "ERateOfFire",
+   "groupLabel": "Rate Of Fire",
+   "icon": "/assets/game/panorama/images/items/weapon/ricochet_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_proc_silence",
+   "name": "Silencer",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "EWeaponRange",
+   "groupLabel": "Weapon Range",
+   "icon": "/assets/game/panorama/images/items/weapon/silencer_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_enchanted_holsters",
+   "name": "Spellslinger",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "",
+   "groupLabel": "",
+   "icon": "/assets/game/panorama/images/items/weapon/spell_slinger_psd.png",
+   "active": false,
+   "components": [],
+   "upgrades": []
+  },
+  {
+   "id": "upgrade_tech_overflow",
+   "name": "Spiritual Overflow",
+   "cost": 6400,
+   "tier": 4,
+   "category": "weapon",
+   "group": "ESpiritSlinger",
+   "groupLabel": "Spirit Slinger",
+   "icon": "/assets/game/panorama/images/items/weapon/spiritual_overflow_psd.png",
+   "active": false,
+   "components": [
+    "upgrade_health_stealing_magic"
+   ],
+   "upgrades": []
+  }
+ ],
+ "heroes": [
+  {
+   "id": 1,
+   "name": "Infernus",
+   "slug": "infernus",
+   "portrait": "/assets/game/panorama/images/heroes/inferno_card_psd.png",
+   "tags": [
+    "Arsonist",
+    "Explosive",
+    "Burn Rubber"
+   ],
+   "style": "Rapid Fire"
+  },
+  {
+   "id": 2,
+   "name": "Seven",
+   "slug": "seven",
+   "portrait": "/assets/game/panorama/images/heroes/gigawatt_card_psd.png",
+   "tags": [
+    "High Voltage",
+    "Merciless",
+    "Area Denial"
+   ],
+   "style": "Burst Fire"
+  },
+  {
+   "id": 3,
+   "name": "Vindicta",
+   "slug": "vindicta",
+   "portrait": "/assets/game/panorama/images/heroes/hornet_card_psd.png",
+   "tags": [
+    "Sniper",
+    "Soaring",
+    "One Shot Kill"
+   ],
+   "style": "Long Range"
+  },
+  {
+   "id": 4,
+   "name": "Lady Geist",
+   "slug": "lady-geist",
+   "portrait": "/assets/game/panorama/images/heroes/spectre_card_psd.png",
+   "tags": [
+    "Lifesteal",
+    "Self Damage",
+    "Fatale"
+   ],
+   "style": "Pistol"
+  },
+  {
+   "id": 6,
+   "name": "Abrams",
+   "slug": "abrams",
+   "portrait": "/assets/game/panorama/images/heroes/bull_card_psd.png",
+   "tags": [
+    "Tank",
+    "Brawler",
+    "Bull-Headed"
+   ],
+   "style": "Shotgun"
+  },
+  {
+   "id": 7,
+   "name": "Wraith",
+   "slug": "wraith",
+   "portrait": "/assets/game/panorama/images/heroes/wraith_card_psd.png",
+   "tags": [
+    "Duelist",
+    "Isolator",
+    "Telekinetic"
+   ],
+   "style": "Rapid Fire"
+  },
+  {
+   "id": 8,
+   "name": "McGinnis",
+   "slug": "mcginnis",
+   "portrait": "/assets/game/panorama/images/heroes/engineer_card_psd.png",
+   "tags": [
+    "Inventor",
+    "Support",
+    "Disruption"
+   ],
+   "style": "Heavy Artillery"
+  },
+  {
+   "id": 10,
+   "name": "Paradox",
+   "slug": "paradox",
+   "portrait": "/assets/game/panorama/images/heroes/chrono_card_psd.png",
+   "tags": [
+    "Calculated",
+    "Disruptor",
+    "Tactician"
+   ],
+   "style": "Burst Fire"
+  },
+  {
+   "id": 11,
+   "name": "Dynamo",
+   "slug": "dynamo",
+   "portrait": "/assets/game/panorama/images/heroes/sumo_card_psd.png",
+   "tags": [
+    "Teamplay",
+    "Initiator",
+    "Clutch"
+   ],
+   "style": "Pistol"
+  },
+  {
+   "id": 12,
+   "name": "Kelvin",
+   "slug": "kelvin",
+   "portrait": "/assets/game/panorama/images/heroes/kelvin_card_psd.png",
+   "tags": [
+    "Protector",
+    "Explorer",
+    "Ice Cold"
+   ],
+   "style": "Heavy Hitter"
+  },
+  {
+   "id": 13,
+   "name": "Haze",
+   "slug": "haze",
+   "portrait": "/assets/game/panorama/images/heroes/haze_card_psd.png",
+   "tags": [
+    "Assassin",
+    "Stealthy",
+    "Lethal"
+   ],
+   "style": "Rapid Fire"
+  },
+  {
+   "id": 14,
+   "name": "Holliday",
+   "slug": "holliday",
+   "portrait": "/assets/game/panorama/images/heroes/astro_card_psd.png",
+   "tags": [
+    "Crackshot",
+    "Explosive",
+    "Apprehender"
+   ],
+   "style": "Pistol"
+  },
+  {
+   "id": 15,
+   "name": "Bebop",
+   "slug": "bebop",
+   "portrait": "/assets/game/panorama/images/heroes/bebop_card_psd.png",
+   "tags": [
+    "Hook",
+    "Bomb",
+    "Punch"
+   ],
+   "style": "Beam Weapon"
+  },
+  {
+   "id": 16,
+   "name": "Calico",
+   "slug": "calico",
+   "portrait": "/assets/game/panorama/images/heroes/nano_card_psd.png",
+   "tags": [
+    "Tricksy",
+    "Slippery",
+    "Burst Damage"
+   ],
+   "style": "Spreadshot"
+  },
+  {
+   "id": 17,
+   "name": "Grey Talon",
+   "slug": "grey-talon",
+   "portrait": "/assets/game/panorama/images/heroes/archer_card_psd.png",
+   "tags": [
+    "Precision",
+    "Hunter",
+    "Area Denial"
+   ],
+   "style": "Bow"
+  },
+  {
+   "id": 18,
+   "name": "Mo & Krill",
+   "slug": "mo-and-krill",
+   "portrait": "/assets/game/panorama/images/heroes/digger_card_psd.png",
+   "tags": [
+    "Tag-Team",
+    "Initiator",
+    "Burrower"
+   ],
+   "style": "Spreadshot"
+  },
+  {
+   "id": 19,
+   "name": "Shiv",
+   "slug": "shiv",
+   "portrait": "/assets/game/panorama/images/heroes/shiv_card_psd.png",
+   "tags": [
+    "Rage",
+    "Bleed",
+    "Repeat"
+   ],
+   "style": "Spreadshot"
+  },
+  {
+   "id": 20,
+   "name": "Ivy",
+   "slug": "ivy",
+   "portrait": "/assets/game/panorama/images/heroes/tengu_card_psd.png",
+   "tags": [
+    "Team-up",
+    "Disruptor",
+    "Rock Solid"
+   ],
+   "style": "Rapid Fire"
+  },
+  {
+   "id": 25,
+   "name": "Warden",
+   "slug": "warden",
+   "portrait": "/assets/game/panorama/images/heroes/warden_card_psd.png",
+   "tags": [
+    "Initiator",
+    "Fearless",
+    "One Man Army"
+   ],
+   "style": "Heavy Hitter"
+  },
+  {
+   "id": 27,
+   "name": "Yamato",
+   "slug": "yamato",
+   "portrait": "/assets/game/panorama/images/heroes/yamato_card_psd.png",
+   "tags": [
+    "Relentless",
+    "Acrobatics",
+    "Pursuer"
+   ],
+   "style": "Spreadshot"
+  },
+  {
+   "id": 31,
+   "name": "Lash",
+   "slug": "lash",
+   "portrait": "/assets/game/panorama/images/heroes/lash_card_psd.png",
+   "tags": [
+    "Initiator",
+    "High-Flying",
+    "Arrogant"
+   ],
+   "style": "Burst Fire"
+  },
+  {
+   "id": 35,
+   "name": "Viscous",
+   "slug": "viscous",
+   "portrait": "/assets/game/panorama/images/heroes/viscous_card_psd.png",
+   "tags": [
+    "Evasive",
+    "Disruptor",
+    "Gooey"
+   ],
+   "style": "Projectile"
+  },
+  {
+   "id": 50,
+   "name": "Pocket",
+   "slug": "pocket",
+   "portrait": "/assets/game/panorama/images/heroes/synth_card_psd.png",
+   "tags": [
+    "Trickster",
+    "Burst Damage",
+    "Frogs"
+   ],
+   "style": "Spreadshot"
+  },
+  {
+   "id": 52,
+   "name": "Mirage",
+   "slug": "mirage",
+   "portrait": "/assets/game/panorama/images/heroes/mirage_card_psd.png",
+   "tags": [
+    "Bodyguard",
+    "Traveller",
+    "Focused"
+   ],
+   "style": "Pistol"
+  },
+  {
+   "id": 58,
+   "name": "Vyper",
+   "slug": "vyper",
+   "portrait": "/assets/game/panorama/images/heroes/kali_card_psd.png",
+   "tags": [
+    "Gunner",
+    "Slippery",
+    "Rat-a-Tat"
+   ],
+   "style": "Rapid Fire"
+  },
+  {
+   "id": 60,
+   "name": "Sinclair",
+   "slug": "sinclair",
+   "portrait": "/assets/game/panorama/images/heroes/magician_card_psd.png",
+   "tags": [
+    "Trickster",
+    "Copycat",
+    "Versatile"
+   ],
+   "style": "Burst Fire"
+  },
+  {
+   "id": 63,
+   "name": "Mina",
+   "slug": "mina",
+   "portrait": "/assets/game/panorama/images/heroes/vampirebat_card_psd.png",
+   "tags": [
+    "Harasser",
+    "Nimble",
+    "Vexing"
+   ],
+   "style": "Pistol"
+  },
+  {
+   "id": 64,
+   "name": "Drifter",
+   "slug": "drifter",
+   "portrait": "/assets/game/panorama/images/heroes/drifter_card_psd.png",
+   "tags": [
+    "Stalker",
+    "Bloodthirsty",
+    "Cruel"
+   ],
+   "style": "Spreadshot"
+  },
+  {
+   "id": 65,
+   "name": "Venator",
+   "slug": "venator",
+   "portrait": "/assets/game/panorama/images/heroes/priest_card_psd.png",
+   "tags": [
+    "Devout",
+    "Arms Expert",
+    "Tactical"
+   ],
+   "style": "Crossbow"
+  },
+  {
+   "id": 66,
+   "name": "Victor",
+   "slug": "victor",
+   "portrait": "/assets/game/panorama/images/heroes/frank_card_psd.png",
+   "tags": [
+    "You",
+    "Can't",
+    "Kill Me"
+   ],
+   "style": "Pistol"
+  },
+  {
+   "id": 67,
+   "name": "Paige",
+   "slug": "paige",
+   "portrait": "/assets/game/panorama/images/heroes/bookworm_card_psd.png",
+   "tags": [
+    "Helpful",
+    "Protector",
+    "Booksmart"
+   ],
+   "style": "Projectile"
+  },
+  {
+   "id": 69,
+   "name": "The Doorman",
+   "slug": "the-doorman",
+   "portrait": "/assets/game/panorama/images/heroes/doorman_card_psd.png",
+   "tags": [
+    "Disorienting",
+    "Map Control",
+    "Mind Games"
+   ],
+   "style": "Pistol"
+  },
+  {
+   "id": 72,
+   "name": "Billy",
+   "slug": "billy",
+   "portrait": "/assets/game/panorama/images/heroes/punkgoat_card_psd.png",
+   "tags": [
+    "Punk",
+    "Chaotic",
+    "G.O.A.T."
+   ],
+   "style": "Close Range"
+  },
+  {
+   "id": 76,
+   "name": "Graves",
+   "slug": "graves",
+   "portrait": "/assets/game/panorama/images/heroes/necro_card_psd.png",
+   "tags": [
+    "Morbid",
+    "Area Denial",
+    "Necromancer"
+   ],
+   "style": "Pistol"
+  },
+  {
+   "id": 77,
+   "name": "Apollo",
+   "slug": "apollo",
+   "portrait": "/assets/game/panorama/images/heroes/fencer_card_psd.png",
+   "tags": [
+    "Finesse",
+    "Mobility",
+    "A Cut Above"
+   ],
+   "style": "Spreadshot"
+  },
+  {
+   "id": 78,
+   "name": "Deadman Danny",
+   "slug": "deadman-danny",
+   "portrait": "/assets/game/panorama/images/heroes/deadpack_card_psd.png",
+   "tags": [
+    "Reckless",
+    "High-flying",
+    "Explosive"
+   ],
+   "style": ""
+  },
+  {
+   "id": 79,
+   "name": "Rem",
+   "slug": "rem",
+   "portrait": "/assets/game/panorama/images/heroes/familiar_card_psd.png",
+   "tags": [
+    "Helpful",
+    "Tiny",
+    "zZzzZ"
+   ],
+   "style": ""
+  },
+  {
+   "id": 80,
+   "name": "Silver",
+   "slug": "silver",
+   "portrait": "/assets/game/panorama/images/heroes/werewolf_card_psd.png",
+   "tags": [
+    "Feral",
+    "Hot Mess",
+    "Transformation"
+   ],
+   "style": "Long Range"
+  },
+  {
+   "id": 81,
+   "name": "Celeste",
+   "slug": "celeste",
+   "portrait": "/assets/game/panorama/images/heroes/unicorn_card_psd.png",
+   "tags": [
+    "Performer",
+    "Disruptive",
+    "Dazzling"
+   ],
+   "style": "Burst Fire"
+  },
+  {
+   "id": 84,
+   "name": "Rat King",
+   "slug": "rat-king",
+   "portrait": "/assets/game/panorama/images/heroes/ratking_card_psd.png",
+   "tags": [
+    "Scrappy",
+    "Regal",
+    "Tenacious"
+   ],
+   "style": "Spreadshot"
+  },
+  {
+   "id": 85,
+   "name": "Solomon",
+   "slug": "solomon",
+   "portrait": "/assets/game/panorama/images/heroes/chessmaster_card_psd.png",
+   "tags": [
+    "Strategist",
+    "Focused",
+    "Checkmate"
+   ],
+   "style": "Projectile"
+  }
+ ]
+}

@@ -25,8 +25,8 @@ ok(Object.keys(E.COUNTERS).length>=25,'curated counter rules expanded');ok(Objec
 ok(E.norm('Mo & Krill')==='mokrill','normalization stable');
 const {compactSnapshot,imagePath}=require('../js/snapshot.cjs');
 const validItems=Array.from({length:156},(_,i)=>({id:'upgrade_test_'+i,displayName:{english:'Test Item '+i},shop:{isPublicShopItem:true,category:i%3===0?'weapon':i%3===1?'vitality':'spirit',cost:i%4===0?800:i%4===1?1600:i%4===2?3200:6400,tier:i%4+1,groupId:'EHealing',componentIds:[],upgradeIds:[]},activation:{isActive:false},assets:{shopIcon:{publicPath:'/assets/game/panorama/images/items/vitality/test_psd.png'}}}));
-validItems[0]={...validItems[0],id:'upgrade_tech_armor',displayName:{english:'Spirit Shield'}};
-validItems[1]={...validItems[1],id:'upgrade_bullet_armor',displayName:{english:'Bullet Armor'}};
+validItems[0]={...validItems[0],id:'upgrade_tech_purge',displayName:{english:'Spirit Resilience'}};
+validItems[1]={...validItems[1],id:'upgrade_weapon_shielding',displayName:{english:'Weapon Shielding'}};
 validItems[2]={...validItems[2],id:'upgrade_healbane',displayName:{english:'Healbane'}};
 const validHeroes=Array.from({length:41},(_,i)=>({heroId:i+1,slug:'hero-'+i,displayName:{english:i===0?'Kelvin':i===1?'Haze':'Hero '+i},status:'released',playerSelectable:true,disabled:false,assets:{card:{publicPath:'/assets/game/panorama/images/heroes/kelvin_card_psd.png'}}}));
 const snapshot=compactSnapshot({items:validItems,source:{generatedAt:'2026-10-15T19:15:18Z',buildId:'client-6785'}},{heroes:validHeroes});
@@ -46,7 +46,7 @@ ok(live.complete,'complete flag');
 approxEqual(live.items.length,156,'all items available in runtime');
 ok(live.heroes.find(h=>h.name==='Haze').portrait.startsWith('https://deadlock.io/'),'image url allowlisted');
 result=E.recommend({hero:'Kelvin',souls:1600,owned:'',enemies:[{hero:'Haze',items:'Test Item 9'}]},live);
-ok(result.results.some(r=>r.id==='upgrade_bullet_armor'),'bullet protection candidate available');
+ok(result.results.some(r=>r.id==='upgrade_weapon_shielding'),'bullet protection candidate available');
 ok(result.results.every(r=>Number.isFinite(r.cost)&&r.cost>0),'every recommendation sourced current price');
 ok(result.results.every(r=>['category rule','matchup + category'].includes(r.confidence)),'heuristic confidence explicit');
 ok(result.results.some(r=>r.sources.some(s=>s.includes('Haze'))),'reason evidence provided');
@@ -135,7 +135,7 @@ try{
   const statuses=[],failures=[];
   const lf=new LocalFeed({onState:s=>statuses.push(s),onError:e=>failures.push(e)});
   lf.start(temp);
-  ok(statuses.length>=6,'initial live event sample parsed');
+  ok(statuses.length===1,'initial live event sample parsed in one update');
   const last=statuses.at(-1);
   ok(last.enemies.length===2&&last.observedInventories===2,'two hero inventories observed in demo');
   ok(last.ownHero==='KELVIN','sample local hero');

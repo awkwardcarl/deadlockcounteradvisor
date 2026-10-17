@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const base=window.DeadlockCatalog,engine=window.DeadlockEngine;
+const base=window.DeadlockCatalog,engine=window.DeadlockEngine,liveMerge=window.DeadlockLiveMerge;
 const STORE='deadlock-counter-advisor-desktop-v0.2';
 const STORE_UI_SIZE='deadlock-counter-advisor-ui-size';
 const VALID_UI_SIZES=new Set(['auto','standard','comfortable','large']);
@@ -23,7 +23,7 @@ function loadState(){
 }
 const state=loadState();
 let sortMode='smart',category='all',onlyAffordable=false,strategyMode='balanced',showAllResults=false;
-let currentLiveStatus=null;
+let currentLiveStatus=null,lastFeedSnapshot=null;
 const heroes=()=>catalog.heroes.map(h=>h.name).sort((a,b)=>a.localeCompare(b));
 function persist(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}}
 function heroOptions(selected,blank){let names=heroes();if(selected&&!names.includes(selected))names=[selected,...names];return (blank?['',...names]:names).map(h=>`<option value="${escapeHTML(h)}" ${h===selected?'selected':''}>${escapeHTML(h||'Select enemy hero')}</option>`).join('');}
@@ -63,6 +63,7 @@ function renderAdvice(){
 function onLiveStatus(status){
  currentLiveStatus=status||{};
  const run=!!status?.monitorActive,game=!!status?.gameStatus?.running,feed=!!status?.feedStatus?.active;
+ if(!feed)lastFeedSnapshot=null; // the next feed starts from a full lineup
  $('toggleGameDetection').textContent=run?'Stop game detection':'Enable game detection';
  $('gameProcess').textContent=!run?'Not monitoring':status.gameStatus?.error||(!status.gameStatus?.supported?'Not supported':game?'Deadlock running':'Game not found');
  $('matchTelemetry').textContent=feed?'Watching '+String(status.feedStatus.name||'local file'):'No live game source';
@@ -73,20 +74,19 @@ function onLiveStatus(status){
 }
 function onLiveMatch(match){
  if(!match||!Array.isArray(match.enemies))return;
- if(match.phase==='ended'||match.phase==='postgame'){
-   state.enemies=[];renderEnemies();renderAdvice();persist();
-   $('liveInfo').textContent='Feed reports match ended. Previous enemy inventories cleared.';
-   return;
+ const prev=lastFeedSnapshot;lastFeedSnapshot=match;
+ const resolveHero=name=>catalog.heroes.find(h=>engine.norm(h.name)===engine.norm(name))?.name||name;
+ const result=liveMerge.mergeFeedSnapshot(state,prev,match,resolveHero);
+ // Skip the redraw when nothing changed, so typing in a field is not interrupted.
+ if(result.changed){
+   $('hero').innerHTML=heroOptions(state.hero,false);
+   $('hero').value=state.hero;
+   $('souls').value=state.souls;
+   updatePortrait();renderEnemies();renderAdvice();persist();
  }
- if(match.warning){$('liveInfo').textContent=match.warning;return;}
- state.enemies=match.enemies.map(e=>({hero:catalog.heroes.find(h=>engine.norm(h.name)===engine.norm(e.hero))?.name||e.hero,items:e.items||''}));
- if(match.ownHero){const own=catalog.heroes.find(h=>engine.norm(h.name)===engine.norm(match.ownHero));state.hero=own?.name||match.ownHero;}
- if(Number.isFinite(match.souls))state.souls=match.souls;
- $('hero').innerHTML=heroOptions(state.hero,false);
- $('hero').value=state.hero;
- $('souls').value=state.souls;
- updatePortrait();renderEnemies();renderAdvice();persist();
- $('liveInfo').textContent=`Local feed: ${match.players} players · ${match.enemies.length} opponents · ${match.observedInventories}/${match.enemies.length} item inventories observed${match.clock?' · '+match.clock:''}. This is not a direct game connection.`;
+ if(result.ended)$('liveInfo').textContent='Feed reports match ended. Previous enemy inventories cleared.';
+ else if(result.warning)$('liveInfo').textContent=result.warning;
+ else if(!(match.phase==='ended'||match.phase==='postgame'))$('liveInfo').textContent=`Local feed: ${match.players} players · ${match.enemies.length} opponents · ${match.observedInventories}/${match.enemies.length} item inventories observed${match.clock?' · '+match.clock:''}. Your manual edits are kept until the feed reports a change. This is not a direct game connection.`;
 }
 function onUpdateStatus(update){
  const status=$('updateStatus'),button=$('updateAction');
@@ -132,7 +132,7 @@ function setup(){
  $('souls').addEventListener('input',e=>{state.souls=Math.max(0,Math.min(999999,Number(e.target.value)||0));renderAdvice();persist();});
  $('owned').addEventListener('input',e=>{state.owned=e.target.value;renderAdvice();persist();});
  $('addEnemy').addEventListener('click',()=>{if(state.enemies.length>=6)return;state.enemies.push({hero:'',items:''});renderEnemies();renderAdvice();persist();document.querySelectorAll('.enemyHero')[state.enemies.length-1]?.focus();});
- $('demo').addEventListener('click',()=>{Object.assign(state,{hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamina',enemies:[{hero:'Lash',items:'Mystic Burst, Improved Spirit'},{hero:'Bebop',items:'Improved Burst'},{hero:'Haze',items:'Rapid Rounds, Burst Fire'},{hero:'Infernus',items:'Healing Booster'}]});updateCatalogUI();setInputs();persist();});
+ $('demo').addEventListener('click',()=>{Object.assign(state,{hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamina',enemies:[{hero:'Lash',items:'Mystic Burst, Improved Spirit'},{hero:'Bebop',items:'Tankbuster'},{hero:'Haze',items:'Rapid Rounds, Burst Fire'},{hero:'Infernus',items:'Healing Booster'}]});updateCatalogUI();setInputs();persist();});
  $('clear').addEventListener('click',()=>{Object.assign(state,defaultState());updateCatalogUI();setInputs();persist();});
  $('focus').addEventListener('click',()=>{const hidden=document.body.classList.toggle('focusInputs');$('focus').textContent=hidden?'Show inputs':'Hide inputs';});
  $('sortMode').addEventListener('change',e=>{sortMode=e.target.value;renderAdvice();});
