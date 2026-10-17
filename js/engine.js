@@ -249,7 +249,9 @@ function recommend(state,catalog,options={}){
   const weights=item.weights||COUNTERS[item.id];
   if(!weights)return null; // never manufacture effects for unreviewed shop items
   const contributes=Object.entries(weights).filter(([tag,weight])=>byTag.has(tag)&&Number(weight)>0).map(([tag,weight])=>{
-   const t=byTag.get(tag),factor=strategy[tag]||1;
+   // tagFactors: optional per-threat weighting (the debrief uses it to lean
+   // toward the damage a player actually took).
+   const t=byTag.get(tag),factor=(strategy[tag]||1)*(Number(options.tagFactors?.[tag])||1);
    return {tag,raw:Math.sqrt(t.score)*Number(weight)*factor,source:t.sources,enemies:t.enemies};
   }).sort((a,b)=>b.raw-a.raw);
   if(!contributes.length)return null;

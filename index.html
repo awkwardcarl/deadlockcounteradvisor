@@ -28,6 +28,7 @@
         </label>
         <button id="updateAction" class="toolbarButton updateButton" type="button" hidden>Check updates</button>
         <span id="updateStatus" class="updateLabel" role="status">Updates: unavailable</span>
+        <button id="openDebrief" class="toolbarButton" type="button" title="Review a finished match by its match ID">Post-match debrief</button>
         <span id="displayInfo" class="displayInfo">Checking displays…</span>
         <button id="nextDisplay" class="toolbarButton" type="button">↗ Move display</button>
       </div>
@@ -96,6 +97,19 @@
         <footer>v0.10.0 · Item chips &amp; glance mode · Unofficial community companion · opt-in process detection · development-only local feed · no Valve affiliation or ban-free guarantee</footer>
       </section>
     </div>
+    <section class="debriefView" id="debriefView" hidden aria-labelledby="debriefTitle">
+      <div class="card debriefCard">
+        <div class="sectionHeading"><div><div class="overline">POST-MATCH</div><h2 id="debriefTitle">Match debrief</h2></div><button id="closeDebrief" class="iconButton" type="button">← Back to advisor</button></div>
+        <form class="debriefForm" id="debriefForm" autocomplete="off">
+          <label for="matchId">MATCH ID<input id="matchId" inputmode="numeric" maxlength="12" placeholder="e.g. 118673133"></label>
+          <label for="friendCode">YOUR STEAM FRIEND CODE <span class="optional">optional · finds you automatically · saved only on this PC</span><input id="friendCode" inputmode="numeric" maxlength="12" placeholder="e.g. 123456789"></label>
+          <button id="loadMatch" class="addButton" type="submit">Load match</button>
+        </form>
+        <p class="supportText" id="debriefStatus" role="status">Enter the match ID from Deadlock's post-game screen or match history. Match data comes from the free community API at deadlock-api.com.</p>
+        <div id="debriefPlayers" class="debriefPlayers" hidden></div>
+        <div id="debriefResults" class="debriefResults" hidden aria-live="polite"></div>
+      </div>
+    </section>
     <dialog id="heroDialog" class="heroDialog" aria-labelledby="heroDialogTitle">
       <div class="heroDialogHead"><h2 id="heroDialogTitle">Choose a hero</h2><input id="heroSearch" type="search" placeholder="Search heroes…" aria-label="Search heroes"><button id="heroDialogClose" class="iconButton" type="button" aria-label="Close">×</button></div>
       <div id="heroGrid" class="heroGrid"></div>
@@ -104,6 +118,8 @@
   <script src="js/catalog.js"></script>
   <script src="js/engine.js"></script>
   <script src="js/live-merge.js"></script>
+  <script src="js/debrief.js"></script>
+  <script src="js/debrief-ui.js"></script>
   <script src="js/ui.js"></script>
 </body>
 </html>
