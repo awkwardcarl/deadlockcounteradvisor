@@ -11,9 +11,19 @@ const MATCH_ID=/^\d{1,12}$/;
 const ASSET_ROUTES=Object.freeze(['/v1/assets/items','/v1/assets/heroes']);
 const ASSET_MAX_AGE_MS=24*60*60*1000;
 function routeAllowed(route){return ASSET_ROUTES.includes(route)||/^\/v1\/matches\/\d{1,12}\/metadata$/.test(route);}
+// The API serves matches it has archived freely, but a match it hasn't
+// archived yet (usually a very recent one) must be fetched from Valve, which
+// its docs limit to 3 requests per hour per IP. Messages say so, so players
+// don't spend that allowance on repeated clicks.
+function waitText(seconds){
+  const s=Math.max(5,Math.round(Number(seconds)||0));
+  return s>=90?`about ${Math.ceil(s/60)} minutes`:`${s} seconds`;
+}
 function friendlyStatus(status,retryAfter){
   if(status===404)return 'Match not found. Very recent matches can take a few minutes to appear; check the ID and try again.';
-  if(status===429||status===503)return `The match service is busy. Try again in ${Math.max(5,Number(retryAfter)||30)} seconds.`;
+  if(status===429)return `You've reached the match service's limit for fresh downloads: matches it hasn't archived yet are fetched from Valve, which allows 3 per hour from your PC. Try again in ${waitText(retryAfter||3600)}. Matches already in its archive load right away.`;
+  if(status===503)return `The match service is busy. Try again in ${waitText(retryAfter||30)}.`;
+  if(status===500||status===502||status===504)return 'The match service couldn\'t fetch this match right now. It probably isn\'t archived yet, so the service asked Valve for it, and that failed. Wait a few minutes before trying again: these fresh downloads are limited to 3 per hour.';
   return `The match service returned HTTP ${status}.`;
 }
 function getJSON(route,{httpsModule=https,maxBytes=24*1024*1024}={}){
