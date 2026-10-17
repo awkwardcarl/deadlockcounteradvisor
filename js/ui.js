@@ -132,7 +132,7 @@ function setup(){
  $('souls').addEventListener('input',e=>{state.souls=Math.max(0,Math.min(999999,Number(e.target.value)||0));renderAdvice();persist();});
  $('owned').addEventListener('input',e=>{state.owned=e.target.value;renderAdvice();persist();});
  $('addEnemy').addEventListener('click',()=>{if(state.enemies.length>=6)return;state.enemies.push({hero:'',items:''});renderEnemies();renderAdvice();persist();document.querySelectorAll('.enemyHero')[state.enemies.length-1]?.focus();});
- $('demo').addEventListener('click',()=>{Object.assign(state,{hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamina',enemies:[{hero:'Lash',items:'Mystic Burst, Improved Spirit'},{hero:'Bebop',items:'Improved Burst'},{hero:'Haze',items:'Rapid Rounds, Burst Fire'},{hero:'Infernus',items:'Healing Booster'}]});updateCatalogUI();setInputs();persist();});
+ $('demo').addEventListener('click',()=>{Object.assign(state,{hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamina',enemies:[{hero:'Lash',items:'Mystic Burst, Improved Spirit'},{hero:'Bebop',items:'Tankbuster'},{hero:'Haze',items:'Rapid Rounds, Burst Fire'},{hero:'Infernus',items:'Healing Booster'}]});updateCatalogUI();setInputs();persist();});
  $('clear').addEventListener('click',()=>{Object.assign(state,defaultState());updateCatalogUI();setInputs();persist();});
  $('focus').addEventListener('click',()=>{const hidden=document.body.classList.toggle('focusInputs');$('focus').textContent=hidden?'Show inputs':'Hide inputs';});
  $('sortMode').addEventListener('change',e=>{sortMode=e.target.value;renderAdvice();});

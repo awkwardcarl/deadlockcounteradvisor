@@ -27,16 +27,17 @@ test(E.recommend(baseState,catalog,{strategy:'antiheal'}).results.every(x=>Numbe
 test(E.recommend(baseState,catalog,{strategy:'escape'}).results.length>0,'control escape setting works');
 test(!E.recommend({...baseState,owned:'Reactive Barrier'},catalog).results.some(x=>x.name==='Reactive Barrier'),'owned exclusions preserved');
 const cat2={...catalog,complete:true,items:[
-  {id:'upgrade_bullet_armor',name:'Bullet Armor',cost:1600,category:'vitality',components:[]},
-  {id:'upgrade_improved_bullet_armor',name:'Improved Bullet Armor',cost:3200,category:'vitality',components:['upgrade_bullet_armor']},
-  {id:'upgrade_healbane',name:'Healbane',cost:1600,category:'spirit',components:[]}
+  // Real component chain from the game catalog: Debuff Reducer -> Unstoppable.
+  {id:'upgrade_debuff_reducer',name:'Debuff Reducer',cost:1600,category:'vitality',components:[]},
+  {id:'upgrade_unstoppable',name:'Unstoppable',cost:6400,category:'vitality',components:['upgrade_debuff_reducer']},
+  {id:'upgrade_healbane',name:'Healbane',cost:1600,category:'vitality',components:[]}
 ]};
-let upgrade=E.recommend({...baseState,owned:'Bullet Armor',souls:1700},cat2).results.find(x=>x.name==='Improved Bullet Armor');
+let upgrade=E.recommend({...baseState,owned:'Debuff Reducer',souls:4900},cat2).results.find(x=>x.name==='Unstoppable');
 test(!!upgrade,'component upgrade eligible');
-test(upgrade.upgradeFrom==='Bullet Armor' && upgrade.effectiveCost===1600,'owned component credited');
+test(upgrade.upgradeFrom==='Debuff Reducer' && upgrade.effectiveCost===4800,'owned component credited');
 test(upgrade.affordable===true,'discount affects affordability');
-upgrade=E.recommend({...baseState,owned:'',souls:1700},cat2).results.find(x=>x.name==='Improved Bullet Armor');
-test(upgrade.effectiveCost===3200&&!upgrade.affordable,'no fictitious upgrade credit');
+upgrade=E.recommend({...baseState,owned:'',souls:4900},cat2).results.find(x=>x.name==='Unstoppable');
+test(upgrade.effectiveCost===6400&&!upgrade.affordable,'no fictitious upgrade credit');
 const badCatalog={...cat2,items:[{id:'unreviewed',name:'Unreviewed Item',cost:800,category:'spirit'}]};
 test(E.recommend(baseState,badCatalog).results.length===0,'no invented counter data for arbitrary items');
 test(E.recommend({...baseState,enemies:[{hero:'Nurse Harrow'}]},catalog).unknown.some(x=>x.includes('No reviewed combat profile')),'new unreleased kit remains unverified');

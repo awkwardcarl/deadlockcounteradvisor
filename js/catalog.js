@@ -54,28 +54,52 @@
        October 16 snapshot. Keep selectable without inventing a threat profile. */
     unverifiedHeroes: ['Nurse Harrow', 'Violet'],
     rosterDate: '2026-10-16',
-    /* Only enrich enemy builds with threats reasonably suggested by item names/effects. */
+    /* Only enrich enemy builds with threats reasonably suggested by item effects.
+       These override the synced shop group, which is often misleading (Silencer
+       is grouped with weapon range; Phantom Strike with spirit protection).
+       Names checked against build client-6785. */
     enemyItems: {
       'Mystic Burst': ['spirit','burst'],
-      'Improved Burst': ['spirit','burst'],
+      'Tankbuster': ['spirit','burst'],
       'Extra Spirit': ['spirit'],
       'Improved Spirit': ['spirit'],
       'Boundless Spirit': ['spirit'],
       'Escalating Exposure': ['spirit'],
-      'Spiritual Overflow': ['spirit'],
-      'Tesla Bullets': ['bullet'],
+      'Spiritual Overflow': ['bullet','spirit'],
+      'Tesla Bullets': ['bullet','spirit'],
       'Glass Cannon': ['bullet','burst'],
       'Headshot Booster': ['bullet','burst'],
-      'Burst Fire': ['bullet'],
-      'Rapid Rounds': ['bullet'],
+      'Burst Fire': ['bullet','sustained'],
+      'Rapid Rounds': ['bullet','sustained'],
+      'Toxic Bullets': ['bullet','sustained'],
+      'Close Quarters': ['bullet'],
+      'Point Blank': ['bullet','slow'],
+      "Hunter's Aura": ['bullet'],
+      'Long Range': ['bullet','range'],
+      'Sharpshooter': ['bullet','range'],
+      'Weighted Shots': ['bullet','slow'],
+      'Shadow Weave': ['bullet','burst'],
       'Leech': ['sustain'],
+      'Siphon Bullets': ['sustain'],
       'Healing Booster': ['sustain'],
       'Healing Rite': ['sustain'],
       'Healing Tempo': ['sustain'],
+      'Lifestrike': ['sustain','slow'],
       'Silencer': ['control'],
-      'Curse': ['control'],
+      'Cursed Relic': ['control'],
       'Knockdown': ['control'],
-      'Slowing Hex': ['control']
+      'Slowing Hex': ['control','slow'],
+      'Silence Wave': ['control','spirit'],
+      'Focus Lens': ['control','spirit'],
+      'Lightning Scroll': ['control','spirit','burst'],
+      'Arctic Blast': ['control','slow','spirit'],
+      'Cold Front': ['spirit','slow'],
+      'Capacitor': ['control','slow'],
+      'Crushing Fists': ['control','bullet'],
+      'Phantom Strike': ['control','burst'],
+      'Colossus': ['slow'],
+      'Warp Stone': ['mobility'],
+      'Magic Carpet': ['mobility']
     },
     /* Costs checked for dated October 2026 snapshot; verify against current shop. */
     counterItems: [

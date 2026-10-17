@@ -2,55 +2,73 @@
 'use strict';
 // Item counter rules are conservative, curated mappings to categories of enemy
 // pressure; they are NOT derived from win-rate analysis or ability simulations.
+// Keys are the game's internal item ids, which are often legacy names that do
+// not match the shop name (upgrade_tech_purge is Spirit Resilience, not a
+// cleanse). The shop name is noted on each line; reviewed against build
+// client-6785. tests/catalog-fixture-tests.cjs fails if an id stops existing.
 const COUNTERS={
- upgrade_debuff_reducer:{control:3.2,slow:1.5,burst:.2},
- upgrade_reduce_debuff_duration:{control:3.8,slow:2.5,spirit:.4},
- upgrade_tech_purge:{control:3.4,spirit:1.3,slow:1.3},
- upgrade_spellbreaker:{spirit:3.2,burst:1.1,control:.5},
- upgrade_tech_armor:{spirit:3.8,burst:.5},
- upgrade_magic_shield:{spirit:3.0,burst:.8},
- upgrade_spirit_bubble:{spirit:2.8,burst:.8},
- upgrade_bullet_armor:{bullet:3.8,sustained:1.2},
- upgrade_improved_bullet_armor:{bullet:4.1,sustained:1.4},
- upgrade_regenerating_bullet_shield:{bullet:3.0,sustained:.9},
- upgrade_deflecting_armor:{bullet:4.0,sustained:1},
- upgrade_return_fire:{bullet:2.7,sustained:1.1},
- upgrade_metal_skin:{bullet:4.1,burst:.9},
- upgrade_healbane:{sustain:4.0},
- upgrade_withering_whip:{bullet:3.0,sustained:2.0},
- upgrade_greater_withering_whip:{bullet:3.3,sustained:2.1},
- upgrade_unstoppable:{control:3.3,slow:1.1},
- upgrade_inhibitor:{bullet:2.3,sustained:2.1},
- upgrade_savior:{burst:3.4,control:.7},
- upgrade_cheat_death:{burst:3.1},
- upgrade_phantom_strike:{range:2.8,mobility:2.0},
- upgrade_veil_walker:{burst:1.7,range:1.8},
- upgrade_improved_stamina:{mobility:1.7,control:1.0,slow:1.0},
- upgrade_superior_stamina:{mobility:2.1,control:1.1,slow:1.0},
- upgrade_sprint_booster:{range:1.1,mobility:1.8},
- upgrade_healing_booster:{sustain:.9,burst:.5},
- upgrade_targeted_silence:{spirit:2.4,control:1.7},
- upgrade_magic_slow:{mobility:2.5},
- upgrade_containment:{mobility:2.9,control:1.0},
- upgrade_aoe_root:{mobility:2.5},
- upgrade_spirit_sap:{spirit:2.0,sustain:1.0},
- upgrade_rupture:{sustain:2.0,range:1.2},
- upgrade_tech_damage_pulse:{mobility:1.1,bullet:.7}
+ // Disables and slows
+ upgrade_vex_barrier:{control:3.2,burst:1.0},                 // Reactive Barrier
+ upgrade_debuff_reducer:{control:3.2,slow:1.5,burst:.2},      // Debuff Reducer
+ upgrade_reduce_debuff_duration:{control:3.4,slow:2.5,spirit:.4}, // Dispel Magic
+ upgrade_unstoppable:{control:3.3,slow:1.1},                  // Unstoppable
+ upgrade_auto_cleanse:{control:3.4,burst:1.0},                // Indomitable
+ upgrade_divine_barrier:{slow:2.0,control:1.4,burst:1.4},     // Divine Barrier
+ upgrade_counterspell:{spirit:1.8,control:1.8},               // Counterspell
+ upgrade_cardio_calibrator:{slow:2.6},                        // Enduring Speed
+ upgrade_juggernaut:{slow:2.4,bullet:1.4,sustained:1.0},      // Juggernaut
+ upgrade_fleetfoot_boots:{slow:1.6,mobility:.8},              // Fleetfoot
+ // Spirit damage
+ upgrade_tech_purge:{spirit:3.4,burst:.3},                    // Spirit Resilience
+ upgrade_magic_shield:{spirit:2.4,burst:.4},                  // Enchanter's Emblem
+ upgrade_spirit_bubble:{spirit:2.8,burst:.8},                 // Spirit Shielding
+ upgrade_spellbreaker:{spirit:3.0,burst:1.5},                 // Spellbreaker
+ // Weapon damage
+ upgrade_weapon_shielding:{bullet:2.8,burst:.8},              // Weapon Shielding
+ upgrade_regenerating_bullet_shield:{bullet:3.0,sustained:.9}, // Battle Vest
+ upgrade_improved_bullet_armor:{bullet:3.6,sustained:1.2},    // Bullet Resilience
+ upgrade_deflecting_armor:{bullet:4.0,sustained:1},           // Plated Armor
+ upgrade_return_fire:{bullet:2.7,sustained:1.1},              // Return Fire
+ upgrade_metal_skin:{bullet:4.1,burst:.9},                    // Metal Skin
+ upgrade_withering_whip:{bullet:3.0,sustained:2.0},           // Rusted Barrel
+ upgrade_greater_withering_whip:{bullet:3.3,sustained:2.1},   // Disarming Hex
+ upgrade_inhibitor:{bullet:2.3,sustained:2.1,sustain:1.4},    // Inhibitor
+ // Burst / lethal focus
+ upgrade_self_bubble:{burst:3.0,control:1.6},                 // Ethereal Shift
+ upgrade_cheat_death:{burst:3.1},                             // Cheat Death
+ upgrade_veil_walker:{burst:1.7,range:1.8},                   // Veil Walker
+ // Healing and durable targets
+ upgrade_healbane:{sustain:4.0},                              // Healbane
+ upgrade_toxic_bullets:{sustain:2.6},                         // Toxic Bullets
+ upgrade_spirit_burn:{sustain:1.6},                           // Spirit Burn
+ upgrade_rupture:{sustain:2.0},                               // Decay
+ // Mobile and long-range enemies
+ upgrade_phantom_strike:{range:2.8,mobility:2.0},             // Phantom Strike
+ upgrade_improved_stamina:{mobility:1.7,control:1.0,slow:1.0}, // Extra Stamina
+ upgrade_superior_stamina:{mobility:2.1,control:1.1,slow:1.0}, // Stamina Mastery
+ upgrade_sprint_booster:{range:1.1,mobility:1.8},             // Sprint Boots
+ upgrade_magic_slow:{mobility:2.5},                           // Mystic Slow
+ upgrade_containment:{mobility:2.9,control:1.0},              // Slowing Hex
+ upgrade_aoe_root:{mobility:2.5},                             // Vortex Web
+ upgrade_tech_damage_pulse:{mobility:1.1,bullet:.7},          // Torment Pulse
+ // Spirit casters
+ upgrade_targeted_silence:{spirit:2.4,control:1.7},           // Silence Wave
+ upgrade_spirit_sap:{spirit:2.2,burst:.4}                     // Spirit Sap
 };
 // Explicit, reviewable matchup nudges for established heroes; these are not
 // automatically claimed to be accurate for patch-new characters.
 const MATCHUPS={
- 'Haze':{note:'Heavy sustained gunfire; consider weapon defense or fire-rate disruption.',items:{upgrade_bullet_armor:1,upgrade_metal_skin:1.1,upgrade_withering_whip:1.4}},
- 'Bebop':{note:'Pick potential followed by burst; plan a survival response to disables.',items:{upgrade_debuff_reducer:1.2,upgrade_tech_purge:1.1,upgrade_spellbreaker:.7}},
+ 'Haze':{note:'Heavy sustained gunfire; consider weapon defense or fire-rate disruption.',items:{upgrade_weapon_shielding:1,upgrade_metal_skin:1.1,upgrade_withering_whip:1.4}},
+ 'Bebop':{note:'Pick potential followed by burst; plan a survival response to disables.',items:{upgrade_debuff_reducer:1.2,upgrade_vex_barrier:1.1,upgrade_spellbreaker:.7}},
  'Lash':{note:'Mobile close-range engagements and displacement; positioning and anti-control matter.',items:{upgrade_debuff_reducer:.9,upgrade_improved_stamina:.7,upgrade_unstoppable:1.2}},
- 'Seven':{note:'Large area spirit pressure; respect damage mitigation and positioning.',items:{upgrade_tech_armor:1.4,upgrade_spellbreaker:1}},
- 'Infernus':{note:'Repeated spirit pressure and damage over time; consider defensive durability.',items:{upgrade_tech_armor:1.2,upgrade_tech_purge:.6}},
+ 'Seven':{note:'Large area spirit pressure; respect damage mitigation and positioning.',items:{upgrade_tech_purge:1.4,upgrade_spellbreaker:1}},
+ 'Infernus':{note:'Repeated spirit pressure and damage over time; consider defensive durability.',items:{upgrade_tech_purge:1.2,upgrade_reduce_debuff_duration:.6}},
  'Abrams':{note:'Can be hard to bring down when allowed to sustain at close range.',items:{upgrade_healbane:1.3,upgrade_improved_stamina:.6}},
  'Dynamo':{note:'Teamfight setup and disables can be high priority.',items:{upgrade_unstoppable:1.4,upgrade_debuff_reducer:1}},
- 'Vindicta':{note:'Long-range weapon pressure; closing distance or bullet resistance may help.',items:{upgrade_phantom_strike:1.2,upgrade_bullet_armor:.8}},
+ 'Vindicta':{note:'Long-range weapon pressure; closing distance or bullet resistance may help.',items:{upgrade_phantom_strike:1.2,upgrade_weapon_shielding:.8}},
  'McGinnis':{note:'Extended fights and area pressure; prioritize sustained-damage survival.',items:{upgrade_improved_bullet_armor:1,upgrade_healbane:.6}},
- 'Pocket':{note:'Mobile ability-based burst; anticipate evasive entries and exits.',items:{upgrade_spellbreaker:1.1,upgrade_tech_armor:.9}},
- 'Wraith':{note:'Weapon follow-up and control can combine for focused damage.',items:{upgrade_bullet_armor:1,upgrade_debuff_reducer:1.1}},
+ 'Pocket':{note:'Mobile ability-based burst; anticipate evasive entries and exits.',items:{upgrade_spellbreaker:1.1,upgrade_tech_purge:.9}},
+ 'Wraith':{note:'Weapon follow-up and control can combine for focused damage.',items:{upgrade_weapon_shielding:1,upgrade_debuff_reducer:1.1}},
  'Mo & Krill':{note:'Close-range control and brawling; mitigate disables before extended fights.',items:{upgrade_reduce_debuff_duration:1.1,upgrade_healbane:.8}},
  'Yamato':{note:'Close-range survivability and mobility; prepare for a prolonged fight.',items:{upgrade_healbane:.8,upgrade_containment:.6}},
  'Shiv':{note:'Sustained close-range threat; healing reduction may reduce his ability to outlast you.',items:{upgrade_healbane:1.1}},
@@ -61,16 +79,23 @@ const OWN_AFFINITY={
  upgrade_phantom_strike:['mobility','burst'],upgrade_improved_stamina:['mobility'],
  upgrade_superior_stamina:['mobility'],upgrade_aoe_root:['control','spirit'],
  upgrade_containment:['control','spirit'],upgrade_return_fire:['sustain'],
- upgrade_metal_skin:['bullet'],upgrade_tech_damage_pulse:['spirit']
+ upgrade_metal_skin:['bullet'],upgrade_tech_damage_pulse:['spirit'],
+ upgrade_toxic_bullets:['bullet'],upgrade_spirit_burn:['spirit']
 };
+// Shop group ids from the synced catalog. Defensive groups map to no pressure.
+// "ECrownControl" is the game's own spelling. Curated enemyItems entries in
+// catalog.js take precedence over these group guesses.
 const ENEMY_GROUPS={
  EHealing:['sustain'],ERevitalization:['sustain'],ELifesteal:['sustain'],EAntiHealing:[],
  ERateOfFire:['bullet','sustained'],EHeadshotEnthusiasts:['bullet','burst'],EWeaponRange:['bullet','range'],
  ESlowingBullets:['bullet','slow'],ETankingBullets:['bullet'],EMagazines:['bullet','sustained'],
+ EBulletVelocity:['bullet'],EMisc:['bullet'],
  ESpiritSlinger:['bullet','spirit'],EBurstDamage:['spirit','burst'],ESpiritRange:['spirit','range'],
  EMagicVulnerability:['spirit'],ESlowingMagic:['spirit','slow'],ECrownControl:['control'],
  EAntiGun:['control'],ECooldown:['spirit'],EMoreSpirit:['spirit'],EMovementAndAgility:['mobility'],
- EMelee:['sustain'],EAdditionalProtection:[],ECharges:['spirit'],EActives:[]
+ EMiscSpirit:['spirit'],EMeleeSpirit:['spirit'],EDuration:['spirit'],
+ EMelee:['sustain'],EAdditionalProtection:[],ECharges:['spirit'],EActives:[],
+ EMoreHealth:[],EBulletProtection:[],ESpiritProtection:[],EDebuffs:[]
 };
 const TAG_LABELS={spirit:'Spirit pressure',bullet:'Weapon damage',burst:'Burst damage',control:'Disables',sustain:'Healing / sustain',slow:'Slows',mobility:'Mobile enemies',sustained:'Extended fights',range:'Long-range poke',area:'Area damage',support:'Team utility'};
 const cleanList=x=>Array.isArray(x)?x.map(v=>String(v||'').trim()).filter(Boolean):String(x||'').split(',').map(v=>v.trim()).filter(Boolean);
@@ -125,14 +150,17 @@ function recommend(state,catalog,options={}){
   for(const raw of uniqueEnemyItems){
    listedItems++;
    const item=itemMap.get(norm(raw));
+   const curated=fallbackItemMap.get(norm(raw));
    let tags=[];
-   if(item){
+   // Reviewed per-item tags beat shop-group guesses (Silencer's group is
+   // EWeaponRange, but its threat is the silence).
+   if(curated){tags=curated;knownItems++;}
+   else if(item){
     tags=ENEMY_GROUPS[item.group]||[];
     if(!tags.length&&item.category==='spirit')tags=['spirit'];
     if(!tags.length&&item.category==='weapon')tags=['bullet'];
     knownItems++;
-   }else if(fallbackItemMap.has(norm(raw))){tags=fallbackItemMap.get(norm(raw));knownItems++;}
-   else{unknown.push('Unrecognized item: '+raw);continue;}
+   }else{unknown.push('Unrecognized item: '+raw);continue;}
    // Named, observed purchases contribute more than unverified hero archetypes.
    for(const tag of tags)pressure(tag,item?.tier>=3?0.85:0.65,`${heroName} · ${item?.name||raw}`,'item');
   }
