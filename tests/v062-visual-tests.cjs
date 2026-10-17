@@ -19,7 +19,7 @@ ok(js.includes('VALID_UI_SIZES.has(size)'), 'reject invalid persisted UI values'
 ok(js.includes("$('uiScale').addEventListener('change'"),'size selector wired');
 ok(css.includes('--ui-text-multiplier'),'layout text multiplier defined');
 ok(css.includes('@media (min-width: 3000px)') && css.includes('grid-template-columns:repeat(3,minmax(0,1fr))'),'ultrawide 3-card input row');
-ok(css.includes('.leftPanel>.enemyBlock {grid-column:1 / -1;grid-row:2;}'),'enemy lineup below controls');
+ok(css.includes('.leftPanel>.enemyBlock {grid-column:1 / -1;grid-row:1;}'),'enemy lineup is the first ultrawide row');
 ok(css.includes('@container (max-width: 760px)'),'quick cards stack on narrow panels');
 ok(html.includes('id="quickBuys"') && js.includes('class="quickArt') && js.includes('class="quickReason"'),'three quick buys with icon + reason');
 ok(js.includes('WHY IT HELPS') && js.includes('BUYABLE NOW'),'explainable quick picks');

@@ -38,6 +38,25 @@
     </div>
     <div class="workspace">
       <aside class="leftPanel" id="inputPanel">
+        <section class="card enemyBlock">
+          <div class="sectionHeading"><div><div class="overline">01 / OPPOSITION</div><h2>Enemy lineup</h2></div><button id="addEnemy" class="addButton" type="button">+ Add enemy</button></div>
+          <p class="supportText">Choose enemy heroes and optionally enter <em>visible</em> purchased items. Up to six opponents.</p>
+          <div id="enemies" class="enemyList" aria-label="Enemy lineup editor"></div>
+          <div class="actionRow"><button id="demo" type="button" class="muted">Load example match</button><button id="clear" type="button" class="muted">Reset match</button></div>
+        </section>
+        <section class="card heroCard">
+          <div class="sectionHeading"><div><div class="overline">02 / YOUR CHARACTER</div><h2>Build context</h2></div><span class="sectionSymbol">◈</span></div>
+          <div class="formgrid">
+            <label>PLAYING AS<div class="heroPicker"><img id="heroPortrait" alt="" class="heroPortrait" hidden><select id="hero" aria-label="Your hero"></select></div></label>
+            <label>AVAILABLE SOULS<input id="souls" type="number" min="0" max="999999" step="100" value="1600"></label>
+          </div>
+          <label class="field">YOUR OWNED ITEMS<input id="owned" type="text" maxlength="1500" list="itemNames" placeholder="e.g. Extra Spirit, Extra Health"></label>
+          <p class="supportText">Comma-separated names. Catalog recognition highlights owned items, enemy purchases, and affordable counters.</p><datalist id="itemNames"></datalist>
+        </section>
+        <!-- Used once per session, so tucked away; the summary shows the status. -->
+        <details class="setupPanel" id="setupPanel">
+          <summary><span class="setupTitle">SETUP · GAME DETECTION &amp; CATALOG</span><span class="setupStatus" id="setupStatus">Starter catalog</span></summary>
+          <div class="setupCards">
         <section class="card liveCard">
           <div class="sectionHeading"><div><div class="overline">OPTIONAL / READ-ONLY</div><h2>Game & event status</h2></div><span class="miniPill" id="liveMode">Disconnected</span></div>
           <div class="liveIndicators"><div><span>WINDOWS GAME PROCESS</span><strong id="gameProcess">Not monitoring</strong></div><div><span>MATCH TELEMETRY</span><strong id="matchTelemetry">No approved source</strong></div></div>
@@ -51,31 +70,20 @@
           <p class="supportText" id="syncStatus">Offline starter catalog loaded. Click Sync to fetch public game metadata and cache it locally. Replay import is offline, not live tracking.</p>
           <p class="supportText">Artwork and metadata: deadlock.io. Synced data is public shop and released heroes only.</p>
         </section>
-        <section class="card heroCard">
-          <div class="sectionHeading"><div><div class="overline">01 / YOUR CHARACTER</div><h2>Build context</h2></div><span class="sectionSymbol">◈</span></div>
-          <div class="formgrid">
-            <label>PLAYING AS<div class="heroPicker"><img id="heroPortrait" alt="" class="heroPortrait" hidden><select id="hero" aria-label="Your hero"></select></div></label>
-            <label>AVAILABLE SOULS<input id="souls" type="number" min="0" max="999999" step="100" value="1600"></label>
           </div>
-          <label class="field">YOUR OWNED ITEMS<input id="owned" type="text" maxlength="1500" list="itemNames" placeholder="e.g. Extra Spirit, Extra Health"></label>
-          <p class="supportText">Comma-separated names. Catalog recognition highlights owned items, enemy purchases, and affordable counters.</p><datalist id="itemNames"></datalist>
-        </section>
-        <section class="card enemyBlock">
-          <div class="sectionHeading"><div><div class="overline">02 / OPPOSITION</div><h2>Enemy lineup</h2></div><button id="addEnemy" class="addButton" type="button">+ Add enemy</button></div>
-          <p class="supportText">Choose enemy heroes and optionally enter <em>visible</em> purchased items. Up to six opponents.</p>
-          <div id="enemies" class="enemyList" aria-label="Enemy lineup editor"></div>
-          <div class="actionRow"><button id="demo" type="button" class="muted">Load example match</button><button id="clear" type="button" class="muted">Reset match</button></div>
-        </section>
+        </details>
       </aside>
       <section class="rightPanel">
         <div class="card recommCard">
           <div class="sectionHeading recommendationHeading"><div><div class="overline">03 / PURCHASE PRIORITIES</div><h2>Recommended counters</h2><p class="supportText subTitle">Explainable counters based on enemy lineup, purchased items, your hero, and available souls. Suggestions are heuristic, not win-rate predictions.</p></div><div class="rightActions"><span class="miniPill" id="matchLabel">Waiting</span><button id="focus" class="iconButton" type="button" title="Show or hide input panel">Hide inputs</button></div></div>
-          <div class="summaryRow"><div class="recommendationFilters"><label>Show <select id="sortMode"><option value="smart">Best fit</option><option value="affordable">Affordable first</option><option value="cost">Lowest cost</option></select></label><label>Filter <select id="filterCategory"><option value="all">All categories</option><option value="weapon">Weapon</option><option value="vitality">Vitality</option><option value="spirit">Spirit</option></select></label><label><input type="checkbox" id="affordableOnly"> Affordable only</label></div><span class="miniTitle">IDENTIFIED THREATS</span><div class="threats" id="threats"><span class="emptyText">Waiting for a lineup</span></div></div>
-          <div class="patternInsight" id="patternInsight" hidden aria-live="polite"></div>
-          <details class="abilityTips" id="abilityTips" open hidden></details>
-          <div class="recommendationActions"><label>YOUR PRIORITY <select id="strategyMode" aria-label="Current purchase priority"><option value="balanced">Balanced counters</option><option value="survive">Survive damage</option><option value="escape">Escape / disables</option><option value="antiheal">Stop sustain</option></select></label><span id="evidenceQuality" class="evidenceQuality" role="status">Waiting for matchup</span></div>
+          <div class="summaryRow"><div class="recommendationFilters"><label>Priority <select id="strategyMode" aria-label="Current purchase priority"><option value="balanced">Balanced counters</option><option value="survive">Survive damage</option><option value="escape">Escape / disables</option><option value="antiheal">Stop sustain</option></select></label><label>Show <select id="sortMode"><option value="smart">Best fit</option><option value="affordable">Affordable first</option><option value="cost">Lowest cost</option></select></label><label>Filter <select id="filterCategory"><option value="all">All categories</option><option value="weapon">Weapon</option><option value="vitality">Vitality</option><option value="spirit">Spirit</option></select></label><label><input type="checkbox" id="affordableOnly"> Affordable only</label><span id="evidenceQuality" class="evidenceQuality" role="status">Waiting for matchup</span></div></div>
           <div class="quickHeading"><div><div class="overline">QUICK PURCHASE PLAN</div><h3>Three next-item options</h3></div><small>Rankings are heuristic · verify the shop tooltip</small></div>
           <div id="quickBuys" class="quickBuys" aria-live="polite"></div>
+          <div class="whySection">
+            <span class="miniTitle">IDENTIFIED THREATS</span><div class="threats" id="threats"><span class="emptyText">Waiting for a lineup</span></div>
+            <div class="patternInsight" id="patternInsight" hidden aria-live="polite"></div>
+            <details class="abilityTips" id="abilityTips" hidden></details>
+          </div>
           <div class="allHeading"><span class="miniTitle">MORE COUNTER OPTIONS</span><button id="showAllResults" type="button" class="muted">Show all suggestions</button></div>
           <div id="results" class="results" aria-live="polite"><div class="empty">Choose an enemy hero to see the first recommendations.</div></div>
           <div class="shopSummary" id="shopSummary" aria-live="polite"></div><div id="unknown" class="unknown" role="status" hidden></div>

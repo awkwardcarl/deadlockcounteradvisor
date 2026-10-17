@@ -4,6 +4,7 @@ const $=id=>document.getElementById(id);
 const base=window.DeadlockCatalog,engine=window.DeadlockEngine,liveMerge=window.DeadlockLiveMerge;
 const STORE='deadlock-counter-advisor-desktop-v0.2';
 const STORE_UI_SIZE='deadlock-counter-advisor-ui-size';
+const STORE_SETUP_OPEN='deadlock-counter-advisor-setup-open';
 const VALID_UI_SIZES=new Set(['auto','standard','comfortable','large']);
 function applyUISize(size){
  const chosen=VALID_UI_SIZES.has(size)?size:'auto';
@@ -54,10 +55,20 @@ function updatePortrait(){
  img.hidden=!src;
  if(src)img.src=src;else img.removeAttribute('src');
 }
+function updateSetupStatus(){
+ const catalogLabel=catalog.complete?`${catalog.heroes.length} heroes · ${catalog.items.length} items`:'Starter catalog · sync recommended';
+ $('setupStatus').textContent=`${catalogLabel} · ${$('topLiveStatus').textContent.trim()}`;
+}
+function applySetupDefault(){
+ let pref=null;try{pref=localStorage.getItem(STORE_SETUP_OPEN);}catch(_){}
+ // Until the user chooses, keep setup open only while the catalog needs a sync.
+ $('setupPanel').open=pref===null?!catalog.complete:pref==='1';
+}
 function updateCatalogUI(){
  $('hero').innerHTML=heroOptions(state.hero,false);$('hero').value=state.hero;
  $('catalogCounts').textContent=catalog.complete?`${catalog.heroes.length} heroes · ${catalog.items.length} items`:'Starter catalog';
- $('itemNames').innerHTML=catalog.items.map(i=>`<option value="${escapeHTML(i.name)}"></option>`).join('');
+ $('itemNames').innerHTML=engine.itemSuggestions(catalog).map(name=>`<option value="${escapeHTML(name)}"></option>`).join('');
+ updateSetupStatus();applySetupDefault();
  $('syncStatus').textContent=catalog.complete?`Cached ${catalog.build||'game data'} · ${catalog.generatedAt.slice(0,10)}. Manual mode. ${catalog.items.length} shop items with game-data prices and icons.`:'Offline starter list. Click Sync items & heroes to retrieve current public game data.';
  updatePortrait();renderEnemies();renderAdvice();
 }
@@ -158,6 +169,7 @@ function onLiveStatus(status){
  $('stopEventFeed').disabled=!feed;
  $('topLiveStatus').textContent=feed?'Local feed: active':game?'Game running · match unknown':'Live source: disconnected';
  if(status?.feedStatus?.error)$('liveInfo').textContent=status.feedStatus.error;
+ updateSetupStatus();
 }
 function onLiveMatch(match){
  if(!match||!Array.isArray(match.enemies))return;
@@ -254,6 +266,8 @@ function setup(){
  let rememberedUISize='auto';try{rememberedUISize=localStorage.getItem(STORE_UI_SIZE)||'auto';}catch(_){}
  applyUISize(rememberedUISize);
  $('uiScale').addEventListener('change',e=>applyUISize(e.target.value));
+ // Remember only user toggles (the details "toggle" event also fires for code).
+ $('setupPanel').querySelector('summary').addEventListener('click',()=>setTimeout(()=>{try{localStorage.setItem(STORE_SETUP_OPEN,$('setupPanel').open?'1':'0');}catch(_){}},0));
  $('hero').addEventListener('change',e=>{state.hero=e.target.value;updatePortrait();renderAdvice();persist();});
  $('souls').addEventListener('input',e=>{state.souls=Math.max(0,Math.min(999999,Number(e.target.value)||0));renderAdvice();persist();});
  $('owned').addEventListener('input',e=>{state.owned=e.target.value;renderAdvice();persist();});

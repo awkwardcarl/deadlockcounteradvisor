@@ -38,4 +38,13 @@ check(main.includes("screen.on('display-metrics-changed', handleDisplayChange)")
 check(main.includes('getNormalBounds()'),'restore window across maximize');
 check(main.includes('transferredBounds('),'move to another monitor scales window');
 check(ui.includes('resolution.width')&&ui.includes('scalePercent'),'actual display resolution surfaced in toolbar');
+// Match-first order: what you edit and read mid-match comes first.
+const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+const at=marker=>{const i=html.indexOf(marker);assert.ok(i>=0,'missing '+marker);return i;};
+check(at('class="card enemyBlock"')<at('class="card heroCard"')&&at('class="card heroCard"')<at('id="setupPanel"'),'enemy lineup first, then build, then setup');
+const setup=html.slice(at('id="setupPanel"'),html.indexOf('</details>',at('id="setupPanel"')));
+check(setup.includes('class="card liveCard"')&&setup.includes('class="card syncCard"'),'game detection and catalog cards are in the collapsible setup section');
+check(at('id="quickBuys"')<at('id="threats"')&&at('id="threats"')<at('id="patternInsight"')&&at('id="patternInsight"')<at('id="abilityTips"'),'quick-buy picks come before threats, pairs and tips');
+check(!/id="abilityTips"[^>]*\bopen\b/.test(html),'ability tips start collapsed');
+check(at('id="strategyMode"')<at('id="sortMode"')&&at('id="sortMode"')<at('id="quickBuys"'),'priority sits with the other controls above the picks');
 console.log('PASS: '+count+' responsive geometry and display-layout tests');
