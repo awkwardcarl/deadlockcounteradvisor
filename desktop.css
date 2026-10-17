@@ -351,3 +351,98 @@ input,select {font-size:calc(13px * var(--ui-text-multiplier));min-height:44px;h
 .setupTitle{flex:1;letter-spacing:.15em;font-size:calc(10.5px * var(--ui-text-multiplier));font-weight:780;color:#74bbaa}
 .setupStatus{font-size:calc(11px * var(--ui-text-multiplier));color:#a3b8c6}
 .setupCards{display:flex;flex-direction:column;gap:14px;padding:0 12px 12px}
+
+/* Souls stepper */
+.soulsControl{display:flex;align-items:stretch;gap:6px}
+.soulsControl input{flex:1;min-width:0;text-align:center}
+.soulsStep{flex:none;padding:0 10px;border-radius:8px;border:1px solid #3a5567;background:#1f3446;color:#cfe6ee;font-size:calc(12px * var(--ui-text-multiplier));font-weight:700;letter-spacing:0}
+.soulsStep:hover{background:#28445a}
+
+/* Item chips (enemy purchases and owned items) */
+.chipBox{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:44px;padding:5px 6px;border:1px solid #3a5567;border-radius:8px;background:#1b2e3e;letter-spacing:normal;cursor:text}
+.chipBox:focus-within{border-color:#90d4c3;box-shadow:0 0 0 3px #2d746a44}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 3px 3px 8px;border-radius:6px;background:#24404f;border:1px solid #3d6273;color:#e4f2f6;font-size:calc(12px * var(--ui-text-multiplier));line-height:1.3;max-width:100%}
+.chip img{width:18px;height:18px;object-fit:contain;margin-left:-3px}
+.chip.unknownChip{background:#392c24;border:1px dashed #a07848;color:#f1d4a0}
+.chipRemove{border:0;background:transparent;color:#9fb9c6;font-size:15px;line-height:1;width:20px;height:20px;padding:0;border-radius:4px;cursor:pointer}
+.chipRemove:hover{background:#ffffff1a;color:#fff}
+.chipBox input.chipInput{flex:1 1 120px;min-width:100px;height:30px;min-height:30px;border:0;background:transparent;padding:2px 4px;box-shadow:none;font-size:calc(12px * var(--ui-text-multiplier))}
+.chipBox input.chipInput:focus{box-shadow:none}
+
+/* Hero portrait picker */
+.pickHero{flex:none;width:40px;height:40px;border-radius:8px;border:1px solid #3f6175;background:#1f3446;color:#bfe7dc;font-size:18px;line-height:1;cursor:pointer}
+.pickHero:hover{background:#28445a}
+.heroDialog{width:min(920px,92vw);max-height:84vh;padding:0;border:1px solid #3d5b6e;border-radius:16px;background:#121e2d;color:#e6f0f4;box-shadow:0 20px 60px #000a}
+.heroDialog::backdrop{background:#04080ccc}
+.heroDialogHead{position:sticky;top:0;display:flex;align-items:center;gap:12px;padding:16px 18px;background:#152536;border-bottom:1px solid #2b4054;z-index:1}
+.heroDialogHead h2{flex:none;font-size:calc(17px * var(--ui-text-multiplier));margin:0;color:#ebf2f4}
+.heroDialogHead input{flex:1;min-width:0}
+.heroGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;padding:16px 18px;overflow:auto;max-height:calc(84vh - 80px)}
+.heroTile{display:flex;flex-direction:column;align-items:center;gap:7px;padding:9px 6px;border-radius:10px;border:1px solid #2f4659;background:#1a2b3b;color:#dce9ef;cursor:pointer;font-size:calc(11.5px * var(--ui-text-multiplier))}
+.heroTile:hover,.heroTile:focus-visible{border-color:#90d4c3;background:#21384a}
+.heroTile.current{border-color:#91d7b6;box-shadow:inset 0 0 0 1px #62a48d}
+.heroTile img,.heroInitials{width:72px;height:72px;border-radius:9px;object-fit:cover;background:#203849}
+.heroInitials{display:grid;place-items:center;font-size:22px;font-weight:800;color:#9fd8c9;letter-spacing:.04em}
+.heroTileName{text-align:center;line-height:1.25;overflow-wrap:anywhere}
+
+/* Dismissible notice and the collapsed About & safety section */
+.topNotice[hidden]{display:none}
+.topNotice>div{flex:1}
+.noticeDismiss{flex:none;width:30px;height:30px;border-radius:7px;border:1px solid #2f5a55;background:transparent;color:#a9d3c9;font-size:16px;line-height:1;cursor:pointer}
+.noticeDismiss:hover{background:#ffffff14}
+.aboutPanel>summary{cursor:pointer;color:#92c9bd;font-size:calc(12px * var(--ui-text-multiplier));padding:4px 2px}
+.aboutPanel .infoRow{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:10px}
+
+/* Glance mode: a summary bar and the three picks, in large type */
+.viewButtons{display:flex;gap:8px}
+.glanceBar{display:none}
+body.glanceMode .glanceBar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;margin:0 0 16px;padding:12px 14px;border:1px solid #33586a;border-radius:10px;background:#162a3a;font-size:calc(14px * var(--ui-text-multiplier));color:#dcecf1}
+.glanceSouls{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.glanceSouls b{font-size:1.15em;color:#f1fff7}
+.glanceSouls .soulsStep{height:34px}
+body.glanceMode .workspace{grid-template-columns:minmax(0,1fr)}
+body.glanceMode .leftPanel,
+body.glanceMode .topNotice,
+body.glanceMode #focus,
+body.glanceMode .summaryRow,
+body.glanceMode .quickHeading,
+body.glanceMode .whySection,
+body.glanceMode .allHeading,
+body.glanceMode #results,
+body.glanceMode .shopSummary,
+body.glanceMode .unknown,
+body.glanceMode .aboutPanel,
+body.glanceMode footer{display:none!important}
+body.glanceMode .recommCard{min-height:0}
+body.glanceMode .quickIdentity strong{font-size:calc(24px * var(--ui-text-multiplier))}
+body.glanceMode .quickEyebrow{font-size:calc(12px * var(--ui-text-multiplier))}
+body.glanceMode .quickReason p{font-size:calc(15px * var(--ui-text-multiplier))}
+body.glanceMode .quickCost,body.glanceMode .buyNow,body.glanceMode .saveUp{font-size:calc(16px * var(--ui-text-multiplier))}
+body.glanceMode .quickArt{width:72px;height:72px}
+body.glanceMode .quickArt img{width:58px;height:58px}
+
+/* Compact pick cards in narrow panels: three across down to 520px wide,
+   with a two-line reason, then one per row. */
+@container (max-width: 760px) {
+ .quickBuys{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ .quickItem{min-height:0;gap:8px;padding:11px}
+ .quickTop{gap:8px}
+ .quickArt{width:38px;height:38px;border-radius:9px}
+ .quickArt img{width:28px;height:28px}
+ .quickEyebrow{font-size:calc(9px * var(--ui-text-multiplier))}
+ .quickIdentity strong{font-size:calc(14px * var(--ui-text-multiplier))}
+ .quickLabel,.quickTargets,.quickEvidence{display:none}
+ .quickReason p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0;font-size:calc(11.5px * var(--ui-text-multiplier))}
+ .quickFoot{flex-direction:column;align-items:flex-start;gap:2px;padding-top:8px}
+}
+@container (max-width: 520px) {
+ .quickBuys{grid-template-columns:1fr}
+}
+
+/* Threat levels instead of raw scores */
+.threat.level-high{background:#3e2b25;border-color:#a8683f;color:#ffd9bd}
+.threat.level-high b{color:#ffb487}
+.threat.level-medium{background:#1b3a42;border-color:#3f7c84}
+.threat.level-medium b{color:#9fe5d8}
+.threat.level-low{background:#18283a;border-color:#2f4659;color:#9fb4c4}
+.threat.level-low b{color:#8fa6b6;font-weight:600}

@@ -5,6 +5,8 @@ const base=window.DeadlockCatalog,engine=window.DeadlockEngine,liveMerge=window.
 const STORE='deadlock-counter-advisor-desktop-v0.2';
 const STORE_UI_SIZE='deadlock-counter-advisor-ui-size';
 const STORE_SETUP_OPEN='deadlock-counter-advisor-setup-open';
+const STORE_GLANCE='deadlock-counter-advisor-glance';
+const STORE_NOTICE='deadlock-counter-advisor-notice-dismissed';
 const VALID_UI_SIZES=new Set(['auto','standard','comfortable','large']);
 function applyUISize(size){
  const chosen=VALID_UI_SIZES.has(size)?size:'auto';
@@ -67,12 +69,18 @@ function applySetupDefault(){
 function updateCatalogUI(){
  $('hero').innerHTML=heroOptions(state.hero,false);$('hero').value=state.hero;
  $('catalogCounts').textContent=catalog.complete?`${catalog.heroes.length} heroes · ${catalog.items.length} items`:'Starter catalog';
+ refreshItemIndex();
  $('itemNames').innerHTML=engine.itemSuggestions(catalog).map(name=>`<option value="${escapeHTML(name)}"></option>`).join('');
  updateSetupStatus();applySetupDefault();
  $('syncStatus').textContent=catalog.complete?`Cached ${catalog.build||'game data'} · ${catalog.generatedAt.slice(0,10)}. Manual mode. ${catalog.items.length} shop items with game-data prices and icons.`:'Offline starter list. Click Sync items & heroes to retrieve current public game data.';
- updatePortrait();renderEnemies();renderAdvice();
+ updatePortrait();renderOwned();renderEnemies();renderAdvice();
 }
-function setInputs(){ $('hero').value=state.hero;$('souls').value=state.souls;$('owned').value=state.owned;updatePortrait();renderEnemies();renderAdvice(); }
+function setSouls(value){
+ state.souls=Math.max(0,Math.min(999999,Math.round(Number(value)||0)));
+ $('souls').value=state.souls;
+ renderAdvice();persist();
+}
+function setInputs(){ $('hero').value=state.hero;$('souls').value=state.souls;renderOwned();updatePortrait();renderEnemies();renderAdvice(); }
 
 // HTML builders. Pieces are joined with '' so the markup has no stray whitespace.
 function enemyRow(e,i){
@@ -81,10 +89,133 @@ function enemyRow(e,i){
   `<div class="enemy" data-row="${i}"><div class="enemyTop">`,
   `<img class="enemyPortrait" src="${escapeHTML(src)}" alt="" ${src?'':'hidden'}>`,
   `<select class="enemyHero" data-index="${i}" aria-label="Enemy ${i+1} hero">${heroOptions(e.hero,true)}</select>`,
+  `<button class="pickHero" type="button" data-target="enemy:${i}" aria-label="Choose enemy ${i+1} from portraits" title="Choose from portraits">⊞</button>`,
   `<button class="remove" data-index="${i}" type="button" aria-label="Remove enemy ${i+1}">×</button></div>`,
-  `<input class="enemyItems" data-index="${i}" type="text" maxlength="1000" list="itemNames" value="${escapeHTML(e.items)}" placeholder="Visible purchases, comma-separated" aria-label="Enemy ${i+1} items"></div>`
+  `<div class="chipBox">${chipList(e.items,`enemy:${i}`)}`,
+  `<input class="chipInput enemyItems" data-index="${i}" data-target="enemy:${i}" type="text" maxlength="100" list="itemNames" placeholder="Add a visible item…" aria-label="Add an item for enemy ${i+1}"></div></div>`
  ].join('');
 }
+// Item chips. The value is still a comma-separated string in state, so the
+// engine, live feed and saved matches are unchanged.
+let itemIndex={known:new Set(),icons:new Map()};
+function refreshItemIndex(){
+ itemIndex={known:new Set(engine.itemSuggestions(catalog).map(engine.norm)),icons:new Map(catalog.items.filter(i=>i.icon).map(i=>[engine.norm(i.name),i.icon]))};
+}
+function chipList(value,target){
+ return engine.cleanList(value).map(name=>{
+  const key=engine.norm(name),known=itemIndex.known.has(key),icon=itemIndex.icons.get(key);
+  return [
+   `<span class="chip${known?'':' unknownChip'}"${known?'':' title="Not recognized, so it does not affect the picks"'}>`,
+   icon?`<img src="${escapeHTML(icon)}" alt="">`:'',
+   escapeHTML(name),
+   `<button type="button" class="chipRemove" data-target="${target}" data-item="${escapeHTML(name)}" aria-label="Remove ${escapeHTML(name)}">×</button></span>`
+  ].join('');
+ }).join('');
+}
+function getItems(target){return target==='owned'?state.owned:state.enemies[Number(target.split(':')[1])]?.items||'';}
+function setItems(target,list){
+ const text=list.join(', ');
+ if(target==='owned'){state.owned=text;return;}
+ const enemy=state.enemies[Number(target.split(':')[1])];
+ if(enemy)enemy.items=text;
+}
+function addItems(target,raw){
+ const list=engine.cleanList(getItems(target)),seen=new Set(list.map(engine.norm));
+ for(const piece of String(raw).split(',')){
+  const name=engine.resolveItemName(catalog,piece);
+  if(name&&!seen.has(engine.norm(name))){list.push(name);seen.add(engine.norm(name));}
+ }
+ setItems(target,list);
+}
+function removeItem(target,name){setItems(target,engine.cleanList(getItems(target)).filter(n=>engine.norm(n)!==engine.norm(name)));}
+function itemsChanged(target){
+ if(target==='owned')renderOwned();else renderEnemies();
+ renderAdvice();persist();
+ document.querySelector(`.chipInput[data-target="${target}"]`)?.focus();
+}
+function renderOwned(){
+ $('ownedChips').innerHTML=chipList(state.owned,'owned')+'<input class="chipInput" id="owned" data-target="owned" type="text" maxlength="100" list="itemNames" placeholder="Add an item you own…" aria-label="Add an owned item">';
+}
+// Glance mode: only a summary bar and the three picks, in large type.
+function setGlance(on){
+ document.body.classList.toggle('glanceMode',on);
+ $('glance').textContent=on?'Exit glance':'Glance mode';
+ $('glance').setAttribute('aria-pressed',String(on));
+ try{localStorage.setItem(STORE_GLANCE,on?'1':'0');}catch(_){}
+}
+function setupNotice(){
+ let dismissed=false;try{dismissed=localStorage.getItem(STORE_NOTICE)==='1';}catch(_){}
+ $('topNotice').hidden=dismissed;
+ $('dismissNotice').addEventListener('click',()=>{$('topNotice').hidden=true;try{localStorage.setItem(STORE_NOTICE,'1');}catch(_){}});
+}
+function setupGlance(){
+ let saved=false;try{saved=localStorage.getItem(STORE_GLANCE)==='1';}catch(_){}
+ setGlance(saved);
+ $('glance').addEventListener('click',()=>setGlance(!document.body.classList.contains('glanceMode')));
+ // G toggles and Esc exits, except while typing or with the hero picker open.
+ document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.altKey||e.metaKey||$('heroDialog').open||e.target.closest?.('input,select,textarea'))return;
+  if(e.key==='g'||e.key==='G'){e.preventDefault();setGlance(!document.body.classList.contains('glanceMode'));}
+  else if(e.key==='Escape'&&document.body.classList.contains('glanceMode'))setGlance(false);
+ });
+}
+// Hero portrait picker: a searchable grid for your hero or one enemy slot.
+let pickerTarget=null;
+const initials=name=>name.split(/[\s&]+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+function currentHeroFor(target){return target==='own'?state.hero:state.enemies[Number(target.split(':')[1])]?.hero;}
+function renderHeroGrid(filter=''){
+ const key=engine.norm(filter),current=currentHeroFor(pickerTarget);
+ const list=catalog.heroes.slice().sort((a,b)=>a.name.localeCompare(b.name)).filter(h=>!key||engine.norm(h.name).includes(key));
+ $('heroGrid').innerHTML=list.length?list.map(h=>[
+  `<button type="button" class="heroTile${h.name===current?' current':''}" data-hero="${escapeHTML(h.name)}">`,
+  h.portrait?`<img src="${escapeHTML(h.portrait)}" alt="" loading="lazy">`:`<span class="heroInitials">${escapeHTML(initials(h.name))}</span>`,
+  `<span class="heroTileName">${escapeHTML(h.name)}</span></button>`
+ ].join('')).join(''):'<p class="emptyText">No hero matches that name.</p>';
+}
+function openHeroPicker(target){
+ pickerTarget=target;
+ $('heroDialogTitle').textContent=target==='own'?'Choose your hero':`Choose enemy ${Number(target.split(':')[1])+1}`;
+ $('heroSearch').value='';renderHeroGrid();
+ $('heroDialog').showModal();$('heroSearch').focus();
+}
+function chooseHero(name){
+ if(pickerTarget==='own'){state.hero=name;$('hero').value=name;updatePortrait();}
+ else{const enemy=state.enemies[Number(pickerTarget.split(':')[1])];if(enemy)enemy.hero=name;renderEnemies();}
+ renderAdvice();persist();
+ $('heroDialog').close();
+}
+function setupHeroPicker(){
+ const dialog=$('heroDialog');
+ document.addEventListener('click',e=>{const trigger=e.target.closest?.('.pickHero');if(trigger)openHeroPicker(trigger.dataset.target);});
+ $('heroGrid').addEventListener('click',e=>{const tile=e.target.closest('.heroTile');if(tile)chooseHero(tile.dataset.hero);});
+ // A portrait that fails to load falls back to initials.
+ $('heroGrid').addEventListener('error',e=>{if(e.target.tagName==='IMG'){const name=e.target.closest('.heroTile')?.dataset.hero||'';e.target.outerHTML=`<span class="heroInitials">${escapeHTML(initials(name))}</span>`;}},true);
+ $('heroSearch').addEventListener('input',e=>renderHeroGrid(e.target.value));
+ $('heroSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('heroGrid').querySelector('.heroTile')?.click();}});
+ $('heroDialogClose').addEventListener('click',()=>dialog.close());
+ dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close();}); // backdrop
+ dialog.addEventListener('close',()=>{document.querySelector(`.pickHero[data-target="${pickerTarget}"]`)?.focus();});
+}
+function setupItemChips(){
+ const panel=$('inputPanel');
+ panel.addEventListener('keydown',e=>{
+  const input=e.target.closest('.chipInput');if(!input)return;
+  if((e.key==='Enter'||e.key===',')&&input.value.trim()){e.preventDefault();addItems(input.dataset.target,input.value);itemsChanged(input.dataset.target);}
+  else if(e.key==='Backspace'&&!input.value){const list=engine.cleanList(getItems(input.dataset.target));if(list.length){removeItem(input.dataset.target,list.at(-1));itemsChanged(input.dataset.target);}}
+ });
+ panel.addEventListener('input',e=>{
+  const input=e.target.closest('.chipInput');if(!input)return;
+  // A picked suggestion, or pasted text containing commas, becomes chips at once.
+  if(e.inputType==='insertReplacementText'||input.value.includes(',')){addItems(input.dataset.target,input.value);itemsChanged(input.dataset.target);}
+ });
+ panel.addEventListener('click',e=>{
+  const remove=e.target.closest('.chipRemove');
+  if(remove){e.preventDefault();removeItem(remove.dataset.target,remove.dataset.item);itemsChanged(remove.dataset.target);}
+ });
+}
+const LEVEL_LABELS={high:'High',medium:'Medium',low:'Low'};
+// The raw score stays available as a tooltip; players see a level.
+const threatChip=t=>`<span class="threat level-${escapeHTML(t.level)}" title="Score ${escapeHTML(t.value)} across ${t.coverage} ${t.coverage===1?'enemy':'enemies'}">${escapeHTML(t.label)} <b>${LEVEL_LABELS[t.level]||''}</b></span>`;
 const itemArt=r=>r.icon?`<img loading="lazy" src="${escapeHTML(r.icon)}" alt="">`:'◆';
 const shortReasons=r=>escapeHTML(r.reasons.slice(0,2).join(' · ')||'General utility');
 const basedOn=r=>r.evidence?.length?`Based on: ${escapeHTML(r.evidence.join(' · '))}`:'';
@@ -135,14 +266,16 @@ function renderEnemies(){
  $('enemies').innerHTML=state.enemies.map(enemyRow).join('');
  document.querySelectorAll('.enemyPortrait').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
  document.querySelectorAll('.enemyHero').forEach(el=>el.addEventListener('change',()=>{state.enemies[Number(el.dataset.index)].hero=el.value;renderEnemies();renderAdvice();persist();}));
- document.querySelectorAll('.enemyItems').forEach(el=>el.addEventListener('input',()=>{state.enemies[Number(el.dataset.index)].items=el.value;renderAdvice();persist();}));
  document.querySelectorAll('.remove').forEach(el=>el.addEventListener('click',()=>{state.enemies.splice(Number(el.dataset.index),1);renderEnemies();renderAdvice();persist();}));
 }
 function renderAdvice(){
  const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode});
  $('matchLabel').textContent=out.count?`${out.count}/6 enemies`:'No lineup';
+ const opponents=state.enemies.map(e=>e.hero).filter(Boolean);
+ $('glanceSummary').textContent=`${state.hero||'No hero'}${opponents.length?' vs '+opponents.join(', '):' · no enemies entered'}`;
+ $('glanceSoulsValue').textContent=fmt.format(state.souls);
  $('evidenceQuality').textContent=`Evidence: ${out.quality}${out.listedItems?` · ${out.knownItems}/${out.listedItems} items recognized`:''}`;
- $('threats').innerHTML=out.threats.length?out.threats.slice(0,7).map(t=>`<span class="threat">${escapeHTML(t.label)} <b>${escapeHTML(t.value)}</b></span>`).join(''):'<span class="emptyText">Select opponents to calculate team pressure</span>';
+ $('threats').innerHTML=out.threats.length?out.threats.slice(0,7).map(threatChip).join(''):'<span class="emptyText">Select opponents to calculate team pressure</span>';
  $('patternInsight').hidden=!out.patterns.length;
  $('patternInsight').innerHTML=pairPanel(out.patterns);
  // Only children are replaced, so the open/closed state of the <details> sticks.
@@ -270,7 +403,12 @@ function setup(){
  $('setupPanel').querySelector('summary').addEventListener('click',()=>setTimeout(()=>{try{localStorage.setItem(STORE_SETUP_OPEN,$('setupPanel').open?'1':'0');}catch(_){}},0));
  $('hero').addEventListener('change',e=>{state.hero=e.target.value;updatePortrait();renderAdvice();persist();});
  $('souls').addEventListener('input',e=>{state.souls=Math.max(0,Math.min(999999,Number(e.target.value)||0));renderAdvice();persist();});
- $('owned').addEventListener('input',e=>{state.owned=e.target.value;renderAdvice();persist();});
+ // Delegated, so the glance bar's buttons work too.
+ document.addEventListener('click',e=>{const step=e.target.closest?.('.soulsStep');if(step)setSouls(state.souls+Number(step.dataset.step));});
+ setupItemChips();
+ setupHeroPicker();
+ setupGlance();
+ setupNotice();
  $('addEnemy').addEventListener('click',()=>{
    if(state.enemies.length>=6)return;
    state.enemies.push({hero:'',items:''});

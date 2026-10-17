@@ -64,6 +64,14 @@ test(rec([]).patterns.length===0&&rec([]).abilityTips.length===0,'empty lineup r
 const offered=E.itemSuggestions(starter);
 test(['Mystic Burst','Silencer','Tankbuster','Reactive Barrier'].every(n=>offered.includes(n)),'starter suggestions include enemy items and counter items');
 test(new Set(offered.map(E.norm)).size===offered.length&&offered.join()===[...offered].sort((a,b)=>a.localeCompare(b)).join(),'suggestions are unique and sorted');
+// Threat levels shown instead of raw scores.
+test(E.threatLevel(0.9)==='low'&&E.threatLevel(1.2)==='medium'&&E.threatLevel(2.49)==='medium'&&E.threatLevel(2.5)==='high','threat level thresholds');
+out=rec([{hero:'Haze',items:'Rapid Rounds, Burst Fire'},{hero:'Wraith',items:'Headshot Booster'}]);
+test(out.threats.every(t=>t.level===E.threatLevel(t.value)),'every threat carries its level');
+test(out.threats.find(t=>t.name==='bullet').level==='high'&&rec([{hero:'Kelvin',items:''}]).threats.every(t=>t.level==='low'),'two weapon enemies read High; one hero profile alone reads Low');
+// Typed item names resolve to the catalog spelling for chips.
+test(E.resolveItemName(starter,'  mystic burst ')==='Mystic Burst'&&E.resolveItemName(starter,'SILENCER')==='Silencer','typed names resolve to catalog spelling');
+test(E.resolveItemName(starter,' Glass Kannon ')==='Glass Kannon','unrecognized text is kept, trimmed');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),ui=fs.readFileSync(path.join(root,'js/ui.js'),'utf8');
 test(html.includes('id="patternInsight"')&&html.includes('id="abilityTips"'),'pair and tip areas present');
 test(ui.includes('escapeHTML(x.hero)')&&ui.includes('escapeHTML(t.note)')&&ui.includes('escapeHTML(r.evidence.join'),'pairs, tips and evidence are escaped');

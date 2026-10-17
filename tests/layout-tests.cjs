@@ -47,4 +47,13 @@ check(setup.includes('class="card liveCard"')&&setup.includes('class="card syncC
 check(at('id="quickBuys"')<at('id="threats"')&&at('id="threats"')<at('id="patternInsight"')&&at('id="patternInsight"')<at('id="abilityTips"'),'quick-buy picks come before threats, pairs and tips');
 check(!/id="abilityTips"[^>]*\bopen\b/.test(html),'ability tips start collapsed');
 check(at('id="strategyMode"')<at('id="sortMode"')&&at('id="sortMode"')<at('id="quickBuys"'),'priority sits with the other controls above the picks');
+// UI polish: chips, souls stepper, portrait picker, glance mode, quieter notices.
+check(html.includes('id="ownedChips"')&&html.includes('<label class="field" for="owned">'),'owned items use chips; the label targets the add box, not a chip button');
+check(html.includes('<label for="souls">')&&(html.match(/class="soulsStep"/g)||[]).length===4,'souls stepper in build context and glance bar; label targets the souls box');
+check(html.includes('<dialog id="heroDialog"')&&html.includes('class="pickHero" type="button" data-target="own"')&&ui.includes('data-target="enemy:${i}"'),'portrait picker for your hero and every enemy row');
+check(html.includes('id="glance"')&&html.includes('id="glanceBar"')&&css.includes('body.glanceMode .leftPanel'),'glance mode hides the inputs');
+check(html.includes('id="dismissNotice"')&&css.includes('.topNotice[hidden]{display:none}'),'top notice can be dismissed');
+const about=html.slice(at('id="aboutPanel"'),html.indexOf('</details>',at('id="aboutPanel"')));
+check(about.includes('How rankings work')&&about.includes('Game-safety boundary')&&about.includes('Independent second-screen app'),'safety and ranking notes live in the collapsed About section');
+check(css.includes('@container (max-width: 520px)'),'compact pick cards stack only in very narrow panels');
 console.log('PASS: '+count+' responsive geometry and display-layout tests');
