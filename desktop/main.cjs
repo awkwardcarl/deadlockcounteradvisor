@@ -7,6 +7,7 @@ const fs = require('node:fs');
 const { registerOfflineRestrictions } = require('./security.cjs');
 const { createUpdateManager } = require('./updater.cjs');
 const dataService = require('./data-service.cjs');
+const matchService = require('./match-service.cjs');
 const replayService = require('../live/overwolf-normalizer.cjs');
 const {checkGame}=require('../live/process-detection.cjs');
 const {LocalFeed}=require('../live/local-feed.cjs');
@@ -213,6 +214,12 @@ app.whenReady().then(() => {
   ipcMain.handle('catalog:sync', async event => {
     if(event.sender!==mainWindow?.webContents)throw new Error('Untrusted catalog caller');
     return dataService.refresh(app.getPath('userData'));
+  });
+  // Post-match debrief: a numeric match ID only; the main process strips
+  // account IDs before anything is returned.
+  ipcMain.handle('debrief:load', async (event, matchId, ownAccountId) => {
+    if(!trusted(event))throw new Error('Unauthorized caller');
+    return matchService.loadMatch(app.getPath('userData'), String(matchId ?? ''), String(ownAccountId ?? ''));
   });
   ipcMain.handle('replay:import', async event => {
     if(event.sender!==mainWindow?.webContents)throw new Error('Untrusted replay caller');

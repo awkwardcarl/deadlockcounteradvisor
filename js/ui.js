@@ -154,7 +154,7 @@ function setupGlance(){
  $('glance').addEventListener('click',()=>setGlance(!document.body.classList.contains('glanceMode')));
  // G toggles and Esc exits, except while typing or with the hero picker open.
  document.addEventListener('keydown',e=>{
-  if(e.ctrlKey||e.altKey||e.metaKey||$('heroDialog').open||e.target.closest?.('input,select,textarea'))return;
+  if(e.ctrlKey||e.altKey||e.metaKey||$('heroDialog').open||document.body.classList.contains('debriefMode')||e.target.closest?.('input,select,textarea'))return;
   if(e.key==='g'||e.key==='G'){e.preventDefault();setGlance(!document.body.classList.contains('glanceMode'));}
   else if(e.key==='Escape'&&document.body.classList.contains('glanceMode'))setGlance(false);
  });
@@ -394,6 +394,10 @@ function setupDesktopWindow(){
  $('nextDisplay').addEventListener('click',()=>api.moveToNextDisplay().then(showDisplays).catch(()=>{}));
  api.getCachedCatalog().then(snapshot=>{if(snapshot){catalog=engine.createCatalog(base,snapshot);updateCatalogUI();}}).catch(()=>{});
 }
+async function syncCatalogNow(){
+ const snapshot=await window.desktopAPI.syncCatalog();
+ catalog=engine.createCatalog(base,snapshot);updateCatalogUI();
+}
 function setup(){
  configureUpdates();
  let rememberedUISize='auto';try{rememberedUISize=localStorage.getItem(STORE_UI_SIZE)||'auto';}catch(_){}
@@ -427,7 +431,7 @@ function setup(){
  $('sync').addEventListener('click',async()=>{
   if(!window.desktopAPI?.syncCatalog){$('syncStatus').textContent='Catalog sync requires the Windows desktop executable.';return;}
   $('sync').disabled=true;$('syncStatus').textContent='Fetching public items and released heroes…';
-  try{const snapshot=await window.desktopAPI.syncCatalog();catalog=engine.createCatalog(base,snapshot);updateCatalogUI();}
+  try{await syncCatalogNow();}
   catch(e){$('syncStatus').textContent='Sync failed: '+String(e?.message||e).slice(0,180)+'. Keeping prior catalog.';}
   finally{$('sync').disabled=false;}
  });
@@ -443,6 +447,7 @@ function setup(){
  });
  setupLiveControls();
  setupDesktopWindow();
+ window.DeadlockDebriefUI?.setup({$,getCatalog:()=>catalog,ensureCatalog:async()=>{if(!catalog.complete)await syncCatalogNow();},engine,debrief:window.DeadlockDebrief,base,escapeHTML,fmt});
  updateCatalogUI();setInputs();
 }
 setup();

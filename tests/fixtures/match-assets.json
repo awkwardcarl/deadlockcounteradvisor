@@ -1,0 +1,584 @@
+{
+ "version": 1,
+ "fetchedAt": 0,
+ "items": {
+  "7409189": {
+   "c": "upgrade_soaring_spirit",
+   "n": "Improved Spirit",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "spirit"
+  },
+  "84321454": {
+   "c": "upgrade_quick_silver",
+   "n": "Quicksilver Reload",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "spirit"
+  },
+  "334300056": {
+   "c": "upgrade_superior_stamina",
+   "n": "Stamina Mastery",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "vitality"
+  },
+  "365620721": {
+   "c": "upgrade_glass_cannon",
+   "n": "Glass Cannon",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "weapon"
+  },
+  "380806748": {
+   "c": "upgrade_magic_tempo",
+   "n": "Compress Cooldown",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "spirit"
+  },
+  "395867183": {
+   "c": "upgrade_crackshot",
+   "n": "Mystic Shot",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "weapon"
+  },
+  "395944548": {
+   "c": "upgrade_tech_damage_pulse",
+   "n": "Torment Pulse",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "465043967": {
+   "c": "upgrade_acolytes_glove",
+   "n": "Spirit Strike",
+   "cost": 800,
+   "tier": 1,
+   "slot": "spirit"
+  },
+  "668299740": {
+   "c": "upgrade_rapid_rounds",
+   "n": "Rapid Rounds",
+   "cost": 800,
+   "tier": 1,
+   "slot": "weapon"
+  },
+  "709540378": {
+   "c": "upgrade_non_player_bonus_sacrifice",
+   "n": "Cultist Sacrifice",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "weapon"
+  },
+  "754480263": {
+   "c": "upgrade_magic_reach",
+   "n": "Mystic Expansion",
+   "cost": 800,
+   "tier": 1,
+   "slot": "spirit"
+  },
+  "787198704": {
+   "c": "upgrade_rapid_recharge",
+   "n": "Rapid Recharge",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "865846625": {
+   "c": "upgrade_damage_recycler",
+   "n": "Leech",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "vitality"
+  },
+  "876563814": {
+   "c": "upgrade_health_stealing_magic",
+   "n": "Spirit Lifesteal",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "vitality"
+  },
+  "968099481": {
+   "c": "upgrade_improved_spirit",
+   "n": "Extra Spirit",
+   "cost": 800,
+   "tier": 1,
+   "slot": "spirit"
+  },
+  "1009965641": {
+   "c": "upgrade_non_player_bonus",
+   "n": "Monster Rounds",
+   "cost": 800,
+   "tier": 1,
+   "slot": "weapon"
+  },
+  "1193964439": {
+   "c": "upgrade_tech_range",
+   "n": "Greater Expansion",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "1235347618": {
+   "c": "upgrade_regenerating_bullet_shield",
+   "n": "Battle Vest",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "vitality"
+  },
+  "1254091416": {
+   "c": "upgrade_target_stun",
+   "n": "Knockdown",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "1282141666": {
+   "c": "upgrade_siphon_bullets",
+   "n": "Siphon Bullets",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "vitality"
+  },
+  "1292979587": {
+   "c": "upgrade_magic_storm",
+   "n": "Surge of Power",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "1342610602": {
+   "c": "upgrade_close_range",
+   "n": "Close Quarters",
+   "cost": 800,
+   "tier": 1,
+   "slot": "weapon"
+  },
+  "1378931225": {
+   "c": "upgrade_metal_skin",
+   "n": "Metal Skin",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "vitality"
+  },
+  "1414025773": {
+   "c": "upgrade_counterspell",
+   "n": "Counterspell",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "vitality"
+  },
+  "1414319208": {
+   "c": "upgrade_berserker",
+   "n": "Berserker",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "weapon"
+  },
+  "1439347412": {
+   "c": "upgrade_mystic_regeneration",
+   "n": "Mystic Regeneration",
+   "cost": 800,
+   "tier": 1,
+   "slot": "spirit"
+  },
+  "1548066885": {
+   "c": "upgrade_clip_size",
+   "n": "Extended Magazine",
+   "cost": 800,
+   "tier": 1,
+   "slot": "weapon"
+  },
+  "1672893796": {
+   "c": "upgrade_grit",
+   "n": "Grit",
+   "cost": 800,
+   "tier": 1,
+   "slot": "vitality"
+  },
+  "1763073141": {
+   "c": "upgrade_rechargingbullets",
+   "n": "Recharging Rush",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "weapon"
+  },
+  "1770441818": {
+   "c": "upgrade_headshot_booster2",
+   "n": "Weakening Headshot",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "weapon"
+  },
+  "1813726886": {
+   "c": "upgrade_containment",
+   "n": "Slowing Hex",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "spirit"
+  },
+  "1998374645": {
+   "c": "upgrade_magic_burst",
+   "n": "Mystic Burst",
+   "cost": 800,
+   "tier": 1,
+   "slot": "spirit"
+  },
+  "2010028405": {
+   "c": "upgrade_headshot_booster",
+   "n": "Headshot Booster",
+   "cost": 800,
+   "tier": 1,
+   "slot": "weapon"
+  },
+  "2064029594": {
+   "c": "upgrade_pristine_emblem",
+   "n": "Opening Rounds",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "weapon"
+  },
+  "2081037738": {
+   "c": "upgrade_magic_vulnerability",
+   "n": "Mystic Vulnerability",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "spirit"
+  },
+  "2121044373": {
+   "c": "upgrade_magic_shock",
+   "n": "Tankbuster",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "2152872419": {
+   "c": "upgrade_sharpshooter",
+   "n": "Sharpshooter",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "weapon"
+  },
+  "2163598980": {
+   "c": "upgrade_tech_purge",
+   "n": "Spirit Resilience",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "vitality"
+  },
+  "2221211450": {
+   "c": "upgrade_enchanted_holsters",
+   "n": "Spellslinger",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "weapon"
+  },
+  "2356412290": {
+   "c": "upgrade_titan_round",
+   "n": "Titanic Magazine",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "weapon"
+  },
+  "2407781327": {
+   "c": "upgrade_colossus",
+   "n": "Colossus",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "vitality"
+  },
+  "2447176615": {
+   "c": "upgrade_cardio_calibrator",
+   "n": "Enduring Speed",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "vitality"
+  },
+  "2463960640": {
+   "c": "upgrade_reinforcing_casings",
+   "n": "Escalating Resilience",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "weapon"
+  },
+  "2480592370": {
+   "c": "upgrade_ricochet",
+   "n": "Ricochet",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "weapon"
+  },
+  "2481177645": {
+   "c": "upgrade_bullet_armor_reduction_aura",
+   "n": "Hunter's Aura",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "weapon"
+  },
+  "2519598785": {
+   "c": "upgrade_boundless_spirit",
+   "n": "Boundless Spirit",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "spirit"
+  },
+  "2566692615": {
+   "c": "upgrade_healing_booster",
+   "n": "Healing Booster",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "vitality"
+  },
+  "2603935618": {
+   "c": "upgrade_healbane",
+   "n": "Healbane",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "vitality"
+  },
+  "2717651715": {
+   "c": "upgrade_imbued_duration_extender",
+   "n": "Superior Duration",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "2739107182": {
+   "c": "upgrade_burst_fire",
+   "n": "Burst Fire",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "weapon"
+  },
+  "2829638276": {
+   "c": "upgrade_endurance",
+   "n": "Extra Regen",
+   "cost": 800,
+   "tier": 1,
+   "slot": "vitality"
+  },
+  "2947183272": {
+   "c": "upgrade_resonant_healing",
+   "n": "Radiant Regeneration",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "2951612397": {
+   "c": "upgrade_arcane_extension",
+   "n": "Duration Extender",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "spirit"
+  },
+  "2971868509": {
+   "c": "upgrade_bullet_resist_shredder",
+   "n": "Bullet Resist Shredder",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "spirit"
+  },
+  "3005970438": {
+   "c": "upgrade_escalating_exposure",
+   "n": "Escalating Exposure",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "spirit"
+  },
+  "3077079169": {
+   "c": "upgrade_high_velocity_mag",
+   "n": "High-Velocity Rounds",
+   "cost": 800,
+   "tier": 1,
+   "slot": "weapon"
+  },
+  "3190916303": {
+   "c": "upgrade_spirit_snatch",
+   "n": "Spirit Snatch",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "3261353684": {
+   "c": "upgrade_cooldown_reduction",
+   "n": "Superior Cooldown",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "spirit"
+  },
+  "3331811235": {
+   "c": "upgrade_long_range",
+   "n": "Long Range",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "weapon"
+  },
+  "3399065363": {
+   "c": "upgrade_sprint_booster",
+   "n": "Sprint Boots",
+   "cost": 800,
+   "tier": 1,
+   "slot": "vitality"
+  },
+  "3403085434": {
+   "c": "upgrade_fleetfoot_boots",
+   "n": "Fleetfoot",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "weapon"
+  },
+  "3491236900": {
+   "c": "upgrade_deflecting_armor",
+   "n": "Plated Armor",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "vitality"
+  },
+  "3577481646": {
+   "c": "upgrade_mystic_reverb",
+   "n": "Mystic Reverb",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "spirit"
+  },
+  "3585132399": {
+   "c": "upgrade_chonky",
+   "n": "Fortitude",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "vitality"
+  },
+  "3633614685": {
+   "c": "upgrade_health",
+   "n": "Extra Health",
+   "cost": 800,
+   "tier": 1,
+   "slot": "vitality"
+  },
+  "3696726732": {
+   "c": "upgrade_toxic_bullets",
+   "n": "Toxic Bullets",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "weapon"
+  },
+  "3731635960": {
+   "c": "upgrade_reduce_debuff_duration",
+   "n": "Dispel Magic",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "vitality"
+  },
+  "3776945997": {
+   "c": "upgrade_extra_charge",
+   "n": "Extra Charge",
+   "cost": 800,
+   "tier": 1,
+   "slot": "spirit"
+  },
+  "3884003354": {
+   "c": "upgrade_banshee_slugs",
+   "n": "Crippling Headshot",
+   "cost": 6400,
+   "tier": 4,
+   "slot": "weapon"
+  },
+  "3970837787": {
+   "c": "upgrade_magic_shield",
+   "n": "Enchanter's Emblem",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "vitality"
+  },
+  "4053935515": {
+   "c": "upgrade_headhunter",
+   "n": "Headhunter",
+   "cost": 3200,
+   "tier": 3,
+   "slot": "weapon"
+  },
+  "4104549924": {
+   "c": "upgrade_blitz_bullets",
+   "n": "Swift Striker",
+   "cost": 1600,
+   "tier": 2,
+   "slot": "weapon"
+  },
+  "4139877411": {
+   "c": "upgrade_improved_stamina",
+   "n": "Extra Stamina",
+   "cost": 800,
+   "tier": 1,
+   "slot": "vitality"
+  }
+ },
+ "heroes": {
+  "1": "Infernus",
+  "2": "Seven",
+  "3": "Vindicta",
+  "4": "Lady Geist",
+  "6": "Abrams",
+  "7": "Wraith",
+  "8": "McGinnis",
+  "10": "Paradox",
+  "11": "Dynamo",
+  "12": "Kelvin",
+  "13": "Haze",
+  "14": "Holliday",
+  "15": "Bebop",
+  "16": "Calico",
+  "17": "Grey Talon",
+  "18": "Mo & Krill",
+  "19": "Shiv",
+  "20": "Ivy",
+  "21": "Kali",
+  "25": "Warden",
+  "27": "Yamato",
+  "31": "Lash",
+  "35": "Viscous",
+  "38": "Gunslinger",
+  "39": "The Boss",
+  "48": "Wrecker",
+  "49": "Rutger",
+  "50": "Pocket",
+  "51": "Thumper",
+  "52": "Mirage",
+  "53": "Fathom",
+  "54": "Cadence",
+  "56": "Bomber",
+  "57": "Shield Guy",
+  "58": "Vyper",
+  "59": "Vandal",
+  "60": "Sinclair",
+  "61": "Trapper",
+  "62": "Raven",
+  "63": "Mina",
+  "64": "Drifter",
+  "65": "Venator",
+  "66": "Victor",
+  "67": "Paige",
+  "68": "Boho",
+  "69": "The Doorman",
+  "70": "Skyrunner",
+  "71": "Swan",
+  "72": "Billy",
+  "73": "Druid",
+  "74": "Graf",
+  "75": "Fortuna",
+  "76": "Graves",
+  "77": "Apollo",
+  "78": "Deadman Danny",
+  "79": "Rem",
+  "80": "Silver",
+  "81": "Celeste",
+  "82": "Opera",
+  "83": "hero_testhero",
+  "84": "Rat King",
+  "85": "Solomon",
+  "86": "Violet",
+  "87": "Nurse Harrow",
+  "88": "Baba"
+ }
+}
