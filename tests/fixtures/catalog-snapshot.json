@@ -2,7 +2,7 @@
  "version": 1,
  "source": "deadlock.io game-tracking",
  "generatedAt": "2026-10-15T19:15:18.873Z",
- "syncedAt": "2026-10-17T12:56:05.688Z",
+ "syncedAt": "2026-10-17T14:20:56.643Z",
  "build": "client-6785",
  "items": [
   {
@@ -2278,7 +2278,13 @@
     "Explosive",
     "Burn Rubber"
    ],
-   "style": "Rapid Fire"
+   "style": "Rapid Fire",
+   "abilities": [
+    "Napalm",
+    "Flame Dash",
+    "Afterburn",
+    "Concussive Combustion"
+   ]
   },
   {
    "id": 2,
@@ -2290,7 +2296,13 @@
     "Merciless",
     "Area Denial"
    ],
-   "style": "Burst Fire"
+   "style": "Burst Fire",
+   "abilities": [
+    "Lightning Ball",
+    "Static Charge",
+    "Power Surge",
+    "Storm Cloud"
+   ]
   },
   {
    "id": 3,
@@ -2302,7 +2314,13 @@
     "Soaring",
     "One Shot Kill"
    ],
-   "style": "Long Range"
+   "style": "Long Range",
+   "abilities": [
+    "Stake",
+    "Flight",
+    "Crow Familiar",
+    "Assassinate"
+   ]
   },
   {
    "id": 4,
@@ -2314,7 +2332,13 @@
     "Self Damage",
     "Fatale"
    ],
-   "style": "Pistol"
+   "style": "Pistol",
+   "abilities": [
+    "Essence Bomb",
+    "Life Drain",
+    "Malice",
+    "Soul Exchange"
+   ]
   },
   {
    "id": 6,
@@ -2326,7 +2350,13 @@
     "Brawler",
     "Bull-Headed"
    ],
-   "style": "Shotgun"
+   "style": "Shotgun",
+   "abilities": [
+    "Siphon Life",
+    "Shoulder Charge",
+    "Infernal Resilience",
+    "Seismic Impact"
+   ]
   },
   {
    "id": 7,
@@ -2338,7 +2368,13 @@
     "Isolator",
     "Telekinetic"
    ],
-   "style": "Rapid Fire"
+   "style": "Rapid Fire",
+   "abilities": [
+    "Card Trick",
+    "Project Mind",
+    "Full Auto",
+    "Telekinesis"
+   ]
   },
   {
    "id": 8,
@@ -2350,7 +2386,13 @@
     "Support",
     "Disruption"
    ],
-   "style": "Heavy Artillery"
+   "style": "Heavy Artillery",
+   "abilities": [
+    "Mini Turret",
+    "Medicinal Specter",
+    "Spectral Wall",
+    "Heavy Barrage"
+   ]
   },
   {
    "id": 10,
@@ -2362,7 +2404,13 @@
     "Disruptor",
     "Tactician"
    ],
-   "style": "Burst Fire"
+   "style": "Burst Fire",
+   "abilities": [
+    "Pulse Grenade",
+    "Time Wall",
+    "Kinetic Carbine",
+    "Paradoxical Swap"
+   ]
   },
   {
    "id": 11,
@@ -2374,7 +2422,13 @@
     "Initiator",
     "Clutch"
    ],
-   "style": "Pistol"
+   "style": "Pistol",
+   "abilities": [
+    "Kinetic Pulse",
+    "Quantum Entanglement",
+    "Rejuvenating Aurora",
+    "Singularity"
+   ]
   },
   {
    "id": 12,
@@ -2386,7 +2440,13 @@
     "Explorer",
     "Ice Cold"
    ],
-   "style": "Heavy Hitter"
+   "style": "Heavy Hitter",
+   "abilities": [
+    "Frost Grenade",
+    "Ice Path",
+    "Arctic Beam",
+    "Frozen Shelter"
+   ]
   },
   {
    "id": 13,
@@ -2398,7 +2458,13 @@
     "Stealthy",
     "Lethal"
    ],
-   "style": "Rapid Fire"
+   "style": "Rapid Fire",
+   "abilities": [
+    "Sleep Dagger",
+    "Smoke Bomb",
+    "Fixation",
+    "Bullet Dance"
+   ]
   },
   {
    "id": 14,
@@ -2410,7 +2476,13 @@
     "Explosive",
     "Apprehender"
    ],
-   "style": "Pistol"
+   "style": "Pistol",
+   "abilities": [
+    "Powder Keg",
+    "Bounce Pad",
+    "Crackshot",
+    "Spirit Lasso"
+   ]
   },
   {
    "id": 15,
@@ -2422,7 +2494,13 @@
     "Bomb",
     "Punch"
    ],
-   "style": "Beam Weapon"
+   "style": "Beam Weapon",
+   "abilities": [
+    "Exploding Uppercut",
+    "Sticky Bomb",
+    "Grapple Arm",
+    "Hyper Beam"
+   ]
   },
   {
    "id": 16,
@@ -2434,7 +2512,13 @@
     "Slippery",
     "Burst Damage"
    ],
-   "style": "Spreadshot"
+   "style": "Spreadshot",
+   "abilities": [
+    "Gloom Bombs",
+    "Leaping Slash",
+    "Ava",
+    "Return to Shadows"
+   ]
   },
   {
    "id": 17,
@@ -2446,7 +2530,13 @@
     "Hunter",
     "Area Denial"
    ],
-   "style": "Bow"
+   "style": "Bow",
+   "abilities": [
+    "Charged Shot",
+    "Rain of Arrows",
+    "Spirit Snare",
+    "Guided Owl"
+   ]
   },
   {
    "id": 18,
@@ -2458,7 +2548,13 @@
     "Initiator",
     "Burrower"
    ],
-   "style": "Spreadshot"
+   "style": "Spreadshot",
+   "abilities": [
+    "Scorn",
+    "Burrow",
+    "Sand Blast",
+    "Combo"
+   ]
   },
   {
    "id": 19,
@@ -2470,7 +2566,13 @@
     "Bleed",
     "Repeat"
    ],
-   "style": "Spreadshot"
+   "style": "Spreadshot",
+   "abilities": [
+    "Serrated Knives",
+    "Slice and Dice",
+    "Bloodletting",
+    "Killing Blow"
+   ]
   },
   {
    "id": 20,
@@ -2482,7 +2584,13 @@
     "Disruptor",
     "Rock Solid"
    ],
-   "style": "Rapid Fire"
+   "style": "Rapid Fire",
+   "abilities": [
+    "Entangling Thorns",
+    "Kudzu Connection",
+    "Stone Form",
+    "Air Drop"
+   ]
   },
   {
    "id": 25,
@@ -2494,7 +2602,13 @@
     "Fearless",
     "One Man Army"
    ],
-   "style": "Heavy Hitter"
+   "style": "Heavy Hitter",
+   "abilities": [
+    "Alchemical Flask",
+    "Willpower",
+    "Binding Word",
+    "Last Stand"
+   ]
   },
   {
    "id": 27,
@@ -2506,7 +2620,13 @@
     "Acrobatics",
     "Pursuer"
    ],
-   "style": "Spreadshot"
+   "style": "Spreadshot",
+   "abilities": [
+    "Power Slash",
+    "Flying Slash",
+    "Crimson Slash",
+    "Shadow Transformation"
+   ]
   },
   {
    "id": 31,
@@ -2518,7 +2638,13 @@
     "High-Flying",
     "Arrogant"
    ],
-   "style": "Burst Fire"
+   "style": "Burst Fire",
+   "abilities": [
+    "Ground Strike",
+    "Grapple",
+    "Flog",
+    "Death Slam"
+   ]
   },
   {
    "id": 35,
@@ -2530,7 +2656,13 @@
     "Disruptor",
     "Gooey"
    ],
-   "style": "Projectile"
+   "style": "Projectile",
+   "abilities": [
+    "Splatter",
+    "The Cube",
+    "Puddle Punch",
+    "Goo Ball"
+   ]
   },
   {
    "id": 50,
@@ -2542,7 +2674,13 @@
     "Burst Damage",
     "Frogs"
    ],
-   "style": "Spreadshot"
+   "style": "Spreadshot",
+   "abilities": [
+    "Barrage",
+    "Flying Cloak",
+    "Enchanter's Satchel",
+    "Affliction"
+   ]
   },
   {
    "id": 52,
@@ -2554,7 +2692,13 @@
     "Traveller",
     "Focused"
    ],
-   "style": "Pistol"
+   "style": "Pistol",
+   "abilities": [
+    "Fire Scarabs",
+    "Dust Devil",
+    "Djinn's Mark",
+    "Traveler"
+   ]
   },
   {
    "id": 58,
@@ -2566,7 +2710,13 @@
     "Slippery",
     "Rat-a-Tat"
    ],
-   "style": "Rapid Fire"
+   "style": "Rapid Fire",
+   "abilities": [
+    "Screwjab Dagger",
+    "Lethal Venom",
+    "Slither",
+    "Petrifying Bola"
+   ]
   },
   {
    "id": 60,
@@ -2578,7 +2728,13 @@
     "Copycat",
     "Versatile"
    ],
-   "style": "Burst Fire"
+   "style": "Burst Fire",
+   "abilities": [
+    "Vexing Bolt",
+    "Spectral Assistant",
+    "Rabbit Hex",
+    "Audience Participation"
+   ]
   },
   {
    "id": 63,
@@ -2590,7 +2746,13 @@
     "Nimble",
     "Vexing"
    ],
-   "style": "Pistol"
+   "style": "Pistol",
+   "abilities": [
+    "Rake",
+    "Sanguine Retreat",
+    "Love Bites",
+    "Nox Nostra"
+   ]
   },
   {
    "id": 64,
@@ -2602,7 +2764,13 @@
     "Bloodthirsty",
     "Cruel"
    ],
-   "style": "Spreadshot"
+   "style": "Spreadshot",
+   "abilities": [
+    "Rend",
+    "Stalker's Mark",
+    "Bloodscent",
+    "Eternal Night"
+   ]
   },
   {
    "id": 65,
@@ -2614,7 +2782,13 @@
     "Arms Expert",
     "Tactical"
    ],
-   "style": "Crossbow"
+   "style": "Crossbow",
+   "abilities": [
+    "Consecrating Grenade",
+    "Gutshot",
+    "Hex-Lined Snap Trap",
+    "Ira Domini"
+   ]
   },
   {
    "id": 66,
@@ -2626,7 +2800,13 @@
     "Can't",
     "Kill Me"
    ],
-   "style": "Pistol"
+   "style": "Pistol",
+   "abilities": [
+    "Pain Battery",
+    "Jumpstart",
+    "Aura of Suffering",
+    "Shocking Reanimation"
+   ]
   },
   {
    "id": 67,
@@ -2638,7 +2818,13 @@
     "Protector",
     "Booksmart"
    ],
-   "style": "Projectile"
+   "style": "Projectile",
+   "abilities": [
+    "Bookwyrm",
+    "Plot Armor",
+    "Captivating Read",
+    "Rallying Charge"
+   ]
   },
   {
    "id": 69,
@@ -2650,7 +2836,13 @@
     "Map Control",
     "Mind Games"
    ],
-   "style": "Pistol"
+   "style": "Pistol",
+   "abilities": [
+    "Call Bell",
+    "Doorway",
+    "Luggage Cart",
+    "Hotel Guest"
+   ]
   },
   {
    "id": 72,
@@ -2662,7 +2854,13 @@
     "Chaotic",
     "G.O.A.T."
    ],
-   "style": "Close Range"
+   "style": "Close Range",
+   "abilities": [
+    "Bashdown",
+    "Rising Ram",
+    "Blasted",
+    "Chain Gang"
+   ]
   },
   {
    "id": 76,
@@ -2674,7 +2872,13 @@
     "Area Denial",
     "Necromancer"
    ],
-   "style": "Pistol"
+   "style": "Pistol",
+   "abilities": [
+    "Jar of Dead",
+    "Grasping Hands",
+    "Essence Theft",
+    "Borrowed Decree"
+   ]
   },
   {
    "id": 77,
@@ -2686,7 +2890,13 @@
     "Mobility",
     "A Cut Above"
    ],
-   "style": "Spreadshot"
+   "style": "Spreadshot",
+   "abilities": [
+    "Disengaging Sigil",
+    "Riposte",
+    "Flawless Advance",
+    "Itani Lo Sahn"
+   ]
   },
   {
    "id": 78,
@@ -2698,7 +2908,13 @@
     "High-flying",
     "Explosive"
    ],
-   "style": ""
+   "style": "",
+   "abilities": [
+    "Strix Salvo",
+    "Chimera Mk1",
+    "Jettison Fuel",
+    "Close The Deal"
+   ]
   },
   {
    "id": 79,
@@ -2710,7 +2926,13 @@
     "Tiny",
     "zZzzZ"
    ],
-   "style": ""
+   "style": "",
+   "abilities": [
+    "Pillow Toss",
+    "Tag Along",
+    "Lil Helpers",
+    "Naptime"
+   ]
   },
   {
    "id": 80,
@@ -2722,7 +2944,13 @@
     "Hot Mess",
     "Transformation"
    ],
-   "style": "Long Range"
+   "style": "Long Range",
+   "abilities": [
+    "Slam Fire",
+    "Boot Kick",
+    "Entangling Bola",
+    "Lycan Curse"
+   ]
   },
   {
    "id": 81,
@@ -2734,7 +2962,13 @@
     "Disruptive",
     "Dazzling"
    ],
-   "style": "Burst Fire"
+   "style": "Burst Fire",
+   "abilities": [
+    "Light Eater",
+    "Dazzling Trick",
+    "Radiant Daggers",
+    "Shining Wonder"
+   ]
   },
   {
    "id": 84,
@@ -2746,7 +2980,13 @@
     "Regal",
     "Tenacious"
    ],
-   "style": "Spreadshot"
+   "style": "Spreadshot",
+   "abilities": [
+    "Scrap Grenade",
+    "Rat Swarm",
+    "Royal Pestments",
+    "Rule, Ratannia!"
+   ]
   },
   {
    "id": 85,
@@ -2758,7 +2998,13 @@
     "Focused",
     "Checkmate"
    ],
-   "style": "Projectile"
+   "style": "Projectile",
+   "abilities": [
+    "Setup Bishop",
+    "Kingside Knight",
+    "Rook Battery",
+    "Develop Queen"
+   ]
   }
  ]
 }

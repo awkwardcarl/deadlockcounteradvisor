@@ -7,7 +7,7 @@
   "main": "desktop/main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node tests/run-tests.cjs && node tests/v06-tests.cjs && node tests/adapter-tests.cjs && node tests/layout-tests.cjs && node tests/v062-visual-tests.cjs && node tests/updater-tests.cjs && node tests/release-tests.cjs && node tests/catalog-fixture-tests.cjs && node tests/live-feed-tests.cjs",
+    "test": "node tests/run-tests.cjs && node tests/v06-tests.cjs && node tests/adapter-tests.cjs && node tests/layout-tests.cjs && node tests/v062-visual-tests.cjs && node tests/updater-tests.cjs && node tests/release-tests.cjs && node tests/catalog-fixture-tests.cjs && node tests/live-feed-tests.cjs && node tests/insight-tests.cjs",
     "fixture:update": "node tests/update-catalog-fixture.cjs",
     "build:win": "electron-packager . \"Deadlock Counter Advisor\" --platform=win32 --arch=x64 --asar --icon=assets/icon.ico --out=release --overwrite --ignore=^/release$ --ignore=^/tests$ --ignore=^/preview.png$ --ignore=^/README.md$",
     "build:win:portable": "electron-builder --win portable --x64 --publish never",

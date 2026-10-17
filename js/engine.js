@@ -82,6 +82,39 @@ const OWN_AFFINITY={
  upgrade_metal_skin:['bullet'],upgrade_tech_damage_pulse:['spirit'],
  upgrade_toxic_bullets:['bullet'],upgrade_spirit_burn:['spirit']
 };
+// Hero ability tips. Display only: they do not change scores, because the hero
+// profile in catalog.js already counts that hero's threat. They are reminders
+// of what the hero CAN do, not evidence an ability was used or is available.
+// After a sync, a tip is hidden if its ability is no longer in the hero's kit.
+const ABILITY_CUES={
+ 'Haze':[{name:'Sleep Dagger',note:'Sleep can set up weapon follow-up; Reactive Barrier triggers on sleep.'},{name:'Bullet Dance',note:'Prioritize gunfire survival if her sustained damage is the problem.'}],
+ 'Bebop':[{name:'Grapple Arm',note:'Grapple can pull you into a pick; shorter disables do not guarantee an escape.'},{name:'Sticky Bomb',note:'Bomb timing can make burst protection valuable.'}],
+ 'Lash':[{name:'Death Slam',note:'Can displace a group; position before the fight starts.'}],
+ 'Dynamo':[{name:'Singularity',note:'Group control is especially dangerous with allied follow-up.'}],
+ 'Seven':[{name:'Storm Cloud',note:'Area spirit damage punishes staying exposed; reposition as well as resisting it.'}],
+ 'Infernus':[{name:'Afterburn',note:'Damage over time rewards extended spirit defense.'}],
+ 'Vindicta':[{name:'Flight',note:'Sightlines and range matter; a gap-closer is not a substitute for positioning.'}],
+ 'McGinnis':[{name:'Mini Turret',note:'Deployed turrets add extended-fight pressure.'}],
+ 'Abrams':[{name:'Shoulder Charge',note:'Close-range stun and engage pressure.'},{name:'Infernal Resilience',note:'Healing reduction value depends on how reliably you can apply it.'}],
+ 'Kelvin':[{name:'Arctic Beam',note:'Slowing pressure can complicate disengages.'}],
+ 'Mo & Krill':[{name:'Combo',note:'Single-target lockdown is dangerous with follow-up.'}],
+ 'Warden':[{name:'Binding Word',note:'Escape timing and positioning matter around immobilization.'}],
+ 'Pocket':[{name:'Affliction',note:'Repeated ability damage changes defensive priorities.'}],
+ 'Paradox':[{name:'Paradoxical Swap',note:'Displacement can leave you exposed; not every cleanse prevents it.'}],
+ 'Yamato':[{name:'Shadow Transformation',note:'A survivability window; pick targets patiently.'}],
+ 'Shiv':[{name:'Bloodletting',note:'Delayed damage helps him outlast fights; healing reduction can help.'}],
+ 'Holliday':[{name:'Bounce Pad',note:'Vertical repositioning can frustrate static defenses.'}]
+};
+// Item pairs that signal heavier investment when BOTH are entered for the SAME
+// enemy. Neither item may be built from the other (that would re-count one
+// purchase path); tests/catalog-fixture-tests.cjs checks this against real data.
+const PURCHASE_PATTERNS=[
+ {items:['Glass Cannon','Burst Fire'],tags:{bullet:.28,burst:.21},description:'High-pressure weapon investment',advice:'Avoid prolonged exposed trades.'},
+ {items:['Improved Spirit','Mystic Burst'],tags:{spirit:.22,burst:.19},description:'Spirit power + burst investment',advice:'Review burst resistance before the next fight.'},
+ {items:['Improved Spirit','Tankbuster'],tags:{spirit:.24,burst:.22},description:'Heavy spirit burst investment',advice:'Survive the damage window rather than stacking only offensive items.'},
+ {items:['Leech','Healing Booster'],tags:{sustain:.32},description:'Layered sustain investment',advice:'Consider reliable healing reduction.'},
+ {items:['Slowing Bullets','Slowing Hex'],tags:{slow:.22,control:.16},description:'Stacked slow and control investment',advice:'Consider mobility and eligible debuff responses.'}
+];
 // Shop group ids from the synced catalog. Defensive groups map to no pressure.
 // "ECrownControl" is the game's own spelling. Curated enemyItems entries in
 // catalog.js take precedence over these group guesses.
@@ -121,22 +154,28 @@ const STRATEGY={
 };
 function recommend(state,catalog,options={}){
  const enemies=(Array.isArray(state.enemies)?state.enemies:[]).filter(e=>e&&String(e.hero||'').trim()).slice(0,6);
- if(!enemies.length)return {results:[],quickBuys:[],threats:[],unknown:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
+ if(!enemies.length)return {results:[],quickBuys:[],threats:[],patterns:[],abilityTips:[],unknown:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
  const heroMap=new Map(catalog.heroes.map(h=>[norm(h.name),h]));
  const itemMap=new Map(catalog.items.map(i=>[norm(i.name),i]));
  const idMap=new Map(catalog.items.map(i=>[String(i.id),i]));
  const fallbackItemMap=new Map(Object.entries(catalog.enemyItems||{}).map(([key,tags])=>[norm(key),tags]));
- const unknown=[],byTag=new Map(),matchedHeroes=[];
+ const unknown=[],byTag=new Map(),matchedHeroes=[],patterns=[],abilityTips=[],tippedHeroes=new Set();
  let knownItems=0,listedItems=0,profiledHeroes=0,observedInventories=0;
+ const buildsFrom=(a,b)=>(a?.components||[]).includes(String(b?.id));
  for(const [idx,enemy] of enemies.entries()){
   const hero=heroMap.get(norm(enemy.hero));
   const heroName=hero?.name||String(enemy.hero).slice(0,80);
   const perTag=new Map();
   function pressure(tag,amount,label,kind){
    if(!TAG_LABELS[tag]||!Number.isFinite(amount)||amount<=0)return;
-   const record=perTag.get(tag)||{hero:0,items:0,sources:[]};
-   if(kind==='hero')record.hero+=amount;else record.items+=amount;
+   const record=perTag.get(tag)||{hero:0,items:0,pairs:0,sources:[]};
+   if(kind==='hero')record.hero+=amount;else if(kind==='pair')record.pairs+=amount;else record.items+=amount;
    record.sources.push({name:label,kind,enemy:idx});perTag.set(tag,record);
+  }
+  if(hero&&!hero.unverified&&!tippedHeroes.has(hero.name)){
+   tippedHeroes.add(hero.name);
+   const kit=Array.isArray(hero.abilities)&&hero.abilities.length?hero.abilities:null;
+   for(const cue of ABILITY_CUES[hero.name]||[])if(!kit||kit.includes(cue.name))abilityTips.push({hero:hero.name,ability:cue.name,note:cue.note});
   }
   if(hero){
    if(hero.tags?.length&&!hero.unverified){profiledHeroes++;hero.tags.forEach(tag=>pressure(tag,0.9,heroName,'hero'));}
@@ -147,6 +186,7 @@ function recommend(state,catalog,options={}){
   // Duplicate names in copied feeds should not create fictitious stacked purchases.
   // Blank inventories do not mean the enemy has none.
   const uniqueEnemyItems=[...new Map(cleanList(enemy.items).slice(0,15).map(x=>[norm(x),x])).values()];
+  const recognized=new Set();
   for(const raw of uniqueEnemyItems){
    listedItems++;
    const item=itemMap.get(norm(raw));
@@ -161,12 +201,22 @@ function recommend(state,catalog,options={}){
     if(!tags.length&&item.category==='weapon')tags=['bullet'];
     knownItems++;
    }else{unknown.push('Unrecognized item: '+raw);continue;}
+   recognized.add(norm(raw));
    // Named, observed purchases contribute more than unverified hero archetypes.
    for(const tag of tags)pressure(tag,item?.tier>=3?0.85:0.65,`${heroName} · ${item?.name||raw}`,'item');
   }
+  // Pairs only count when both are recognized purchases of this same enemy.
+  for(const pattern of PURCHASE_PATTERNS){
+   const keys=pattern.items.map(norm);
+   if(!keys.every(k=>recognized.has(k)))continue;
+   const [a,b]=keys.map(k=>itemMap.get(k));
+   if(buildsFrom(a,b)||buildsFrom(b,a))continue;
+   patterns.push({hero:heroName,items:pattern.items.slice(),description:pattern.description,advice:pattern.advice});
+   for(const [tag,weight] of Object.entries(pattern.tags))pressure(tag,weight,`${heroName} · ${pattern.items.join(' + ')}`,'pair');
+  }
   for(const [tag,x] of perTag){
    // Diminishing returns for multiple effects of the same kind on one player.
-   const bounded=Math.min(2.3,x.hero+1.25*(1-Math.exp(-x.items/1.25)));
+   const bounded=Math.min(2.3,x.hero+1.25*(1-Math.exp(-x.items/1.25))+Math.min(.65,x.pairs));
    if(!byTag.has(tag))byTag.set(tag,{score:0,sources:[],enemies:new Set()});
    const acc=byTag.get(tag);acc.score+=bounded;acc.sources.push(...x.sources);acc.enemies.add(idx);
   }
@@ -200,13 +250,16 @@ function recommend(state,catalog,options={}){
   const reasons=leads.map(x=>TAG_LABELS[x.tag]);
   const sources=Array.from(new Set(leads.flatMap(x=>x.source.map(y=>y.name)))).slice(0,5);
   const heroNotes=matchedHeroes.filter(name=>MATCHUPS[name].items[item.id]).slice(0,2).map(name=>`${name}: ${MATCHUPS[name].note}`);
+  // Name only the evidence that actually drove this item's top reasons.
+  const kinds=new Set(leads.flatMap(x=>x.source.map(s=>s.kind)));
+  const evidence=[kinds.has('item')&&'Enemy purchases',kinds.has('pair')&&'Item pair',kinds.has('hero')&&'Hero profiles',heroNotes.length&&'Matchup note'].filter(Boolean);
   const affordable=soulCount>=effectiveCost;
   return {id:item.id,name:item.name,cost,effectiveCost,upgradeFrom,category:item.category||'vitality',icon:item.icon||'',
    score:Math.round(score*100)/100,affordable,missing:Math.max(0,effectiveCost-soulCount),
    tags:leads.map(x=>x.tag),reasons,sources,coverage:coveredEnemies.size,
    why:item.why||`Can help against ${reasons.join(', ').toLowerCase()}. Verify its current in-game tooltip and activation conditions.`,
    caution:item.caution||'A reviewable category heuristic, not a verified ability-by-ability counter. Item slots, cooldowns, positioning and patch-specific effects are not modeled.',
-   confidence:item.id.startsWith('starter:')?'starter':heroNotes.length?'matchup + category':'category rule',heroNotes,
+   confidence:item.id.startsWith('starter:')?'starter':heroNotes.length?'matchup + category':'category rule',heroNotes,evidence,
    ownFit:fitTags.length?(ownMatch?'Supports your hero archetype':'General utility; weaker build alignment'):'Broad defensive / utility fit'};
  }).filter(Boolean);
  // Rankings are relative suggestions, not precise utility probabilities.
@@ -220,7 +273,8 @@ function recommend(state,catalog,options={}){
  const filtered=all.filter(r=>(!options.category||options.category==='all'||r.category===options.category)&&(!options.affordableOnly||r.affordable));
  const quality=!catalog.complete?'Starter catalog':profiledHeroes===0?'Limited profiles':listedItems>0&&knownItems<listedItems?'Partial item recognition':listedItems===0?'Hero profiles only':'Hero + recognized item evidence';
  return {results:filtered.slice(0,12),quickBuys,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
+ patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,recommend,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY};
+root.DeadlockEngine={createCatalog,recommend,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
 })(typeof window!=='undefined'?window:globalThis);
