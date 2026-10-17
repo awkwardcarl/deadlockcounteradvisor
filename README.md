@@ -4,6 +4,8 @@
 
 **Repository:** https://github.com/awkwardcarl/deadlockcounteradvisor
 
+**Community:** Join the Discord at https://discord.gg/5KDs9hXJDn for help, bug reports, feature requests and release announcements.
+
 **Start here:** Read [`SETUP-GITHUB-UPDATES.md`](SETUP-GITHUB-UPDATES.md) before publishing anything. It walks through pushing the source to your new repository, running a Windows test installer build on GitHub Actions, and publishing a reviewable *draft* release when you're ready.
 
 **Important:** The older `Build-EXE-Folder.cmd` still works as a desktop application, but **does not support auto-updates**. Only the NSIS installer from `Build-Installer.cmd` or the GitHub Windows Release workflow includes update metadata. The Windows NSIS build and actual update download cannot be run and verified in this environment; source logic and browser views have been tested.
