@@ -60,6 +60,10 @@ function test(check,msg){assert.ok(check,msg);total++;}
   test(['/v1/matches/abc/metadata','/v1/matches/1/metadata/raw','/v1/players/1/match-history','https://evil.example/v1/assets/items','/v1/assets/items?x=1'].every(r=>!service.routeAllowed(r)),'everything else is refused');
   await assert.rejects(service.getJSON('/v1/players/1/match-history'),/not allowlisted/);total++;
   test(/not found/i.test(service.friendlyStatus(404))&&/busy.*20 seconds/.test(service.friendlyStatus(503,'20')),'friendly status messages');
+  // Un-archived matches are fetched from Valve (3/hour per IP): explain, and give a wait in minutes.
+  test(/3 per hour/.test(service.friendlyStatus(429,'3552'))&&/about 60 minutes/.test(service.friendlyStatus(429,'3552'))&&/about 60 minutes/.test(service.friendlyStatus(429)),'rate limit explains the fresh-download allowance and the wait');
+  test([500,502,504].every(s=>/couldn't fetch this match/.test(service.friendlyStatus(s))&&/3 per hour/.test(service.friendlyStatus(s))),'gateway failures explain and warn against rapid retries');
+  test(service.friendlyStatus(418)==='The match service returned HTTP 418.','other statuses stay plain');
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dca-debrief-'));
   try{
     fs.writeFileSync(path.join(dir,'deadlock-api-assets-v1.json'),JSON.stringify({...assets,fetchedAt:Date.now()}));
