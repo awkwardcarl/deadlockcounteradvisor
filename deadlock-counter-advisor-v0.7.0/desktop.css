@@ -1,0 +1,321 @@
+:root { color-scheme: dark; font-family: 'Segoe UI', Inter, system-ui, sans-serif; font-size: 14px; }
+html,body { min-height: 100%; background: #0c1420; }
+body { padding:0; background:radial-gradient(ellipse at 14% 0, #192f3a 0, #0c1420 50%); }
+button, input, select { font: inherit; }
+button { transition: background .12s ease, border-color .12s ease; }
+.appWrap { width: 100%; min-width: 0; max-width: none; margin: 0; }
+.topbar { min-height: 86px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding: 20px 28px; border-bottom:1px solid #283848; background:#101b29eb; }
+.brandGroup {display:flex; align-items:center; gap:14px;}
+.logoMark {display:grid; place-items:center; height:45px;width:45px; color:#b4f7df; font-size:26px; border:1px solid #47776d;border-radius:13px; background:linear-gradient(135deg,#214940,#1a333b);}
+.titleStack {display:flex; flex-direction:column;gap:5px;white-space:nowrap;}
+.titleStack strong {font-size:17px;letter-spacing: .11em;color:#ecf4f7;}
+.titleStack small {color:#84a4b3;letter-spacing:.14em;font-size:9px;font-weight:800;}
+.toolbar {display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:12px;}
+.statusBadge {font-size:11px;white-space:nowrap; border:1px solid #336d63;background:#183c38;color:#b3f4d5;border-radius:100px;padding:8px 11px;font-weight:750;}
+.statusBadge i {display:inline-block;background:#69cfa6;border-radius:50%;width:7px;height:7px;margin-right:6px;}
+.displayInfo {font-size:11px;color:#a3b8c6;}
+.toolbarButton {white-space:nowrap;font-size:11px; font-weight:650; background:#25433f;border:1px solid #568f82;color:#d1f7e8;border-radius:9px;padding:10px 12px;}
+.toolbarButton:disabled {opacity:.5;cursor:not-allowed;}
+.topNotice {display:flex;gap:12px;align-items:center;line-height:1.5;padding:13px 28px;background:#152e2e;border-bottom:1px solid #254c49;color:#aec8c6;font-size:12px;}
+.topNotice strong {color:#c6eadd;}
+.noticeIcon {font-size:18px;color:#89cfbf;}
+.workspace {display:grid;grid-template-columns:minmax(0, .92fr) minmax(0,1.15fr);gap:clamp(12px,1vw,30px);padding:clamp(12px,1vw,34px);align-items:start;}
+.leftPanel,.rightPanel {display:flex;flex-direction:column;gap:18px;min-width:0;}
+.card {background:linear-gradient(145deg,#172435,#121e2d);border:1px solid #2b4054;border-radius:16px; box-shadow:0 10px 30px #03070b40;overflow:hidden;}
+.heroCard,.enemyBlock,.recommCard {padding:21px;}
+.sectionHeading {display:flex;gap:10px;align-items:flex-start;justify-content:space-between;margin-bottom:20px;}
+.sectionHeading h2 {font-size:22px;font-weight:750;letter-spacing:-.035em;margin-top:4px;color:#ebf2f4;}
+.overline {letter-spacing:.15em;font-size:10px;font-weight:780;color:#74bbaa;}
+.sectionSymbol {font-size:23px;color:#70b6a4;}
+.formgrid {grid-template-columns:1.1fr .75fr;gap:13px;}
+label {font-size:10px;color:#abc0d0;letter-spacing:.12em;gap:8px;}
+input,select {background:#1b2e3e;border:1px solid #3a5567;min-height:42px;height:42px;border-radius:8px;padding:9px 11px;color:#edf4fa;letter-spacing:normal; font-size:13px;}
+input:focus,select:focus {border-color:#90d4c3;box-shadow:0 0 0 3px #2d746a44;}
+.field {margin-top:15px;}
+.supportText {font-size:12px;line-height:1.55;color:#98abbc;letter-spacing:0; margin:12px 0 0; font-weight:400;}
+.sectionHeading .supportText {margin-top:10px;}
+.addButton {background:#24443e;border:1px solid #548f83;color:#c4f3e0;padding:9px 12px;border-radius:9px;font-size:11px;font-weight:700;white-space:nowrap;}
+.enemyBlock {border-bottom:1px solid #2b4054;}
+.enemyList {margin-top:18px;display:flex;flex-direction:column;gap:9px;}
+.enemy {margin:0;padding:12px;border-radius:10px;background:#1b2c3c;border:1px solid #30485c;}
+.enemyTop {margin-bottom:8px;}
+.enemyTop select {width:100%;}
+.enemy input {font-size:12px;height:39px;}
+.remove {height:40px;width:40px;font-size:18px;}
+.actionRow {display:flex;gap:10px;margin-top:16px;}
+button.muted {padding:12px;border-radius:10px;background:#22384c;font-size:12px;font-weight:650;}
+.recommCard {min-height:575px;}
+.recommendationHeading {margin-bottom:17px;}
+.rightActions {display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.iconButton {border:1px solid #40586a;background:#203448;color:#c8e2e8;padding:8px 12px;border-radius:9px;white-space:nowrap;font-size:11px;}
+.miniPill {padding:7px 10px;}
+.summaryRow {border-top:1px solid #304456;padding:17px 0 13px;}
+.miniTitle {letter-spacing:.13em;font-size:10px;color:#94b1c0;font-weight:800;}
+.threats {margin:10px 0 0;gap:7px;}
+.threat {font-size:11px;padding:7px 10px;background:#1b3a42;border-color:#35606b;}
+.emptyText {font-size:12px;color:#7892a5;}
+.results {gap:12px;}
+.result {background:#1c2f40;border-radius:11px;padding:16px 17px;border-color:#335267;}
+.result.top {background:linear-gradient(110deg,#24413d,#1c3240);border-color:#5b998d;}
+.resultHeader {gap:12px;}
+.resultName {font-size:15px;}
+.cost {font-size:12px;}
+.result p {font-size:12px;margin-top:9px;}
+.result .note {font-size:11px;}
+.tags {margin-top:9px;gap:6px;}
+.tag {font-size:10px;padding:5px 7px;}
+.availability {font-size:11px;margin-top:9px;font-weight:700;}
+.unknown {padding:12px 14px;margin-top:16px;color:#f1d4a0;background:#392c24;border:1px solid #72553f;border-radius:9px;font-size:11px;line-height:1.5;}
+.unknown[hidden] {display:none;}
+.infoRow {display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.infoRow>div {padding:15px;border:1px solid #294155;border-radius:12px;background:#121f2e;}
+.infoRow strong {color:#dce9ed;font-size:12px;}
+.infoRow p {font-size:11px;line-height:1.6;color:#93aabe;margin:8px 0 0;}
+footer {border:0;text-align:left;padding:2px 4px;font-size:10px;color:#8297aa;}
+body.focusInputs .workspace {grid-template-columns:1fr;}
+body.focusInputs .leftPanel {display:none;}
+body.focusInputs .rightPanel {max-width:none;margin:0;width:100%;}
+
+
+
+/* v0.4 — catalog control, cards with remote public game artwork and glanceable facts */
+.syncCard{padding:18px 21px;background:linear-gradient(120deg,#183335,#172435);border-color:#376662}
+.syncCard .sectionHeading{margin-bottom:10px;align-items:center}
+.syncCard h2{font-size:19px}
+.syncCard .actionRow{margin-top:0;flex-wrap:wrap}
+.syncCard .supportText{font-size:11px;margin-top:10px}
+.syncCard button:disabled{opacity:.55;cursor:progress}
+.heroPicker{display:flex;align-items:center;gap:9px}
+.heroPicker select{flex:1;min-width:0}
+.heroPortrait,.enemyPortrait{width:42px;height:42px;object-fit:cover;border-radius:8px;border:1px solid #486276;background:#203849}
+.enemyPortrait{width:39px;height:39px;flex:none}
+.enemyTop{display:flex;align-items:center;gap:8px}
+.enemyTop select{width:auto;flex:1;min-width:0}
+.enemyTop button{flex:none}
+.recommendationFilters{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:13px}
+.recommendationFilters label{display:flex;gap:6px;align-items:center;letter-spacing:0;font-size:11px}
+.recommendationFilters select{min-height:33px;height:33px;padding:5px 9px;font-size:11px}
+.recommendationFilters input[type=checkbox]{min-height:15px;height:15px;width:15px;margin-right:4px}
+.itemHeading{display:flex;gap:11px;align-items:center;min-width:0}
+.itemIcon{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:10px;background:#263d4a;border:1px solid #476273;color:#d2e4ef}
+.itemIcon img{max-width:34px;max-height:34px;object-fit:contain}
+.itemIcon.weapon{background:#49342a;border-color:#6f5134}
+.itemIcon.vitality{background:#234837;border-color:#36674f}
+.itemIcon.spirit{background:#3c3357;border-color:#665487}
+.itemMeta{color:#91afbd;font-size:10px;letter-spacing:.02em;margin-top:5px;text-transform:capitalize}
+.resultHeader{align-items:center}
+.result .sourceLine{font-size:10px;color:#92b5b8;margin-top:10px}
+.result details{padding-top:8px;color:#a9bcc8;font-size:11px}
+.result summary{cursor:pointer;color:#92c9bd}
+.result details p.note{margin-top:6px}
+.shopSummary{margin-top:15px;font-size:11px;color:#9db9c6;border-top:1px solid #344b5a;padding-top:12px;line-height:1.5}
+@media(max-width:950px){.syncCard .actionRow button{flex:1}.itemMeta{font-size:9px}}
+
+.result .heroNote{font-size:11px;color:#d6c5a4;background:#2b3340;border-left:2px solid #bea46b;padding:8px 10px;line-height:1.5;border-radius:4px}
+
+/* v0.5 development-approved live status: never imply active game telemetry */
+.liveCard{padding:18px 21px;border-color:#405c70;background:linear-gradient(120deg,#182c3b,#152332)}
+.liveCard .sectionHeading{margin-bottom:12px;align-items:center}
+.liveCard h2{font-size:19px}
+.liveIndicators{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.liveIndicators>div{background:#111e2b;border:1px solid #344a5e;border-radius:10px;padding:11px;min-width:0}
+.liveIndicators span{display:block;font-size:9px;letter-spacing:.11em;color:#7896a6;margin-bottom:8px;font-weight:750}
+.liveIndicators strong{color:#d2e9ef;font-size:12px;overflow-wrap:anywhere;font-weight:700}
+.liveCard .actionRow{flex-wrap:wrap;margin-top:13px}
+.liveCard .actionRow button{font-size:11px;padding:10px}
+.liveCard .tiny{font-size:10px;color:#b6a786}
+.liveCard button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:600px){.liveIndicators{grid-template-columns:1fr}}
+
+/* v0.6 quick-buy priority strip: usable when the input panel is collapsed. */
+.recommendationActions {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:9px;padding:13px 0;border-bottom:1px solid #294459;}
+.recommendationActions label {display:flex;align-items:center;flex-wrap:wrap;gap:8px;letter-spacing:.06em;font-weight:750;}
+.recommendationActions select {height:34px;min-height:34px;font-size:12px;}
+.evidenceQuality {font-size:11px;color:#a4c9c1;background:#1a3839;border:1px solid #32665b;border-radius:7px;padding:7px 9px;}
+.quickHeading {display:flex;justify-content:space-between;align-items:end;gap:10px;margin:16px 0 12px;}
+.quickHeading h3 {font-size:19px;color:#ebf6f3;margin:3px 0 0;}
+.quickHeading small {font-size:10px;color:#9cabb7;max-width:170px;text-align:right;}
+.quickBuys {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}
+.quickItem {background:linear-gradient(150deg,#24463f,#182e3a);border:1px solid #46786c;border-radius:11px;padding:12px;min-width:0;}
+.quickItem:first-child {border-color:#a1e3ba;box-shadow:inset 0 0 0 1px #558d77;}
+.quickTop {display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.quickTop strong {font-size:13px;color:#edf9ee;flex:1;min-width:75px;}
+.quickRank {font-size:12px;color:#152a25;background:#a3e6cb;border-radius:20px;width:21px;height:21px;display:grid;place-items:center;font-weight:800;}
+.quickCost {font-size:12px;color:#d1e6d8;white-space:nowrap;}
+.quickReason {color:#b1c8c5;font-size:11px;line-height:1.4;margin-top:10px;}
+.quickFoot {display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin-top:9px;font-size:10px;color:#a4c6c7;}
+.buyNow {color:#9bffd3;font-weight:750;letter-spacing:.08em;}
+.saveUp {color:#f3d09d;font-weight:750;letter-spacing:.08em;}
+.quickEmpty {grid-column:1/-1;color:#94adb6;background:#172b3c;border:1px dashed #345268;padding:24px;border-radius:10px;font-size:12px;}
+.allHeading {display:flex;justify-content:space-between;align-items:center;margin:20px 0 11px;}
+.allHeading button {padding:8px 10px;font-size:10px;}
+.upgradeNote {color:#b8edc9!important;}
+
+@media (max-width:780px) {.recommendationActions{align-items:flex-start}.recommendationActions label{width:100%}.evidenceQuality{max-width:100%}}
+
+
+/* v0.6.1: display-independent responsive layout. Never constrain the app to a
+   fixed canvas width; use CSS viewport/container dimensions in logical pixels. */
+.recommCard {container-type:inline-size;}
+.appWrap, .topbar, .workspace, .leftPanel, .rightPanel {min-width:0;}
+.workspace {width:100%;}
+.leftPanel, .rightPanel {width:100%;}
+.sectionHeading>div, .itemHeading>div {min-width:0;}
+.sectionHeading h2, .quickTop strong {overflow-wrap:anywhere;}
+.quickBuys {grid-template-columns:repeat(3,minmax(0,1fr));}
+.quickItem {min-height:116px;}
+/* Container queries avoid three microscopic cards in a narrow right panel,
+   even when the total window width is large. */
+@container (max-width: 760px) {
+  .quickBuys {grid-template-columns:1fr;}
+  .quickHeading small {display:none;}
+  .quickItem {min-height:0;}
+  .recommendationHeading {flex-wrap:wrap;}
+}
+@container (min-width: 1380px) {
+  .results {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;}
+}
+/* Ultra-wide: use the left half for a two-column control grid, and allow the
+   advice half to arrange full results as two columns. */
+@media (min-width: 2350px) {
+  :root {font-size:16px;}
+  .workspace {grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  .leftPanel {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:20px;}
+  .enemyBlock {grid-column:1/-1;}
+  .topbar {padding:20px clamp(24px,1.1vw,48px);}
+  .topNotice {font-size:14px;}
+  .sectionHeading h2 {font-size:24px;}
+  .supportText, .result p {font-size:14px;}
+  .overline, .miniTitle, label, .threat, .shopSummary, .itemMeta {font-size:12px;}
+  .quickTop strong,.resultName {font-size:16px;}
+  .quickReason {font-size:14px;}
+  .quickFoot {font-size:12px;}
+  .quickItem {padding:18px;}
+  .enemyList {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .infoRow p {font-size:13px;}
+}
+/* Normal desktop / 16:9: two panels of proportional width. */
+@media (min-width:1161px) and (max-width:2349px) {
+  .workspace {grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);}
+}
+/* Tablet / narrow desktop: give recommendations their own full-width row. */
+@media (max-width:1160px) {
+  .workspace {grid-template-columns:minmax(0,1fr);gap:14px;padding:16px;}
+  .leftPanel {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;}
+  .rightPanel {min-width:0;}
+  .enemyBlock {grid-column:1/-1;}
+  .enemyList {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .topbar {padding:14px 18px;}
+  .recommCard {min-height:0;}
+}
+@media (max-width:790px) {
+  .leftPanel {display:flex;flex-direction:column;}
+  .enemyList {display:flex;flex-direction:column;}
+  .topbar {flex-wrap:wrap;}
+  .toolbar {width:100%;justify-content:space-between;}
+  .topNotice {padding:12px 16px;}
+  .workspace {padding:12px;}
+  .heroCard,.enemyBlock,.recommCard {padding:15px;}
+  .infoRow {grid-template-columns:1fr;}
+  .sectionHeading h2 {font-size:20px;}
+}
+@media (max-width:440px) {
+  .formgrid {grid-template-columns:1fr;}
+  .titleStack strong {font-size:14px;}
+  .rightActions {gap:5px;}
+  .toolbarButton {padding:8px;}
+  .recommendationHeading {flex-wrap:wrap;}
+}
+/* When inputs are collapsed, give the recommendations the full display width. */
+body.focusInputs .workspace {grid-template-columns:minmax(0,1fr);}
+body.focusInputs .leftPanel {display:none;}
+body.focusInputs .rightPanel {max-width:none;min-width:0;}
+
+
+/* v0.6.2 — type scale is controlled independently of resolution; CSS media
+   rules choose a comfortable Auto value, while explicit selections persist. */
+:root { --ui-text-multiplier: 1.04; }
+:root[data-ui-size="standard"] { --ui-text-multiplier: 1; }
+:root[data-ui-size="comfortable"] { --ui-text-multiplier: 1.18; }
+:root[data-ui-size="large"] { --ui-text-multiplier: 1.35; }
+@media (min-width: 2350px) {
+  :root:not([data-ui-size="standard"]):not([data-ui-size="comfortable"]):not([data-ui-size="large"]) { --ui-text-multiplier: 1.18; }
+}
+body { line-height: 1.45; }
+.toolbarScale {display:flex;flex-direction:row;align-items:center;gap:9px;letter-spacing:0;color:#a9c9d0;font-size:calc(12px * var(--ui-text-multiplier));white-space:nowrap;}
+.toolbarScale select {width:auto;min-width:108px;height:40px;min-height:40px;font-size:calc(12px * var(--ui-text-multiplier));padding:6px 28px 6px 10px;}
+.titleStack strong {font-size:calc(16px * var(--ui-text-multiplier));}
+.titleStack small {font-size:calc(10px * var(--ui-text-multiplier));}
+.statusBadge,.displayInfo,.toolbarButton,.miniPill,.evidenceQuality {font-size:calc(11px * var(--ui-text-multiplier));}
+.topNotice {font-size:calc(12px * var(--ui-text-multiplier));line-height:1.55;}
+.sectionHeading h2 {font-size:calc(21px * var(--ui-text-multiplier));}
+.overline,.miniTitle {font-size:calc(10.5px * var(--ui-text-multiplier));}
+label,.liveIndicators span {font-size:calc(10.5px * var(--ui-text-multiplier));}
+.supportText,.liveCard .tiny,.syncCard .supportText {font-size:calc(12px * var(--ui-text-multiplier));line-height:1.6;}
+input,select {font-size:calc(13px * var(--ui-text-multiplier));min-height:44px;height:44px;}
+.enemy input {font-size:calc(12px * var(--ui-text-multiplier));min-height:42px;height:42px;}
+.liveIndicators strong,.liveCard .actionRow button,.syncCard button,.addButton,button.muted,.iconButton {font-size:calc(12px * var(--ui-text-multiplier));}
+.recommendationFilters label,.recommendationFilters select,.recommendationActions label,.recommendationActions select {font-size:calc(12px * var(--ui-text-multiplier));}
+.recommendationFilters select,.recommendationActions select {height:42px;min-height:42px;}
+.threat {font-size:calc(11px * var(--ui-text-multiplier));padding:8px 11px;}
+.quickHeading h3 {font-size:calc(21px * var(--ui-text-multiplier));}
+.quickHeading small {font-size:calc(11px * var(--ui-text-multiplier));max-width:220px;}
+.resultName {font-size:calc(15px * var(--ui-text-multiplier));}
+.result p,.result .heroNote,.result .sourceLine,.result details,.infoRow p {font-size:calc(12px * var(--ui-text-multiplier));}
+.result .note,.itemMeta,.tag,.cost,.availability,.shopSummary,.infoRow strong {font-size:calc(11px * var(--ui-text-multiplier));}
+.result {padding:clamp(16px,1vw,24px);}
+.itemIcon {width:54px;height:54px;}
+.itemIcon img {max-width:42px;max-height:42px;}
+.heroPortrait,.enemyPortrait {width:48px;height:48px;}
+.allHeading button {font-size:calc(11px * var(--ui-text-multiplier));}
+
+/* Purchase cards: emphasize the action, actual item artwork, and reason. */
+.quickBuys {gap:clamp(12px,.8vw,22px);}
+.quickItem {display:flex;flex-direction:column;gap:15px;min-height:225px;padding:clamp(16px,1vw,23px);background:linear-gradient(145deg,#1c403d,#182b38);border-radius:14px;}
+.quickItem:first-child {border-color:#91d7b6;box-shadow:inset 0 0 0 1px #62a48d,0 0 24px #398b7333;}
+.quickTop {display:flex;align-items:center;flex-wrap:nowrap;gap:13px;}
+.quickArt {display:grid;place-items:center;flex:none;width:56px;height:56px;border-radius:12px;background:#274c3b;border:1px solid #4e906f;color:#d8f5e4;font-size:21px;}
+.quickArt.weapon {background:#513e2d;border-color:#89633d;}
+.quickArt.spirit {background:#3d3459;border-color:#7865aa;}
+.quickArt img {width:44px;height:44px;object-fit:contain;}
+.quickIdentity {display:flex;flex:1;flex-direction:column;gap:4px;min-width:0;}
+.quickEyebrow {font-size:calc(10px * var(--ui-text-multiplier));letter-spacing:.13em;font-weight:800;color:#a5d5c2;text-transform:uppercase;}
+.quickIdentity strong {font-size:calc(17px * var(--ui-text-multiplier));line-height:1.2;color:#f1fff7;overflow-wrap:anywhere;}
+.quickReason {margin:0;line-height:1.5;color:#c0d5d1;font-size:calc(12px * var(--ui-text-multiplier));}
+.quickLabel {font-size:calc(10px * var(--ui-text-multiplier));color:#96c9b6;letter-spacing:.13em;font-weight:800;}
+.quickReason p {font-size:calc(12px * var(--ui-text-multiplier));line-height:1.55;margin:6px 0;}
+.quickTargets {font-size:calc(11px * var(--ui-text-multiplier));color:#a9cfc8;margin-top:10px;line-height:1.5;}
+.quickFoot {border-top:1px solid #3a665b;display:flex;align-items:center;justify-content:space-between;flex-direction:row;gap:12px;margin-top:auto;padding-top:13px;font-size:calc(11px * var(--ui-text-multiplier));}
+.quickCost {font-size:calc(13px * var(--ui-text-multiplier));font-weight:750;white-space:nowrap;}
+.quickUpgrade {font-size:calc(11px * var(--ui-text-multiplier));color:#b9d9c7;}
+.buyNow,.saveUp {font-size:calc(11px * var(--ui-text-multiplier));}
+
+/* At ultrawide sizes, live status / catalog / build context occupy the first
+   row; enemies use the full next row. This eliminates the empty middle cell. */
+@media (min-width: 3000px) {
+ .workspace {grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);}
+ .leftPanel {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:18px;}
+ .leftPanel>.liveCard,.leftPanel>.syncCard,.leftPanel>.heroCard {grid-column:auto;grid-row:1;}
+ .leftPanel>.enemyBlock {grid-column:1 / -1;grid-row:2;}
+ .enemyList {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .liveCard,.syncCard,.heroCard {padding:clamp(16px, .8vw,22px);}
+ .liveCard .actionRow {display:flex;flex-wrap:wrap;}
+ .liveCard .actionRow button {flex:1 1 140px;white-space:normal;}
+ .heroCard .formgrid {grid-template-columns:1fr;}
+}
+@container (max-width: 760px) {
+ .quickItem {min-height:0;}
+ .quickTop {gap:12px;}
+ .quickArt {width:50px;height:50px;}
+ .quickArt img {width:38px;height:38px;}
+}
+@media (max-width: 790px) {
+ .toolbarScale {flex:1;}
+ .quickItem {padding:14px;}
+ .quickFoot {flex-wrap:wrap;}
+}
+
+/* v0.7: optional desktop updater status */
+.updateLabel{font-size:var(--fs-xs,12px);color:#a8d5d5;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.updateButton{white-space:nowrap}
+@media(max-width:850px){.updateLabel{display:none}}

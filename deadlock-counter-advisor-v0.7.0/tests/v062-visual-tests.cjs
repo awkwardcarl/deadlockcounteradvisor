@@ -1,0 +1,33 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+let checks=0;
+const ok=(condition,label)=>{assert.ok(condition,label);checks++;};
+const root=path.join(__dirname,'..');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const css=fs.readFileSync(path.join(root,'desktop.css'),'utf8');
+const js=fs.readFileSync(path.join(root,'js/ui.js'),'utf8');
+const pkg=require('../package.json');
+for(const value of ['auto','standard','comfortable','large']){
+ ok(html.includes(`<option value="${value}">`),`${value} text scale option`);
+ if(value!=='auto')ok(css.includes(`:root[data-ui-size="${value}"]`),`${value} CSS scale setting`);
+}
+ok(html.includes('id="uiScale"') && html.includes('aria-label="Interface text size"'),'accessible scale control');
+ok(js.includes("const STORE_UI_SIZE=") && js.includes('localStorage.getItem(STORE_UI_SIZE)') && js.includes('localStorage.setItem(STORE_UI_SIZE'),'UI size retained across relaunch');
+ok(js.includes('VALID_UI_SIZES.has(size)'), 'reject invalid persisted UI values');
+ok(js.includes("$('uiScale').addEventListener('change'"),'size selector wired');
+ok(css.includes('--ui-text-multiplier'),'layout text multiplier defined');
+ok(css.includes('@media (min-width: 3000px)') && css.includes('grid-template-columns:repeat(3,minmax(0,1fr))'),'ultrawide 3-card input row');
+ok(css.includes('.leftPanel>.enemyBlock {grid-column:1 / -1;grid-row:2;}'),'enemy lineup below controls');
+ok(css.includes('@container (max-width: 760px)'),'quick cards stack on narrow panels');
+ok(html.includes('id="quickBuys"') && js.includes('class="quickArt') && js.includes('class="quickReason"'),'three quick buys with icon + reason');
+ok(js.includes('WHY IT HELPS') && js.includes('BUYABLE NOW'),'explainable quick picks');
+ok(js.includes("'.itemIcon img, .quickArt img'"),'missing artwork graceful fallback');
+ok(css.includes('.quickCost') && css.includes('.quickFoot'),'pricing and affordability visually grouped');
+ok(pkg.version==='0.7.0','correct release version');
+ok(pkg.scripts['build:win'].includes('electron-packager'),'working folder packaging remains default');
+const main=fs.readFileSync(path.join(root,'desktop/main.cjs'),'utf8');
+ok(!js.includes('process.memory') && !main.includes('ReadProcessMemory'),'UI update does not add process memory API');
+ok(!js.includes('new WebSocket(') && !js.includes('fetch('),'no new match telemetry collector');
+console.log(`PASS: ${checks} v0.6.2 readability, responsive UI, safety, and packaging checks`);

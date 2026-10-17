@@ -1,0 +1,5 @@
+[
+  {"feature":"match_info","category":"match_info","key":"roster_0","data":"{\"player_name\":\"LocalTester\",\"hero_name\":\"KELVIN\",\"team_name\":\"Amber\",\"is_local\":true}"},
+  {"feature":"match_info","category":"match_info","key":"roster_1","data":"{\"player_name\":\"EnemyA\",\"hero_name\":\"HAZE\",\"team_name\":\"Sapphire\",\"is_local\":false}"},
+  {"feature":"match_info","category":"match_info","key":"items_1","data":"{\"player_name\":\"EnemyA\",\"items\":[{\"name\":\"Rapid Rounds\"}]}"}
+]
