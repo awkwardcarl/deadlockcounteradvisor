@@ -136,12 +136,17 @@ const norm=x=>String(x||'').normalize('NFKC').toLocaleLowerCase('en-US').replace
 const iconPath=x=>typeof x==='string'&&/^\/assets\/game\/panorama\/images\/[\w\/.\-]+\.png$/.test(x)?'https://deadlock.io'+x:'';
 // Live feeds can use old or internal hero names (Overwolf sends "VIPER" for
 // Vyper). Match the name first, then the game's hero ID (synced catalog only),
-// then a known rename; otherwise keep the name as sent.
+// then a known rename; otherwise keep the name as sent. Overwolf sends
+// "UNKNOWN" for heroes its own table lacks (Deadman Danny and Rat King in a
+// 2026-10-18 match): only the ID can name those, else the slot is left blank
+// for the player to pick.
 const HERO_ALIASES={viper:'Vyper'};
+const HERO_PLACEHOLDERS=new Set(['','unknown','none']);
 function resolveHeroName(catalog,name,id){
  const byName=n=>n?catalog.heroes.find(h=>norm(h.name)===norm(n))?.name:undefined;
  const gameId=Number(id);
  const byId=id!=null&&Number.isInteger(gameId)&&gameId>0?catalog.heroes.find(h=>h.id===gameId)?.name:undefined;
+ if(HERO_PLACEHOLDERS.has(norm(name)))return byId||'';
  return byName(name)||byId||byName(HERO_ALIASES[norm(name)])||String(name||'');
 }
 function createCatalog(base,snapshot){
@@ -164,6 +169,15 @@ const threatLevel=score=>score>=2.5?'high':score>=1.2?'medium':'low';
 function resolveItemName(catalog,raw){
  const text=String(raw||'').trim();
  return itemSuggestions(catalog).find(name=>norm(name)===norm(text))||text;
+}
+// Feed item lists: Overwolf sends display names (which can be stale) plus the
+// game's class names, which are the synced catalog's item IDs. Prefer the ID,
+// then a recognized name; otherwise keep the name as sent.
+function resolveFeedItems(catalog,names,ids){
+ const list=cleanList(names);
+ const aligned=Array.isArray(ids)&&ids.length===list.length;
+ const byId=new Map(catalog.items.map(i=>[i.id,i.name]));
+ return list.map((name,i)=>(aligned&&byId.get(ids[i]))||resolveItemName(catalog,name)).join(', ');
 }
 // Names for the item-entry suggestions: every item the app recognizes. The
 // offline starter catalog's items are only the counter picks, so the curated
@@ -307,5 +321,5 @@ function recommend(state,catalog,options={}){
  patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,resolveHeroName,recommend,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
+root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
 })(typeof window!=='undefined'?window:globalThis);

@@ -2,14 +2,21 @@
 
 **Status 2026-10-18:** Overwolf approved the app and whitelisted it for Deadlock game events. The developer has a dev key (`OW_DEV_KEY`) and Developer Console access.
 
-**Verified 2026-10-18 in a real match (dev mode):** status reached *connected*; enemy heroes, your hero, souls (rising as earned) and your purchased items filled in; enemy items stayed empty. Overwolf sends some heroes under old names ("VIPER" for Vyper); the app maps them by name, then the game's hero ID, then a short rename list.
+**Verified 2026-10-18 in a real match (dev mode):** status reached *connected*; enemy heroes, your hero, souls (rising as earned) and your purchased items filled in; enemy items stayed empty (they were still switched off then). Overwolf sends some heroes under old names ("VIPER" for Vyper); the app maps them by name, then the game's hero ID, then a short rename list.
+
+**Seen in later matches (terminal log):**
+- Enemy items arrived for all six opponents and matched the catalog by class name.
+- Hero names arrive in capitals ("SHIV") and resolve regardless of case. Overwolf's `hero_id` matches the catalog's hero IDs (Vindicta 3, Yamato 27, Abrams 6, Viscous 35, Paige 67, Shiv 19). Deadman Danny came as `UNKNOWN` with ID 78 arriving after the name; heroes start as `UNKNOWN` with no ID during the intro and fill in as they load.
+- Phases seen: `Init`, `MatchIntro`, `WaitForMapToLoad`, `PreGameWait`, `GameInProgress`, and after leaving `Init`, `HeroSelection`, `GameInProgress`. A new `match_id` arrives for each match, and `match_end` fires when you leave early as well as at a normal end. At match end the app clears the lineup, your items and souls.
+- The terminal prints these boundaries (`Overwolf event: ...`) and each match's hero names and IDs (`Overwolf heroes ...`), never player names.
 
 ## What live mode does
 
 When the app runs on Overwolf's Electron runtime with valid credentials, `desktop/overwolf-live.cjs` connects Overwolf's game events package (GEP) to the advisor in the main process:
 
-- **Live:** enemy heroes, your hero, your souls, **your own items**, match start/end and the match clock. They flow into the same keep-your-edits merge as the local feed.
-- **Withheld:** enemy item purchases. Overwolf's approval did not address using them for live recommendations, so `enemyInventoryForLiveAdvice` in `desktop/live-approval.cjs` is `false`. Turn it on only after **written** confirmation that live use of enemy purchases is allowed and limited to information players can legitimately see.
+- **Live:** enemy heroes and **their item purchases**, your hero, your souls, **your own items**, match start/end and the match clock. They flow into the same keep-your-edits merge as the local feed.
+- **Enemy items** have been on since 2026-10-18: the developer confirmed that Overwolf allows it, and Deadlock's scoreboard shows every player's items. To withhold them again, set `enemyInventoryForLiveAdvice` in `desktop/live-approval.cjs` to `false`.
+- Items are matched to the catalog by the game's class name (for example `upgrade_rapid_rounds`), so a stale display name from Overwolf still counts toward the advice once the catalog is synced.
 - The renderer only receives validated `EventState` snapshots, never the GEP API, Steam IDs or credentials. In-game player names are used for matching but not saved.
 - The standard Electron build (the current installer and auto-updates) is unchanged; there, live mode reports itself unavailable.
 
@@ -33,7 +40,7 @@ Dev mode only works when running from source; it can't activate in an installed 
    ```bash
    npm.cmd run start:overwolf
    ```
-5. In the app's Setup section, the live status should go **Overwolf: loading → waiting for a match**. Start a Deadlock match (a bot match is fine); it should change to **connected**, and the enemy lineup, your hero, souls and owned items should fill in.
+5. In the app's Setup section, the live status should go **Overwolf: loading → waiting for a match**. Start a Deadlock match (a bot match is fine); it should change to **connected**, and the enemy lineup with their items, your hero, souls and owned items should fill in.
 
 **Troubleshooting**
 

@@ -8,7 +8,7 @@
 const {OverwolfGepAdapter}=require('../live/overwolf-gep-adapter.cjs');
 const APPROVAL=require('./live-approval.cjs');
 
-function createOverwolfLive({app,onMatch=()=>{},onStatus=()=>{},approval=APPROVAL,Adapter=OverwolfGepAdapter}={}){
+function createOverwolfLive({app,onMatch=()=>{},onStatus=()=>{},onDebug=()=>{},approval=APPROVAL,Adapter=OverwolfGepAdapter}={}){
   const packages=app?.overwolf?.packages;
   let adapter=null;
   const report=(state,message)=>onStatus({state,message:String(message||'').slice(0,200),at:Date.now(),enemyItems:approval.enemyInventoryForLiveAdvice===true});
@@ -22,7 +22,7 @@ function createOverwolfLive({app,onMatch=()=>{},onStatus=()=>{},approval=APPROVA
     if(name!=='gep')return;
     adapter?.stop();adapter=null;
     try{
-      adapter=new Adapter({gep:packages.gep,approval,onMatch,onStatus:(message,state='info')=>report(state,message)});
+      adapter=new Adapter({gep:packages.gep,approval,onMatch,onDebug,onStatus:(message,state='info')=>report(state,message)});
       adapter.start();
       report('ready',`Overwolf game events ready${version?` (v${version})`:''}. Start a Deadlock match to connect.`);
     }catch(e){adapter=null;report('error',e.message);}

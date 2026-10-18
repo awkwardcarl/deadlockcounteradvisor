@@ -40,8 +40,8 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(open.snapshot().enemies[0].items==='Rapid Rounds'&&open.snapshot().enemyItemsWithheld===false,'default (local file feed) keeps enemy items');
   test(new EventState().snapshot().ownItems===null,'own items unknown until reported');
 
-  // Adapter with the real approval file: enemy items off, own items on, structured status.
-  test(APPROVAL.enemyInventoryForLiveAdvice===false&&APPROVAL.overwolfWhitelist&&APPROVAL.gameComplianceConfirmed&&Object.isFrozen(APPROVAL),'approval: whitelisted, enemy items off by default');
+  // Adapter with the real approval file: enemy items on (confirmed 2026-10-18), own items on, structured status.
+  test(APPROVAL.enemyInventoryForLiveAdvice===true&&APPROVAL.overwolfWhitelist&&APPROVAL.gameComplianceConfirmed&&Object.isFrozen(APPROVAL),'approval: whitelisted, enemy items on');
   const gep=new FakeGep(),matches=[],statuses=[];
   const a=new OverwolfGepAdapter({gep,approval:APPROVAL,onMatch:m=>matches.push(m),onStatus:(msg,state)=>statuses.push([state,msg])});
   a.start();
@@ -49,7 +49,8 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(statuses.some(([s])=>s==='connected')&&gep.required[0]===DEADLOCK_GEP_ID&&gep.required[1].join()==='game_info,match_info','connects and registers game_info + match_info');
   for(const u of roster)gep.emit('new-info-update',{},DEADLOCK_GEP_ID,u);
   snap=matches.at(-1);
-  test(snap.enemies[0].hero==='Haze'&&snap.enemies[0].items===''&&snap.ownItems==='Extra Spirit','live: enemy heroes yes, enemy items no, your items yes');
+  test(snap.enemies[0].hero==='Haze'&&snap.enemies[0].items==='Rapid Rounds'&&snap.enemies[0].inventoryKnown&&snap.observedInventories===1&&!snap.enemyItemsWithheld&&snap.ownItems==='Extra Spirit','live: enemy heroes and items, your items');
+  test(snap.enemies[0].itemIds.join()==='upgrade_rapid_rounds'&&snap.ownItemIds.join()==='upgrade_improved_spirit','class names travel with the item names');
   gep.emit('new-game-event',{},DEADLOCK_GEP_ID,{feature:'match_info',key:'match_clock',value:'07:30'});
   test(matches.at(-1).clock==='07:30','match clock events update the snapshot');
   gep.emit('elevated-privileges-required',{},DEADLOCK_GEP_ID,'Deadlock',1234);
@@ -66,7 +67,7 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   const packages=new EventEmitter();packages.gep=new FakeGep();
   const states=[],live=[];
   const ctl=createOverwolfLive({app:{overwolf:{packages}},onStatus:s=>states.push(s),onMatch:m=>live.push(m)});
-  test(states.at(-1).state==='waiting'&&states.at(-1).enemyItems===false,'waits for packages; reports enemy items off');
+  test(states.at(-1).state==='waiting'&&states.at(-1).enemyItems===true,'waits for packages; reports enemy items on');
   packages.emit('ready',{},'overlay','1.0');
   test(!ctl.active(),'other packages are ignored');
   packages.emit('ready',{},'gep','300.1');
@@ -97,8 +98,22 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(st.owned==='Extra Spirit, Healbane','manual owned edit kept while the feed is unchanged');
   merge(st,prev,base({ownItems:'Extra Spirit, Mystic Burst'}));
   test(st.owned==='Extra Spirit, Mystic Burst','a new purchase replaces it');
-  const keep={hero:'',souls:0,owned:'Typed',enemies:[]};merge(keep,null,base({ownItems:null}));
-  test(keep.owned==='Typed','unreported items (null) leave your list alone');
+  const keep={hero:'',souls:0,owned:'Typed',liveMatchId:'M',enemies:[]};merge(keep,null,base({ownItems:null}));
+  test(keep.owned==='Typed','same match: unreported items (null) leave your list alone');
+  // A new game clears last game's items, even before the feed reports a purchase.
+  const next={hero:'',souls:0,owned:'Last game item',liveMatchId:'OLD',enemies:[]};merge(next,null,base({ownItems:null}));
+  test(next.owned===''&&next.liveMatchId==='M','new match ID: last game\'s items cleared');
+  const nextKnown={hero:'',souls:0,owned:'Last game item',liveMatchId:'OLD',enemies:[]};merge(nextKnown,null,base());
+  test(nextKnown.owned==='Extra Spirit','new match ID with items reported: the new list replaces the old one');
+  const noId={hero:'',souls:0,owned:'Last game item',enemies:[]};
+  merge(noId,base({matchId:'',phase:'ended'}),base({matchId:'',ownItems:null}));
+  test(noId.owned==='','no match ID: play resuming after a match ended also clears items');
+  // App started after a match (post-game): last game's items go with the lineup.
+  const post={hero:'Ivy',souls:3146,owned:'Extended Magazine',liveMatchId:'M',enemies:[{hero:'Haze',items:''}]};
+  let pr=merge(post,null,base({phase:'postgame',enemies:[]}));
+  test(pr.ended&&post.owned===''&&post.souls===0&&post.enemies.length===0,'match end clears the lineup, souls and your items');
+  post.owned='Planned item';pr=merge(post,base({phase:'postgame',enemies:[]}),base({phase:'postgame',enemies:[],clock:'0:02'}));
+  test(!pr.changed&&post.owned==='Planned item','items typed between matches stick');
 
   // Hero names: Overwolf sent "VIPER" for Vyper in a real match. Resolve by name, game ID, then known renames.
   const ids=new EventState({withholdEnemyItems:true});
@@ -117,6 +132,84 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   const heroSt={hero:'',souls:0,owned:'',enemies:[]};
   merge(heroSt,null,base({ownHero:'VIPER',ownHeroId:58,enemies:[{name:'EnemyA',hero:'VIPER',heroId:58,items:''}]}),(n,id)=>E.resolveHeroName(synced,n,id));
   test(heroSt.hero==='Vyper'&&heroSt.enemies[0].hero==='Vyper','live merge shows Vyper, not VIPER');
+  // Overwolf sent "UNKNOWN" for Deadman Danny (78) and Rat King (84) in a real match.
+  test(E.resolveHeroName(synced,'UNKNOWN',78)==='Deadman Danny'&&E.resolveHeroName(synced,'UNKNOWN','84')==='Rat King','UNKNOWN placeholder: named by game ID');
+  test(E.resolveHeroName(synced,'UNKNOWN',null)===''&&E.resolveHeroName(starter,'UNKNOWN',78)===''&&E.resolveHeroName(synced,'Unknown',99999)==='','UNKNOWN without a usable ID: blank slot to pick, not the placeholder');
+  const late={hero:'',souls:0,owned:'',liveMatchId:'M',enemies:[]},resolveSynced=(n,id)=>E.resolveHeroName(synced,n,id);
+  const before=base({enemies:[{name:'EnemyA',hero:'UNKNOWN',heroId:null,items:''}]});
+  merge(late,null,before,resolveSynced);
+  test(late.enemies[0].hero==='','placeholder with no ID yet: blank');
+  merge(late,before,base({enemies:[{name:'EnemyA',hero:'UNKNOWN',heroId:78,items:''}]}),resolveSynced);
+  test(late.enemies[0].hero==='Deadman Danny','the ID arriving later (same name) fills the hero in');
+
+  // Enemy items: joined to the right player, and matched to the catalog by class name.
+  const join=new EventState();
+  join.apply(info('roster_0',{player_name:'Me',hero_name:'Kelvin',team_name:'Amber',is_local:true}));
+  join.apply(info('roster_1',{player_name:'EnemyA',hero_name:'Haze',team_name:'Sapphire'}));
+  join.apply(info('items_7',{player_name:'EnemyA',items:[{name:'Rapid, Rounds',class_name:'upgrade_rapid_rounds'},{name:'Odd',class_name:'upgrade_bad name!'}]}));
+  let js=join.snapshot().enemies[0];
+  test(js.items==='Rapid Rounds, Odd'&&js.itemIds.join('|')==='upgrade_rapid_rounds|','items slot differs from roster slot: joined by unique name; commas and bad class names dropped');
+  join.apply(info('items_8',{player_name:'EnemyA',items:[{name:'Healbane',class_name:'upgrade_healbane'}]}));
+  js=join.snapshot().enemies[0];
+  test(js.items===''&&!js.inventoryKnown,'two inventories with the same name: no guess');
+  test(E.resolveFeedItems(synced,'Old Name, rapid rounds',['upgrade_magic_burst',''])==='Mystic Burst, Rapid Rounds','synced catalog: class name first, then a recognized name');
+  test(E.resolveFeedItems(synced,'Mystery Item',['upgrade_not_in_catalog'])==='Mystery Item'&&E.resolveFeedItems(synced,'rapid rounds, healbane',['upgrade_magic_burst'])==='Rapid Rounds, Healbane','unknown items keep their name; misaligned class names are ignored');
+  test(E.resolveFeedItems(starter,'mystic burst',['upgrade_magic_burst'])==='Mystic Burst'&&E.resolveFeedItems(synced,'',[])==='','starter catalog falls back to names');
+  const itemSt={hero:'',souls:0,owned:'',enemies:[]};
+  merge(itemSt,null,base({ownItems:'Old Name',ownItemIds:['upgrade_improved_spirit'],enemies:[{name:'EnemyA',hero:'Haze',items:'Old Name',itemIds:['upgrade_rapid_rounds']}]}),x=>x,(n,ids)=>E.resolveFeedItems(synced,n,ids));
+  test(itemSt.owned==='Extra Spirit'&&itemSt.enemies[0].items==='Rapid Rounds','live merge resolves your items and enemy items by class name');
+  const live2=E.recommend({hero:'Kelvin',souls:3000,owned:'',enemies:[{hero:'Haze',items:itemSt.enemies[0].items}]},synced),bare2=E.recommend({hero:'Kelvin',souls:3000,owned:'',enemies:[{hero:'Haze',items:''}]},synced);
+  test(JSON.stringify(live2.threats)!==JSON.stringify(bare2.threats),'live enemy items change the threat read');
+
+  // Replay of a real match log (2026-10-18): your roster entry arrives before any
+  // enemy, heroes start as UNKNOWN with no ID, IDs arrive later (Deadman Danny
+  // stays UNKNOWN=78), and leaving sends match_end, then menu phases.
+  const rs=new EventState(),rst={hero:'Ivy',souls:3146,owned:'Extended Magazine',liveMatchId:'119591229',enemies:[]};
+  let rprev=null;const step=u=>{const snapNow=rs.apply(u);merge(rst,rprev,snapNow,resolveSynced,(n,ids)=>E.resolveFeedItems(synced,n,ids));rprev=snapNow;};
+  const phase=value=>step({feature:'game_info',category:'game_info',key:'phase',value});
+  step({event:'match_start'});phase('Init');phase('MatchIntro');step(info('match_id','119595351'));
+  step(info('roster_0',{player_name:'Me',hero_name:'SHIV',hero_id:19,team_name:'Amber',is_local:true,souls:0}));
+  step(info('roster_6',{player_name:'E1',hero_name:'UNKNOWN',team_name:'Sapphire'}));
+  step(info('roster_7',{player_name:'E2',hero_name:'UNKNOWN',team_name:'Sapphire'}));
+  test(rst.hero==='Shiv','new match: your hero switches even though your entry arrived before any enemy');
+  test(rst.owned===''&&rst.souls===0&&rst.liveMatchId==='119595351','new match: items and souls from the last match are gone');
+  test(rst.enemies.length===2&&rst.enemies.every(e=>e.hero===''),'heroes still loading (UNKNOWN, no ID): blank slots');
+  phase('WaitForMapToLoad');phase('PreGameWait');
+  step(info('roster_6',{player_name:'E1',hero_name:'VINDICTA',hero_id:3,team_name:'Sapphire'}));
+  step(info('roster_7',{player_name:'E2',hero_name:'UNKNOWN',hero_id:78,team_name:'Sapphire'}));
+  test(rst.enemies.map(e=>e.hero).join()==='Vindicta,Deadman Danny','heroes fill in as IDs arrive; UNKNOWN=78 is Deadman Danny');
+  phase('GameInProgress');
+  step(info('roster_0',{player_name:'Me',hero_name:'SHIV',hero_id:19,team_name:'Amber',is_local:true,souls:1200}));
+  step(info('items_0',{player_name:'Me',items:[{name:'Extra Spirit',class_name:'upgrade_improved_spirit'}]}));
+  step(info('items_7',{player_name:'E2',items:[{name:'Rapid Rounds',class_name:'upgrade_rapid_rounds'}]}));
+  test(rst.souls===1200&&rst.owned==='Extra Spirit'&&rst.enemies[1].items==='Rapid Rounds','souls, your purchases and enemy purchases flow during the match');
+  step({event:'match_end'});
+  test(rst.enemies.length===0&&rst.owned===''&&rst.souls===0,'leaving (match_end): lineup, items and souls cleared');
+  phase('Init');phase('HeroSelection');phase('GameInProgress');
+  test(rst.enemies.length===0&&rst.owned===''&&rst.souls===0,'menu phases after leaving change nothing');
+
+  // Match boundaries: the terminal log shows boundary signals and first-seen keys,
+  // never player data; closing Deadlock counts as a match end.
+  const bg=new FakeGep(),bm=[],dbg=[];
+  const bnd=new OverwolfGepAdapter({gep:bg,approval:APPROVAL,onMatch:m=>bm.push(m),onDebug:m=>dbg.push(m)});
+  bnd.start();await bnd.detected({enable(){}},DEADLOCK_GEP_ID,'Deadlock');
+  const ev=key=>bg.emit('new-game-event',{},DEADLOCK_GEP_ID,{feature:'match_info',key,value:null});
+  const up=u=>bg.emit('new-info-update',{},DEADLOCK_GEP_ID,u);
+  ev('match_start');up(info('match_id','123'));
+  up({feature:'game_info',category:'game_info',key:'phase',value:'GameInProgress'});up({feature:'game_info',category:'game_info',key:'phase',value:'GameInProgress'});
+  for(const u of roster)up(u);
+  ev('player_left');ev('player_left');ev('kill');
+  up(info('team_score',{amber:'1',sapphire:'0'}));up(info('team_score',{amber:'2',sapphire:'0'}));
+  test(dbg.join('|')==='match_start|match_id: 123|phase: GameInProgress|first event player_left|first info key match_info.team_score','boundary log: start, id, phase changes, and each unhandled key once');
+  test(!dbg.some(m=>/EnemyA|Kelvin|Haze|Extra Spirit|amber/.test(m)),'boundary log carries no player data or values of other keys');
+  const lastLive=bm.at(-1);
+  test(lastLive.enemies.length===1&&lastLive.ownItems==='Extra Spirit','match data flows before the game closes');
+  bg.emit('game-exit',{},DEADLOCK_GEP_ID,'Deadlock');
+  test(bm.at(-1).phase==='ended'&&dbg.at(-1)==='Deadlock closed','closing Deadlock reports a match end');
+  const exitSt={hero:'Ivy',souls:3000,owned:'Extended Magazine',liveMatchId:'123',enemies:[{hero:'Haze',items:''}]};
+  merge(exitSt,lastLive,bm.at(-1));
+  test(exitSt.owned===''&&exitSt.enemies.length===0,'closing Deadlock clears the lineup and your items');
+  bnd.stop();
 
   // Network lock-down applies to the app's own window, not Overwolf's internal pages.
   const security=require('../desktop/security.cjs');
@@ -136,8 +229,15 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(main.includes("source:'overwolf'")&&main.includes("source:'file'")&&main.includes('overwolf:overwolfStatus'),'live snapshots tagged by source; status exposed');
   test(!/gep|overwolf\.packages/.test(preload),'the renderer never gets the GEP API');
   test(main.includes('details.webContentsId === mainWindow.webContents.id'),'main process scopes the lock-down to the app window');
+  const heroLog=main.slice(main.indexOf('function logOverwolfHeroes'),main.indexOf('const overwolfLive'));
+  test(main.includes("onDebug:message=>console.log('[Counter Advisor] Overwolf event:',message)")&&fs.readFileSync(path.join(root,'desktop/overwolf-live.cjs'),'utf8').includes('approval,onMatch,onDebug,'),'boundary log reaches the terminal');
+  test(main.includes('logOverwolfHeroes(snapshot)')&&heroLog.includes('e.heroId')&&!/\.name\b|player/.test(heroLog),'terminal hero log shows hero names and IDs, never player names');
   test(ui.includes('({feedName,...row})=>row'),'in-game player names are not saved to local storage');
+  const loadFn=ui.slice(ui.indexOf('function loadState'),ui.indexOf('const state=loadState()'));
+  test(!/saved\.(?:hero|souls|owned|liveMatchId)/.test(loadFn)&&/saved\.enemies/.test(loadFn)&&ui.includes("const defaultState=()=>({hero:'Kelvin',souls:0,owned:''"),'each launch starts your hero, souls and items fresh; the enemy lineup is restored');
+  test(ui.includes('JSON.stringify({enemies:state.enemies.map(({feedName,...row})=>row)})'),'only the enemy lineup is saved');
   test(ui.includes('engine.resolveHeroName(catalog,name,id)')&&ui.includes('resolveHeroName(e.hero,e.heroId)'),'the UI resolves feed heroes with their game IDs');
+  test(ui.includes('mergeFeedSnapshot(state,prev,match,resolveHeroName,resolveFeedItems)')&&ui.includes('resolveFeedItems(e.items,e.itemIds)'),'the UI resolves feed items with their class names');
   finished=true;
   console.log(`PASS: ${total} Overwolf live-mode checks (simulated API)`);
 })().catch(e=>{console.error(e);process.exit(1);});

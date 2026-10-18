@@ -2,6 +2,13 @@
 
 This is an engineering checklist, **not** evidence of Valve or Overwolf permission.
 
+## Status (2026-10-18)
+
+- Overwolf approved the app idea as submitted (a second-monitor item advisor that never sends input) and whitelisted it for Deadlock game events (questions 1, 3 and 5).
+- Enemy item purchases are **on** for live advice (`enemyInventoryForLiveAdvice: true` in `desktop/live-approval.cjs`). The developer confirmed that Overwolf allows it; keep that confirmation on file.
+- Question 2: Deadlock's in-game scoreboard shows every player's items, so the feed carries information players can already see.
+- Still open before distribution: Overwolf's QA submission and signing (questions 4 and 6). See `OVERWOLF-NEXT-STEPS.md`.
+
 ## Source
 
 Use only a documented provider integration with explicit permission for Deadlock live data. The promising route is Overwolf Electron GEP, which documents `match_info` roster and item fields, and `game_info` phase updates. Standard Electron does **not** have those APIs. Overwolf gaming packages require developer onboarding, its Electron runtime, and application signing for distribution. Do not assume another app's approval extends to this app.

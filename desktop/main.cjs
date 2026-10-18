@@ -35,9 +35,21 @@ const localFeed=new LocalFeed({
 });
 // Overwolf live data (only active under the Overwolf runtime). Registered at
 // startup so the package 'ready' event can't fire before we listen.
+// Diagnostics: print each match's hero names and game IDs when they change (no
+// player names), to spot heroes Overwolf sends as "UNKNOWN".
+let lastHeroLine='';
+function logOverwolfHeroes(snapshot){
+  if(!snapshot.enemies.length)return;
+  const pair=(hero,id)=>(hero||'?')+'='+(id??'?');
+  const line='you '+pair(snapshot.ownHero,snapshot.ownHeroId)+' | enemies '+snapshot.enemies.map(e=>pair(e.hero,e.heroId)).join(', ');
+  if(line===lastHeroLine)return;
+  lastHeroLine=line;
+  console.log('[Counter Advisor] Overwolf heroes (match '+(snapshot.matchId||'?')+'):',line);
+}
 const overwolfLive=createOverwolfLive({
   app,
-  onMatch:snapshot=>{overwolfStatus={...overwolfStatus,lastUpdate:Date.now()};broadcast('live:match',{...snapshot,source:'overwolf'});},
+  onMatch:snapshot=>{overwolfStatus={...overwolfStatus,lastUpdate:Date.now()};logOverwolfHeroes(snapshot);broadcast('live:match',{...snapshot,source:'overwolf'});},
+  onDebug:message=>console.log('[Counter Advisor] Overwolf event:',message),
   onStatus:status=>{
     overwolfStatus={...overwolfStatus,...status};publishStatus();
     // Plain dots: the Windows console garbles the "…" character.

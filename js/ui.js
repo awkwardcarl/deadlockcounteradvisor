@@ -18,7 +18,10 @@ function applyUISize(size){
 const fmt=new Intl.NumberFormat('en-US');
 const escapeHTML=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let catalog=engine.createCatalog(base,null);
-const defaultState=()=>({hero:'Kelvin',souls:1600,owned:'',enemies:[]});
+// Your hero, souls and items describe one match, so every launch starts them
+// fresh (the live feed fills them in once a match starts). Only the enemy
+// lineup is saved; live mode clears it at match end.
+const defaultState=()=>({hero:'Kelvin',souls:0,owned:'',liveMatchId:'',enemies:[]});
 // "Load example match" (a fresh copy each time, so edits never change the example).
 const demoMatch=()=>({hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamina',enemies:[
  {hero:'Lash',items:'Mystic Burst, Improved Spirit'},
@@ -27,17 +30,14 @@ const demoMatch=()=>({hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamin
  {hero:'Infernus',items:'Healing Booster'}
 ]});
 function loadState(){
+ const fresh=defaultState();
  try{
   const raw=localStorage.getItem(STORE);
-  if(!raw||raw.length>12000)return defaultState();
+  if(!raw||raw.length>12000)return fresh;
   const saved=JSON.parse(raw);
-  return {
-   hero:String(saved.hero||'Kelvin').slice(0,100),
-   souls:Math.max(0,Number(saved.souls)||0),
-   owned:String(saved.owned||'').slice(0,1500),
-   enemies:Array.isArray(saved.enemies)?saved.enemies.slice(0,6).map(e=>({hero:String(e?.hero||'').slice(0,100),items:String(e?.items||'').slice(0,1000)})):[]
-  };
- }catch(_){return defaultState();}
+  fresh.enemies=Array.isArray(saved.enemies)?saved.enemies.slice(0,6).map(e=>({hero:String(e?.hero||'').slice(0,100),items:String(e?.items||'').slice(0,1000)})):[];
+ }catch(_){}
+ return fresh;
 }
 const state=loadState();
 let sortMode='smart',category='all',onlyAffordable=false,strategyMode='balanced',showAllResults=false;
@@ -45,9 +45,11 @@ let currentLiveStatus=null,lastFeedSnapshot=null;
 const heroes=()=>catalog.heroes.map(h=>h.name).sort((a,b)=>a.localeCompare(b));
 // Live feeds tag enemy rows with in-game player names (feedName); those are
 // for matching only and are not saved.
-function persist(){try{localStorage.setItem(STORE,JSON.stringify({...state,enemies:state.enemies.map(({feedName,...row})=>row)}));}catch(_){}}
+function persist(){try{localStorage.setItem(STORE,JSON.stringify({enemies:state.enemies.map(({feedName,...row})=>row)}));}catch(_){}}
 // Map a typed or feed-supplied hero name ("HAZE", "VIPER") to the catalog's spelling.
 function resolveHeroName(name,id){return engine.resolveHeroName(catalog,name,id);}
+// Feed item lists to catalog names, by the game's class names where reported.
+function resolveFeedItems(names,ids){return engine.resolveFeedItems(catalog,names,ids);}
 function heroOptions(selected,blank){
  let names=heroes();
  if(selected&&!names.includes(selected))names=[selected,...names];
@@ -321,7 +323,7 @@ function onLiveMatch(match){
  if(!match||!Array.isArray(match.enemies))return;
  // Only compare with the previous snapshot from the same source.
  const prev=lastFeedSnapshot&&lastFeedSnapshot.source===match.source?lastFeedSnapshot:null;lastFeedSnapshot=match;
- const result=liveMerge.mergeFeedSnapshot(state,prev,match,resolveHeroName);
+ const result=liveMerge.mergeFeedSnapshot(state,prev,match,resolveHeroName,resolveFeedItems);
  // Skip the redraw when nothing changed, so typing in a field is not interrupted.
  if(result.changed){
    $('hero').innerHTML=heroOptions(state.hero,false);
@@ -330,7 +332,7 @@ function onLiveMatch(match){
    updatePortrait();renderOwned();renderEnemies();renderAdvice();persist();
  }
  const overwolf=match.source==='overwolf';
- if(result.ended)$('liveInfo').textContent=`${overwolf?'Match':'Feed reports match'} ended. Previous enemy inventories cleared.`;
+ if(result.ended)$('liveInfo').textContent=`${overwolf?'Match':'Feed reports match'} ended. Enemy lineup, souls and your items cleared for the next match.`;
  else if(result.warning)$('liveInfo').textContent=result.warning;
  else if(!(match.phase==='ended'||match.phase==='postgame'))$('liveInfo').textContent=overwolf
    ?`Live from Overwolf: ${match.enemies.length} opponents${match.clock?' · '+match.clock:''} · ${match.ownItems===null?'your items not reported yet':'your items synced'} · enemy items ${match.enemyItemsWithheld?'off (awaiting confirmation)':`${match.observedInventories}/${match.enemies.length} observed`}. Your manual edits are kept until the game reports a change.`
@@ -458,7 +460,7 @@ function setup(){
    const match=await window.desktopAPI.importReplay();
    if(!match)return;
    if(!match.enemies.length){$('syncStatus').textContent=match.warning;return;}
-   state.enemies=match.enemies.map(e=>({hero:resolveHeroName(e.hero,e.heroId),items:e.items}));
+   state.enemies=match.enemies.map(e=>({hero:resolveHeroName(e.hero,e.heroId),items:resolveFeedItems(e.items,e.itemIds)}));
    renderEnemies();renderAdvice();persist();$('syncStatus').textContent=match.warning;
   }catch(e){$('syncStatus').textContent='Replay import failed: '+String(e?.message||e).slice(0,140);}
  });
