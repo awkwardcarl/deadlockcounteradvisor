@@ -72,6 +72,8 @@ function applySetupDefault(){
  $('setupPanel').open=pref===null?!catalog.complete:pref==='1';
 }
 function updateCatalogUI(){
+ // A new catalog can reshuffle the picks; that is not a live change to highlight.
+ lastPickNames=[];
  $('hero').innerHTML=heroOptions(state.hero,false);$('hero').value=state.hero;
  $('catalogCounts').textContent=catalog.complete?`${catalog.heroes.length} heroes · ${catalog.items.length} items`:'Starter catalog';
  refreshItemIndex();
@@ -149,7 +151,7 @@ function setGlance(on){
  try{localStorage.setItem(STORE_GLANCE,on?'1':'0');}catch(_){}
 }
 function setupNotice(){
- let dismissed=false;try{dismissed=localStorage.getItem(STORE_NOTICE)==='1';}catch(_){}
+ let dismissed=false;try{dismissed=localStorage.getItem(STORE_NOTICE)==='1'||localStorage.getItem(STORE_INTRO)==='1';}catch(_){}
  $('topNotice').hidden=dismissed;
  $('dismissNotice').addEventListener('click',()=>{$('topNotice').hidden=true;try{localStorage.setItem(STORE_NOTICE,'1');}catch(_){}});
 }
@@ -194,7 +196,7 @@ async function openIntro(){
  if(!$('introDialog').open)$('introDialog').showModal();
 }
 function setupIntro(){
- const remember=()=>{try{localStorage.setItem(STORE_INTRO,'1');}catch(_){}};
+ const remember=()=>{$('topNotice').hidden=true;try{localStorage.setItem(STORE_INTRO,'1');}catch(_){}};
  const close=()=>{$('introDialog').close();remember();};
  $('introDone').addEventListener('click',close);
  $('introClose').addEventListener('click',close);
@@ -281,18 +283,37 @@ const threatChip=t=>`<span class="threat level-${escapeHTML(t.level)}" title="Sc
 const itemArt=r=>r.icon?`<img loading="lazy" src="${escapeHTML(r.icon)}" alt="">`:'◆';
 const shortReasons=r=>escapeHTML(r.reasons.slice(0,2).join(' · ')||'General utility');
 const basedOn=r=>r.evidence?.length?`Based on: ${escapeHTML(r.evidence.join(' · '))}`:'';
+// Portraits of the enemies a pick answers (up to four, then +N).
+function counterFaces(r){
+ const all=r.counters||[],names=all.slice(0,4);
+ if(!names.length)return '';
+ const faces=names.map(n=>{const src=portrait(n);return src?`<img src="${escapeHTML(src)}" alt="" title="${escapeHTML(n)}">`:`<span class="face" title="${escapeHTML(n)}">${escapeHTML(n.slice(0,2))}</span>`;}).join('');
+ return `<div class="quickCounters" aria-label="Counters ${escapeHTML(all.join(', '))}">${faces}${all.length>names.length?`<span class="faceMore">+${all.length-names.length}</span>`:''}</div>`;
+}
+// Picks that just changed during a live match stay highlighted for a few seconds.
+const PICK_HIGHLIGHT_MS=6000;
+const KIND_LABELS={counter:'Counter',build:'Build',both:'Counter + build'};
+// "Build: 68% weapon · 32% vitality" from the engine's build profile.
+function buildSplit(build){
+ if(!build?.shares)return 'No items yet';
+ return 'Build: '+Object.entries(build.shares).filter(([,v])=>v>=.05).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${Math.round(v*100)}% ${k}`).join(' · ');
+}
+let lastAdvice=null;
+const pickHighlights=new Map();
+let lastPickNames=[];
 function quickCard(r,i){
+ const counters=r.reasons.length?`Counters ${r.reasons.slice(0,2).join(' and ').toLowerCase()}`:'General utility';
+ const reason=r.kind==='build'?r.reasons[0]:counters;
+ const changed=(pickHighlights.get(r.name)||0)>Date.now();
  return [
-  `<article class="quickItem ${r.affordable?'quickReady':'quickSaving'}">`,
+  `<article class="quickItem ${r.affordable?'quickReady':'quickSaving'}${changed?' quickChanged':''}">`,
   `<div class="quickTop"><span class="quickArt ${escapeHTML(r.category)}">${itemArt(r)}</span>`,
-  `<div class="quickIdentity"><span class="quickEyebrow">CHOICE ${i+1} · ${escapeHTML(r.category||'utility')}</span><strong>${escapeHTML(r.name)}</strong></div></div>`,
-  `<div class="quickReason"><span class="quickLabel">WHY IT HELPS</span>`,
-  `<p>${escapeHTML(String(r.why||'Helps answer the selected threats.').slice(0,180))}</p>`,
-  `<div class="quickTargets">${shortReasons(r)} <span aria-hidden="true">·</span> ${r.coverage} ${r.coverage===1?'enemy':'enemies'} covered</div>`,
-  basedOn(r)?`<div class="quickEvidence">${basedOn(r)}</div>`:'',
-  `</div>`,
-  `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ BUYABLE NOW':`SAVE ${fmt.format(r.missing)} MORE`}</span><span class="quickCost">${fmt.format(r.effectiveCost)} souls</span></div>`,
-  r.upgradeFrom?`<div class="quickUpgrade">Component credit: ${escapeHTML(r.upgradeFrom)}</div>`:'',
+  `<div class="quickIdentity"><span class="quickEyebrow">PICK ${i+1} · ${escapeHTML(r.category||'utility')}</span><strong>${escapeHTML(r.name)}</strong></div>`,
+  `<span class="quickCost">${fmt.format(r.effectiveCost)}<small> souls</small></span></div>`,
+  `<p class="quickReason">${escapeHTML(reason)}</p>`,
+  `<p class="quickVs"><span class="kindTag kind-${r.kind||'counter'}">${KIND_LABELS[r.kind]||KIND_LABELS.counter}</span>${r.vsItems?.length?` vs ${escapeHTML(r.vsItems.join(', '))}`:''}</p>`,
+  counterFaces(r),
+  `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`}</span>${r.upgradeFrom?`<span class="quickUpgrade">uses your ${escapeHTML(r.upgradeFrom)}</span>`:''}</div>`,
   `</article>`
  ].join('');
 }
@@ -324,26 +345,124 @@ function tipPanel(tips){
  return `<summary>HERO ABILITY TIPS · ${tips.length}</summary><ul>${items}</ul><small>Reminders of what these heroes can do, not signs an ability was used or is ready. Tips do not change the rankings.</small>`;
 }
 
+// Live match view: when a live source is connected and reports an enemy team,
+// lead with a status strip and the picks; the editors fold behind "Edit".
+const NEW_BUY_MS=20000;
+const recentBuys=new Map();
+let liveSnapshotAt=0;
+function updateMatchView(){
+ const live=liveWasOn&&state.enemies.length>0;
+ // Entering the live view starts a fresh comparison: nothing to highlight yet.
+ if(live&&!document.body.classList.contains('liveMatch'))lastPickNames=[];
+ document.body.classList.toggle('liveMatch',live);
+ $('liveTeamCard').hidden=!live;
+ $('liveStrip').hidden=!live;
+ if(live){renderLiveTeam();renderLiveStrip();}
+}
+function renderLiveTeam(){
+ const now=Date.now();
+ $('liveTeam').innerHTML=state.enemies.map((e,i)=>{
+  const src=portrait(e.hero),fresh=recentBuys.get(e.feedName||String(i));
+  const isNew=fresh&&fresh.until>now?fresh.items:new Set();
+  const items=engine.cleanList(e.items).map(name=>{
+   const key=engine.norm(name),icon=itemIndex.icons.get(key);
+   return `<span class="liveItem${isNew.has(key)?' liveItemNew':''}">${icon?`<img src="${escapeHTML(icon)}" alt="">`:''}${isNew.has(key)?'+ ':''}${escapeHTML(name)}</span>`;
+  }).join('');
+  return [
+   `<div class="liveRow${isNew.size?' liveRowNew':''}">`,
+   src?`<img class="livePortrait" src="${escapeHTML(src)}" alt="">`:'<span class="livePortrait"></span>',
+   `<div class="liveRowBody"><strong>${escapeHTML(e.hero||'Hero not reported yet')}${state.ownLane&&e.lane===state.ownLane?' <span class="laneTag">Your lane</span>':''}</strong>`,
+   `<div class="liveItems">${items||'<span class="emptyText">No items yet</span>'}</div></div></div>`
+  ].join('');
+ }).join('');
+ $('liveTeam').querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
+}
+function renderLiveStrip(){
+ const m=lastFeedSnapshot||{};
+ $('liveClock').textContent=m.clock?`Live ${m.clock}`:'Live';
+ $('liveHeroName').textContent=state.hero||'Your hero';
+ const src=portrait(state.hero),img=$('liveHeroPortrait');
+ img.hidden=!src;if(src&&img.getAttribute('src')!==src)img.src=src;
+ $('liveSouls').textContent=fmt.format(state.souls);
+ const owned=engine.cleanList(state.owned).length;
+ $('liveOwned').textContent=`${owned} ${owned===1?'item':'items'}`;
+ const lane=lastAdvice?.lane;
+ $('livePhase').textContent=lane?.focus&&lane.opponents.length?`Laning vs ${lane.opponents.join(' and ')}`:lastAdvice?.phase?.label||'';
+ $('liveBuild').textContent=lastAdvice?.build?buildSplit(lastAdvice.build):'';
+ $('liveBuild').classList.toggle('liveGap',!!lastAdvice?.build?.durabilityGap);
+ $('liveBuild').title=lastAdvice?.build?.durabilityGap?'Little vitality against a damage-heavy team: one pick covers durability.':'';
+ renderFreshness();
+}
+// "Updated 3s ago"; turns amber when live data stops arriving.
+function renderFreshness(){
+ const m=lastFeedSnapshot;
+ if(!m||!liveSnapshotAt){$('liveFresh').textContent='';return;}
+ const secs=Math.max(0,Math.round((Date.now()-liveSnapshotAt)/1000));
+ const inventory=m.enemyItemsWithheld?'Enemy items off':`Enemy items ${m.observedInventories}/${m.enemies.length}`;
+ $('liveFresh').textContent=`${inventory} · ${secs<3?'updated just now':`updated ${secs}s ago`}`;
+ $('liveStrip').classList.toggle('liveStale',secs>=30);
+}
+// Items an enemy didn't have in the previous snapshot glow for a while.
+function noteNewPurchases(before){
+ const now=Date.now();
+ state.enemies.forEach((e,i)=>{
+  const key=e.feedName||String(i),old=before.get(key);
+  if(!old)return;
+  const added=engine.cleanList(e.items).map(engine.norm).filter(n=>!old.has(n));
+  if(!added.length)return;
+  const current=recentBuys.get(key),items=new Set(current&&current.until>now?current.items:[]);
+  added.forEach(n=>items.add(n));
+  recentBuys.set(key,{items,until:now+NEW_BUY_MS});
+ });
+}
+function setupMatchView(){
+ $('editLineup').addEventListener('click',()=>{
+  const on=document.body.classList.toggle('editLineup');
+  $('editLineup').textContent=on?'Done':'Edit';
+  $('editLineup').setAttribute('aria-pressed',String(on));
+ });
+ // Freshness ticks, and expired highlights fade out.
+ setInterval(()=>{
+  if(!document.body.classList.contains('liveMatch'))return;
+  renderFreshness();
+  const now=Date.now();
+  let expired=false;
+  for(const [key,value] of recentBuys)if(value.until<=now){recentBuys.delete(key);expired=true;}
+  if(expired)renderLiveTeam();
+  document.querySelectorAll('#quickBuys .quickChanged').forEach((el,i)=>{if((pickHighlights.get(lastPickNames[i])||0)<=now)el.classList.remove('quickChanged');});
+ },5000);
+}
 function renderEnemies(){
  $('enemies').innerHTML=state.enemies.map(enemyRow).join('');
+ if(document.body.classList.contains('liveMatch'))renderLiveTeam();
  document.querySelectorAll('.enemyPortrait').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
  document.querySelectorAll('.enemyHero').forEach(el=>el.addEventListener('change',()=>{state.enemies[Number(el.dataset.index)].hero=el.value;renderEnemies();renderAdvice();persist();}));
  document.querySelectorAll('.remove').forEach(el=>el.addEventListener('click',()=>{state.enemies.splice(Number(el.dataset.index),1);renderEnemies();renderAdvice();persist();}));
 }
 function renderAdvice(){
- const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode});
+ // The live clock sets the match phase; without one the engine estimates it from your souls.
+ const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode,clock:liveWasOn?lastFeedSnapshot?.clock||'':''});
+ lastAdvice=out;
+ $('phaseSummary').textContent=out.phase?`${out.phase.label}${out.phase.source==='souls'?' (estimated)':''} · ${buildSplit(out.build)} · `:'';
  $('matchLabel').textContent=out.count?`${out.count}/6 enemies`:'No lineup';
  const opponents=state.enemies.map(e=>e.hero).filter(Boolean);
  $('glanceSummary').textContent=`${state.hero||'No hero'}${opponents.length?' vs '+opponents.join(', '):' · no enemies entered'}`;
  $('glanceSoulsValue').textContent=fmt.format(state.souls);
- $('evidenceQuality').textContent=`Evidence: ${out.quality}${out.listedItems?` · ${out.knownItems}/${out.listedItems} items recognized`:''}`;
+ $('evidenceQuality').textContent=out.listedItems?`${out.knownItems}/${out.listedItems} enemy items recognized`:out.quality;
+ $('evidenceQuality').title=`Evidence: ${out.quality}`;
  $('threats').innerHTML=out.threats.length?out.threats.slice(0,7).map(threatChip).join(''):'<span class="emptyText">Select opponents to calculate team pressure</span>';
  $('patternInsight').hidden=!out.patterns.length;
  $('patternInsight').innerHTML=pairPanel(out.patterns);
  // Only children are replaced, so the open/closed state of the <details> sticks.
  $('abilityTips').hidden=!out.abilityTips.length;
  $('abilityTips').innerHTML=tipPanel(out.abilityTips);
+ const pickNames=(out.quickBuys||[]).map(r=>r.name);
+ if(document.body.classList.contains('liveMatch')&&lastPickNames.length){
+  for(const name of pickNames)if(!lastPickNames.includes(name))pickHighlights.set(name,Date.now()+PICK_HIGHLIGHT_MS);
+ }
+ lastPickNames=pickNames;
  $('quickBuys').innerHTML=out.quickBuys?.length?out.quickBuys.map(quickCard).join(''):'<div class="quickEmpty">Add your opponents to see three purchase choices. This is not automated gameplay.</div>';
+ if(document.body.classList.contains('liveMatch'))renderLiveStrip();
  const visible=showAllResults?out.results:out.results.slice(0,4);
  $('showAllResults').textContent=showAllResults?'Show fewer':'Show all suggestions';
  $('showAllResults').hidden=out.results.length<=4;
@@ -364,6 +483,7 @@ function onLiveStatus(status){
  const liveOn=feed||owConnected;
  if(liveWasOn&&!liveOn)lastFeedSnapshot=null;
  liveWasOn=liveOn;
+ updateMatchView();
  $('toggleGameDetection').textContent=run?'Stop game detection':'Enable game detection';
  $('gameProcess').textContent=!run?'Not monitoring':status.gameStatus?.error||(!status.gameStatus?.supported?'Not supported':game?'Deadlock running':'Game not found');
  $('matchTelemetry').textContent=feed?'Watching '+String(status.feedStatus.name||'local file'):OVERWOLF_LABELS[ow.state]||'No live game source';
@@ -381,7 +501,13 @@ function onLiveMatch(match){
  if(!match||!Array.isArray(match.enemies))return;
  // Only compare with the previous snapshot from the same source.
  const prev=lastFeedSnapshot&&lastFeedSnapshot.source===match.source?lastFeedSnapshot:null;lastFeedSnapshot=match;
+ liveSnapshotAt=Date.now();
+ // A source's first snapshot replaces the lineup; that is not a change to highlight.
+ if(!prev)lastPickNames=[];
+ const before=new Map(state.enemies.map((e,i)=>[e.feedName||String(i),new Set(engine.cleanList(e.items).map(engine.norm))]));
  const result=liveMerge.mergeFeedSnapshot(state,prev,match,resolveHeroName,resolveFeedItems);
+ // Not on the first snapshot: every item would look new.
+ if(result.changed&&prev&&!result.ended)noteNewPurchases(before);
  // Skip the redraw when nothing changed, so typing in a field is not interrupted.
  if(result.changed){
    $('hero').innerHTML=heroOptions(state.hero,false);
@@ -389,6 +515,7 @@ function onLiveMatch(match){
    $('souls').value=state.souls;
    updatePortrait();renderOwned();renderEnemies();renderAdvice();persist();
  }
+ updateMatchView();
  const overwolf=match.source==='overwolf';
  if(result.ended)$('liveInfo').textContent=`${overwolf?'Match':'Feed reports match'} ended. Enemy lineup, souls and your items cleared for the next match.`;
  else if(result.warning)$('liveInfo').textContent=result.warning;
@@ -409,6 +536,7 @@ function onUpdateStatus(update){
  else if(phase==='ready'){label='Update '+String(update.availableVersion||'')+' ready';action='Install & restart';visible=true;}
  else if(phase==='error'){label='Update check failed';visible=true;}
  status.textContent=label;
+ status.hidden=phase==='unavailable';
  status.title=String(update?.message||label).slice(0,220);
  button.hidden=!visible;button.disabled=disabled;button.textContent=action;
  button.dataset.phase=phase;
@@ -460,7 +588,8 @@ function showDisplays(info){
  const resolution=info?.resolution;
  const size=resolution?` · ${resolution.width}×${resolution.height}`:'';
  const scale=info?.scalePercent?` @${info.scalePercent}%`:'';
- $('displayInfo').textContent=`Display ${cur}/${count}${size}${scale}`;
+ $('displayInfo').textContent=count>1?`Screen ${cur}/${count}`:'';
+ $('displayInfo').title=`Display ${cur}/${count}${size}${scale}`;
  $('nextDisplay').disabled=count<=1;
 }
 function setupDesktopWindow(){
@@ -494,6 +623,7 @@ function setup(){
  setupPrivacy();
  setupShortcuts();
  setupOffline();
+ setupMatchView();
  $('addEnemy').addEventListener('click',()=>{
    if(state.enemies.length>=6)return;
    state.enemies.push({hero:'',items:''});

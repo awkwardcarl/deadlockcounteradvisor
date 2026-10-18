@@ -50,7 +50,9 @@ class EventState {
           const hero=clean(data.hero_name,80);
           // The game's hero ID: a fallback when the feed's hero name is an old or internal one.
           const id=Number(data.hero_id),heroId=Number.isInteger(id)&&id>0&&id<10000?id:null;
-          this.roster.set(index,{index,name,hero,heroId,team:team(data),isLocal:data.is_local===true,souls:Number(data.souls)||0});
+          // Assigned lane (Overwolf: 1 left, 4 middle, 6 right): who you face while laning.
+          const laneNo=Number(data.assigned_lane),lane=Number.isInteger(laneNo)&&laneNo>0&&laneNo<=12?laneNo:null;
+          this.roster.set(index,{index,name,hero,heroId,lane,team:team(data),isLocal:data.is_local===true,souls:Number(data.souls)||0});
         }else if(Array.isArray(data.items)){
           // Empty array means inventory empty; new updates replace earlier state.
           // Overwolf entries carry class_name; keep shop items (upgrade_*) only.
@@ -77,10 +79,10 @@ class EventState {
     };
     const enemies=own&&own.team?participants.filter(p=>p.team&&p.team!==own.team&&p.hero).slice(0,6).map(p=>{
       const matched=this.withholdEnemyItems?null:inventoryOf(p);
-      return {hero:p.hero,heroId:p.heroId??null,name:p.name,items:matched?matched.items.join(', '):'',itemIds:matched?matched.ids:[],inventoryKnown:!!matched};
+      return {hero:p.hero,heroId:p.heroId??null,lane:p.lane??null,name:p.name,items:matched?matched.items.join(', '):'',itemIds:matched?matched.ids:[],inventoryKnown:!!matched};
     }):[];
     const ownInventory=own?inventoryOf(own):null;
-    return {matchId:this.matchId,phase:this.phase,clock:this.clock,ownHero:own?.hero||'',ownHeroId:own?.heroId??null,souls:own?Math.max(0,Math.floor(own.souls)):null,
+    return {matchId:this.matchId,phase:this.phase,clock:this.clock,ownHero:own?.hero||'',ownHeroId:own?.heroId??null,ownLane:own?.lane??null,souls:own?Math.max(0,Math.floor(own.souls)):null,
       ownItems:ownInventory?ownInventory.items.join(', '):null,ownItemIds:ownInventory?ownInventory.ids:[],enemyItemsWithheld:this.withholdEnemyItems,
       enemies,observedInventories:enemies.filter(x=>x.inventoryKnown).length,players:participants.length,updates:this.count,warning:!own?'Local player not identified; enemy data withheld.':!own.team?'Local team unknown; enemy data withheld.':!enemies.length?'No confirmed enemy players in feed.':''};
   }

@@ -33,4 +33,13 @@ async function refresh(userData){
   fs.renameSync(tmp,filename);
   return snapshot;
 }
-module.exports={getJSON,refresh,readCache,ROUTES};
+// Attach the match service's hero names for IDs the public roster doesn't list
+// yet, so live data can name brand-new heroes (resolved in js/engine.js).
+function addFallbackHeroNames(snapshot,assets){
+  if(!snapshot||!Array.isArray(snapshot.heroes))return snapshot;
+  const known=new Set(snapshot.heroes.map(h=>String(h.id)));
+  const names=assets&&typeof assets.heroes==='object'&&assets.heroes?assets.heroes:{};
+  const extraHeroNames=Object.fromEntries(Object.entries(names).filter(([id,name])=>/^\d{1,5}$/.test(id)&&!known.has(id)&&typeof name==='string'&&name.trim()&&name.length<=40).map(([id,name])=>[id,name.trim()]));
+  return {...snapshot,extraHeroNames};
+}
+module.exports={getJSON,refresh,readCache,addFallbackHeroNames,ROUTES};

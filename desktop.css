@@ -543,3 +543,69 @@ kbd{display:inline-block;padding:3px 8px;border:1px solid #3d5b6e;border-bottom-
 .introPrivacy strong{color:#c6eadd}
 .introPrivacy p{margin:6px 0 0}
 .introActions{display:flex;justify-content:flex-end;padding:14px 22px 18px}
+
+/* Live match view: picks lead, the enemy team is a compact read-only list,
+   and the editors fold behind Edit. */
+@media (min-width:1161px){body.liveMatch .workspace{grid-template-columns:minmax(300px,.6fr) minmax(0,1.4fr)}}
+@media (max-width:1160px){body.liveMatch .rightPanel{order:-1}}
+body.liveMatch .leftPanel{display:flex;flex-direction:column}
+body.liveMatch:not(.editLineup) .enemyBlock,body.liveMatch:not(.editLineup) .heroCard{display:none}
+@media (min-width:1161px){body.liveMatch.glanceMode .workspace{grid-template-columns:minmax(0,1fr)}}
+/* The strip already shows your hero and souls; glance keeps only the picks. */
+body.liveMatch .glanceBar,body.glanceMode .tunePanel{display:none}
+.liveStrip{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;margin:0 0 14px;padding:10px 14px;border:1px solid #2f5b52;border-radius:12px;background:#11262a;color:#b9d2d0;font-size:calc(12px * var(--ui-text-multiplier))}
+.liveStrip[hidden],.liveTeamCard[hidden]{display:none}
+.liveBadge{display:inline-flex;align-items:center;gap:7px;padding:3px 10px;border-radius:999px;background:#1d4a3c;color:#a8f5d3;font-weight:700}
+.liveBadge i{width:8px;height:8px;border-radius:50%;background:#5ff0b0;box-shadow:0 0 0 3px #5ff0b033}
+.liveHero{display:inline-flex;align-items:center;gap:8px;color:#e6f3f1}
+.liveHero img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid #3f6a63}
+.liveSouls b{font-size:calc(18px * var(--ui-text-multiplier));color:#f2fff9}
+.liveFresh{margin-left:auto;color:#8fa9b3}
+.liveStrip.liveStale{border-color:#7a6232;background:#2a2416}
+.liveStrip.liveStale .liveFresh{color:#f0cf8a}
+.liveStrip.liveStale .liveBadge i{background:#f0cf8a;box-shadow:none}
+.liveTeamCard{padding:16px 18px}
+.liveTeam{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.liveRow{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid #263b4e;border-radius:10px;background:#111d2b}
+.liveRowNew{border-color:#8c6d33;background:#21201a}
+.livePortrait{flex:none;width:36px;height:36px;border-radius:8px;object-fit:cover;background:#1b2b3c}
+.liveRowBody{min-width:0;flex:1}
+.liveRowBody strong{display:block;margin-bottom:4px;color:#e8f2f5;font-size:calc(13px * var(--ui-text-multiplier))}
+.liveItems{display:flex;flex-wrap:wrap;gap:4px}
+.liveItem{display:inline-flex;align-items:center;gap:4px;padding:2px 7px 2px 3px;border-radius:6px;background:#1a2a3a;color:#c4d4de;font-size:calc(11px * var(--ui-text-multiplier))}
+.liveItem img{width:16px;height:16px;object-fit:contain}
+.liveItemNew{background:#4a3a17;color:#ffe1a1;font-weight:700}
+/* Pick cards: short reason, the heroes a pick answers, affordability first. */
+.quickTop .quickCost{margin-left:auto;align-self:flex-start}
+.quickCost small{font-weight:400;color:#9dbdb7}
+.quickItem .quickReason{margin:10px 0 0}
+.quickCounters{display:flex;align-items:center;gap:4px;margin-top:8px}
+.quickCounters img,.quickCounters .face{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid #4b7a6f;background:#20403a;color:#cfe9e0;font-size:10px}
+.faceMore{margin-left:2px;color:#9dbdb7;font-size:calc(11px * var(--ui-text-multiplier))}
+.quickFoot .buyNow,.quickFoot .saveUp{font-size:calc(13px * var(--ui-text-multiplier));letter-spacing:0}
+body.glanceMode .quickReason{font-size:calc(15px * var(--ui-text-multiplier))}
+.quickChanged{outline:2px solid #f0cf8a;outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){.quickChanged,.liveItemNew{animation:changeGlow 1.2s ease-out 2}}
+@keyframes changeGlow{0%{filter:brightness(1.6)}100%{filter:brightness(1)}}
+/* Filters fold behind "Tune picks"; slimmer chrome above the picks. */
+.tunePanel{margin:0 0 12px}
+.tunePanel>summary{width:max-content;padding:6px 12px;border:1px solid #33506a;border-radius:8px;color:#a9c0d2;font-size:calc(11px * var(--ui-text-multiplier));cursor:pointer;list-style:none}
+.tunePanel>summary::-webkit-details-marker{display:none}
+.tunePanel[open]>summary{margin-bottom:10px}
+.quickHeading .evidenceQuality{display:inline;padding:0;border:0;background:none;color:inherit;font:inherit}
+.topbar{min-height:64px;padding-top:12px;padding-bottom:12px}
+.displayInfo:empty{display:none}
+
+/* Match phase, build split and pick kinds. */
+.livePhase{padding:2px 8px;border-radius:6px;background:#1f3347;color:#cfe0ec;font-weight:700}
+.livePhase:empty,.liveBuild:empty{display:none}
+.liveBuild{color:#a9c4c9}
+.liveBuild.liveGap{color:#f0cf8a}
+.quickVs{margin:4px 0 0;color:#e8c98f;font-size:calc(11px * var(--ui-text-multiplier))}
+.phaseSummary{color:#a9c4c9}
+body.liveMatch .phaseSummary{display:none}
+.kindTag{display:inline-block;margin-right:4px;padding:1px 7px;border-radius:999px;font-weight:700;letter-spacing:0}
+.kind-counter{background:#3a2a1d;color:#f3c99a}
+.kind-build{background:#1d3550;color:#a9d3f5}
+.kind-both{background:#2c2a4f;color:#cbc4ff}
+.laneTag{margin-left:6px;padding:1px 7px;border-radius:999px;background:#2b3d1f;color:#c6f0a4;font-size:calc(10px * var(--ui-text-multiplier));font-weight:700;vertical-align:middle}

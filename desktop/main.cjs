@@ -44,8 +44,8 @@ const localFeed=new LocalFeed({
 let lastHeroLine='';
 function logOverwolfHeroes(snapshot){
   if(!snapshot.enemies.length)return;
-  const pair=(hero,id)=>(hero||'?')+'='+(id??'?');
-  const line='you '+pair(snapshot.ownHero,snapshot.ownHeroId)+' | enemies '+snapshot.enemies.map(e=>pair(e.hero,e.heroId)).join(', ');
+  const pair=(hero,id,lane)=>(hero||'?')+'='+(id??'?')+(lane?' lane '+lane:'');
+  const line='you '+pair(snapshot.ownHero,snapshot.ownHeroId,snapshot.ownLane)+' | enemies '+snapshot.enemies.map(e=>pair(e.hero,e.heroId,e.lane)).join(', ');
   if(line===lastHeroLine)return;
   lastHeroLine=line;
   console.log('[Counter Advisor] Overwolf heroes (match '+(snapshot.matchId||'?')+'):',line);
@@ -244,10 +244,15 @@ app.whenReady().then(() => {
   // share this session and must reach Overwolf to verify the app.
   registerOfflineRestrictions(session.defaultSession, details => !!mainWindow && !mainWindow.isDestroyed() && details.webContentsId === mainWindow.webContents.id);
   console.log('[Counter Advisor] Offline security rules installed.');
-  ipcMain.handle('catalog:get', event => event.sender===mainWindow?.webContents ? dataService.readCache(app.getPath('userData')) : null);
+  // The catalog carries fallback hero names from the match service's hero list.
+  const withHeroNames = snapshot => dataService.addFallbackHeroNames(snapshot, matchService.readAssets(app.getPath('userData')));
+  ipcMain.handle('catalog:get', event => event.sender===mainWindow?.webContents ? withHeroNames(dataService.readCache(app.getPath('userData'))) : null);
   ipcMain.handle('catalog:sync', async event => {
     if(event.sender!==mainWindow?.webContents)throw new Error('Untrusted catalog caller');
-    return dataService.refresh(app.getPath('userData'));
+    const snapshot = await dataService.refresh(app.getPath('userData'));
+    // Refresh the hero list too, so heroes newer than the public roster get names.
+    try { await matchService.refreshAssets(app.getPath('userData')); } catch (_) {}
+    return withHeroNames(snapshot);
   });
   // Post-match debrief: a numeric match ID only; the main process strips
   // account IDs before anything is returned.

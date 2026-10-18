@@ -22,7 +22,7 @@ ok(css.includes('@media (min-width: 3000px)') && css.includes('grid-template-col
 ok(css.includes('.leftPanel>.enemyBlock {grid-column:1 / -1;grid-row:1;}'),'enemy lineup is the first ultrawide row');
 ok(css.includes('@container (max-width: 760px)'),'quick cards stack on narrow panels');
 ok(html.includes('id="quickBuys"') && js.includes('class="quickArt') && js.includes('class="quickReason"'),'three quick buys with icon + reason');
-ok(js.includes('WHY IT HELPS') && js.includes('BUYABLE NOW'),'explainable quick picks');
+ok(js.includes('`Counters ${r.reasons.slice(0,2)') && js.includes('✓ Buy now') && js.includes('function counterFaces'),'explainable quick picks: reason, countered heroes, affordability');
 ok(js.includes("'.itemIcon img, .quickArt img'"),'missing artwork graceful fallback');
 ok(css.includes('.quickCost') && css.includes('.quickFoot'),'pricing and affordability visually grouped');
 ok(pkg.scripts['build:win'].includes('electron-packager'),'working folder packaging remains default');
