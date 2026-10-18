@@ -99,7 +99,7 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   merge(st,prev,base({ownItems:'Extra Spirit, Mystic Burst'}));
   test(st.owned==='Extra Spirit, Mystic Burst','a new purchase replaces it');
   const keep={hero:'',souls:0,owned:'Typed',liveMatchId:'M',enemies:[]};merge(keep,null,base({ownItems:null}));
-  test(keep.owned==='Typed','same match (app restarted mid-game): unreported items (null) leave your list alone');
+  test(keep.owned==='Typed','same match: unreported items (null) leave your list alone');
   // A new game clears last game's items, even before the feed reports a purchase.
   const next={hero:'',souls:0,owned:'Last game item',liveMatchId:'OLD',enemies:[]};merge(next,null,base({ownItems:null}));
   test(next.owned===''&&next.liveMatchId==='M','new match ID: last game\'s items cleared');
@@ -233,6 +233,9 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(main.includes("onDebug:message=>console.log('[Counter Advisor] Overwolf event:',message)")&&fs.readFileSync(path.join(root,'desktop/overwolf-live.cjs'),'utf8').includes('approval,onMatch,onDebug,'),'boundary log reaches the terminal');
   test(main.includes('logOverwolfHeroes(snapshot)')&&heroLog.includes('e.heroId')&&!/\.name\b|player/.test(heroLog),'terminal hero log shows hero names and IDs, never player names');
   test(ui.includes('({feedName,...row})=>row'),'in-game player names are not saved to local storage');
+  const loadFn=ui.slice(ui.indexOf('function loadState'),ui.indexOf('const state=loadState()'));
+  test(!/saved\.(?:hero|souls|owned|liveMatchId)/.test(loadFn)&&/saved\.enemies/.test(loadFn)&&ui.includes("const defaultState=()=>({hero:'Kelvin',souls:0,owned:''"),'each launch starts your hero, souls and items fresh; the enemy lineup is restored');
+  test(ui.includes('JSON.stringify({enemies:state.enemies.map(({feedName,...row})=>row)})'),'only the enemy lineup is saved');
   test(ui.includes('engine.resolveHeroName(catalog,name,id)')&&ui.includes('resolveHeroName(e.hero,e.heroId)'),'the UI resolves feed heroes with their game IDs');
   test(ui.includes('mergeFeedSnapshot(state,prev,match,resolveHeroName,resolveFeedItems)')&&ui.includes('resolveFeedItems(e.items,e.itemIds)'),'the UI resolves feed items with their class names');
   finished=true;

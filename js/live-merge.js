@@ -41,7 +41,7 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  // A new game (new match ID, or play resuming after a match ended) starts with
  // no items, and souls from the feed or else 0: the feed may not report
  // purchases until the first one, and last game's list must not linger. The
- // same match ID keeps them (app restarted mid-game).
+ // same match ID keeps them.
  const newGame=match.matchId?state.liveMatchId!==match.matchId:!!(prev&&ended(prev.phase));
  if(newGame){
   if(match.matchId)state.liveMatchId=match.matchId;

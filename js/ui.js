@@ -18,7 +18,10 @@ function applyUISize(size){
 const fmt=new Intl.NumberFormat('en-US');
 const escapeHTML=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let catalog=engine.createCatalog(base,null);
-const defaultState=()=>({hero:'Kelvin',souls:1600,owned:'',liveMatchId:'',enemies:[]});
+// Your hero, souls and items describe one match, so every launch starts them
+// fresh (the live feed fills them in once a match starts). Only the enemy
+// lineup is saved; live mode clears it at match end.
+const defaultState=()=>({hero:'Kelvin',souls:0,owned:'',liveMatchId:'',enemies:[]});
 // "Load example match" (a fresh copy each time, so edits never change the example).
 const demoMatch=()=>({hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamina',enemies:[
  {hero:'Lash',items:'Mystic Burst, Improved Spirit'},
@@ -27,18 +30,14 @@ const demoMatch=()=>({hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamin
  {hero:'Infernus',items:'Healing Booster'}
 ]});
 function loadState(){
+ const fresh=defaultState();
  try{
   const raw=localStorage.getItem(STORE);
-  if(!raw||raw.length>12000)return defaultState();
+  if(!raw||raw.length>12000)return fresh;
   const saved=JSON.parse(raw);
-  return {
-   hero:String(saved.hero||'Kelvin').slice(0,100),
-   souls:Math.max(0,Number(saved.souls)||0),
-   owned:String(saved.owned||'').slice(0,1500),
-   liveMatchId:String(saved.liveMatchId||'').slice(0,50),
-   enemies:Array.isArray(saved.enemies)?saved.enemies.slice(0,6).map(e=>({hero:String(e?.hero||'').slice(0,100),items:String(e?.items||'').slice(0,1000)})):[]
-  };
- }catch(_){return defaultState();}
+  fresh.enemies=Array.isArray(saved.enemies)?saved.enemies.slice(0,6).map(e=>({hero:String(e?.hero||'').slice(0,100),items:String(e?.items||'').slice(0,1000)})):[];
+ }catch(_){}
+ return fresh;
 }
 const state=loadState();
 let sortMode='smart',category='all',onlyAffordable=false,strategyMode='balanced',showAllResults=false;
@@ -46,7 +45,7 @@ let currentLiveStatus=null,lastFeedSnapshot=null;
 const heroes=()=>catalog.heroes.map(h=>h.name).sort((a,b)=>a.localeCompare(b));
 // Live feeds tag enemy rows with in-game player names (feedName); those are
 // for matching only and are not saved.
-function persist(){try{localStorage.setItem(STORE,JSON.stringify({...state,enemies:state.enemies.map(({feedName,...row})=>row)}));}catch(_){}}
+function persist(){try{localStorage.setItem(STORE,JSON.stringify({enemies:state.enemies.map(({feedName,...row})=>row)}));}catch(_){}}
 // Map a typed or feed-supplied hero name ("HAZE", "VIPER") to the catalog's spelling.
 function resolveHeroName(name,id){return engine.resolveHeroName(catalog,name,id);}
 // Feed item lists to catalog names, by the game's class names where reported.
