@@ -1,9 +1,10 @@
 {
   "name": "deadlock-counter-advisor",
   "productName": "Deadlock Counter Advisor",
-  "version": "0.11.1",
+  "author": "Deadlock Counter Advisor",
+  "version": "0.12.0",
   "private": true,
-  "description": "Deadlock second-screen companion with user-approved GitHub Release update checks. Manual entry, plus live Overwolf game data (heroes, souls, your items) when run on the Overwolf runtime.",
+  "description": "Deadlock second-screen companion that suggests items to counter the enemy team. Manual entry, plus live match data (enemy heroes and their items, your hero, souls and items) in the Overwolf edition.",
   "main": "desktop/main.cjs",
   "overwolf": {
     "packages": [
@@ -13,7 +14,7 @@
   "scripts": {
     "start": "electron .",
     "start:overwolf": "ow-electron .",
-    "test": "node tests/run-tests.cjs && node tests/v06-tests.cjs && node tests/adapter-tests.cjs && node tests/layout-tests.cjs && node tests/v062-visual-tests.cjs && node tests/updater-tests.cjs && node tests/release-tests.cjs && node tests/catalog-fixture-tests.cjs && node tests/live-feed-tests.cjs && node tests/insight-tests.cjs && node tests/process-detection-tests.cjs && node tests/debrief-tests.cjs && node tests/overwolf-live-tests.cjs",
+    "test": "node tests/run-tests.cjs && node tests/v06-tests.cjs && node tests/adapter-tests.cjs && node tests/layout-tests.cjs && node tests/v062-visual-tests.cjs && node tests/updater-tests.cjs && node tests/release-tests.cjs && node tests/catalog-fixture-tests.cjs && node tests/live-feed-tests.cjs && node tests/insight-tests.cjs && node tests/process-detection-tests.cjs && node tests/debrief-tests.cjs && node tests/overwolf-live-tests.cjs && node tests/companion-tests.cjs",
     "fixture:update": "node tests/update-catalog-fixture.cjs",
     "fixture:match": "node tests/update-match-fixture.cjs",
     "build:win": "electron-packager . \"Deadlock Counter Advisor\" --platform=win32 --arch=x64 --asar --icon=assets/icon.ico --out=release --overwrite --ignore=^/release$ --ignore=^/tests$ --ignore=^/preview.png$ --ignore=^/README.md$",
@@ -66,7 +67,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "shortcutName": "Deadlock Counter Advisor",
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "license": "installer/license.txt"
     },
     "publish": {
       "provider": "github",

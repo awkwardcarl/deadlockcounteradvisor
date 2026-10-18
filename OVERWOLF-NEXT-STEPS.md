@@ -63,7 +63,10 @@ The **Overwolf edition build** workflow (`.github/workflows/overwolf-build.yml`)
    gh workflow run overwolf-build.yml -f mode=qa
    ```
 2. When it finishes, download the `deadlock-counter-advisor-overwolf-qa` artifact from the run's page.
-3. Submit the installer inside it for QA in the Overwolf Developer Console. Overwolf signs this first build for QA testing only.
+3. Scan the installer at [virustotal.com](https://www.virustotal.com) first: Overwolf won't test an installer that VirusTotal flags.
+4. Submit the installer for QA in the Overwolf Developer Console. Overwolf signs this first build for QA testing only. The submission asks for the Privacy Policy and Terms of Use URLs: `https://awkwardcarl.github.io/deadlockcounteradvisor/privacy.html` and `.../terms.html`.
+
+Already in place for QA: the `author` field, a Privacy section with Overwolf's Manage button and the first-launch consent step, policies accepted in the installer, a first-run intro, the show/hide hotkey (`Ctrl+Shift+F12`) with a reminder under Settings → Shortcuts, offline messages, and second-screen support. Checked at Overwolf's resolution list, the window appears in under 2 seconds and closing it ends every process.
 
 ### 2. Add the signing credentials as repository secrets
 

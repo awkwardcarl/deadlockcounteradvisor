@@ -7,6 +7,7 @@ const STORE_UI_SIZE='deadlock-counter-advisor-ui-size';
 const STORE_SETUP_OPEN='deadlock-counter-advisor-setup-open';
 const STORE_GLANCE='deadlock-counter-advisor-glance';
 const STORE_NOTICE='deadlock-counter-advisor-notice-dismissed';
+const STORE_INTRO='deadlock-counter-advisor-intro-seen';
 const VALID_UI_SIZES=new Set(['auto','standard','comfortable','large']);
 function applyUISize(size){
  const chosen=VALID_UI_SIZES.has(size)?size:'auto';
@@ -152,13 +153,70 @@ function setupNotice(){
  $('topNotice').hidden=dismissed;
  $('dismissNotice').addEventListener('click',()=>{$('topNotice').hidden=true;try{localStorage.setItem(STORE_NOTICE,'1');}catch(_){}});
 }
+// Edition: the Overwolf edition hides developer-only controls (local event
+// feed, replay import, process detection); Overwolf supplies live data there.
+function setupEdition(){
+ const overwolf=window.desktopAPI?.edition==='overwolf';
+ document.body.classList.toggle('owEdition',overwolf);
+ if(overwolf)$('liveInfo').textContent='Live match data comes from Overwolf once a Deadlock match starts.';
+}
+// Privacy Policy and Terms links (any [data-legal] button), and Overwolf's
+// privacy settings in the Overwolf edition.
+function setupPrivacy(){
+ const api=window.desktopAPI;
+ document.addEventListener('click',e=>{
+  const link=e.target.closest?.('[data-legal]');
+  if(!link)return;
+  e.preventDefault();
+  api?.openLegal?.(link.dataset.legal).catch(()=>{});
+ });
+ const manage=tab=>api?.openPrivacySettings?.(tab).catch(()=>{});
+ $('managePrivacy').addEventListener('click',()=>manage('purposes'));
+ $('introManagePrivacy').addEventListener('click',()=>manage('purposes'));
+ $('introVendors').addEventListener('click',()=>manage('vendors'));
+}
+// Show/hide hotkey reminder, in Settings and the intro.
+function setupShortcuts(){
+ const api=window.desktopAPI,key=api?.hotkey||'';
+ $('hotkeyLabel').textContent=key||'Off';
+ $('hotkeyHelp').textContent=key?'Press it in game to bring this window up or put it away.':api?'Another app is using Ctrl+Shift+F12, so the hotkey is off for now.':'Available in the desktop app.';
+ $('introHotkey').textContent=key?`Press ${key} in game to show or hide this window.`:'Switch to this window from the taskbar.';
+ $('showIntro').addEventListener('click',()=>void openIntro());
+}
+// First-run intro. In the Overwolf edition it also offers Overwolf's consent
+// choices when Overwolf says they are required: with our own installer, the
+// app has to show them on first launch.
+async function openIntro(){
+ const api=window.desktopAPI;
+ let consent=false;
+ if(api?.edition==='overwolf'&&api.getPrivacyStatus){try{consent=(await api.getPrivacyStatus())?.required===true;}catch(_){}}
+ $('introPrivacy').hidden=!consent;
+ if(!$('introDialog').open)$('introDialog').showModal();
+}
+function setupIntro(){
+ const remember=()=>{try{localStorage.setItem(STORE_INTRO,'1');}catch(_){}};
+ const close=()=>{$('introDialog').close();remember();};
+ $('introDone').addEventListener('click',close);
+ $('introClose').addEventListener('click',close);
+ $('introDialog').addEventListener('cancel',remember);
+ let seen=false;try{seen=localStorage.getItem(STORE_INTRO)==='1';}catch(_){}
+ if(!seen)void openIntro();
+}
+// Offline: everything local keeps working; say which features need internet.
+const isOffline=()=>navigator.onLine===false;
+function setupOffline(){
+ const update=()=>{$('offlineNotice').hidden=!isOffline();};
+ window.addEventListener('online',update);
+ window.addEventListener('offline',update);
+ update();
+}
 function setupGlance(){
  let saved=false;try{saved=localStorage.getItem(STORE_GLANCE)==='1';}catch(_){}
  setGlance(saved);
  $('glance').addEventListener('click',()=>setGlance(!document.body.classList.contains('glanceMode')));
  // G toggles and Esc exits, except while typing or with the hero picker open.
  document.addEventListener('keydown',e=>{
-  if(e.ctrlKey||e.altKey||e.metaKey||$('heroDialog').open||document.body.classList.contains('debriefMode')||e.target.closest?.('input,select,textarea'))return;
+  if(e.ctrlKey||e.altKey||e.metaKey||$('heroDialog').open||$('introDialog').open||document.body.classList.contains('debriefMode')||e.target.closest?.('input,select,textarea'))return;
   if(e.key==='g'||e.key==='G'){e.preventDefault();setGlance(!document.body.classList.contains('glanceMode'));}
   else if(e.key==='Escape'&&document.body.classList.contains('glanceMode'))setGlance(false);
  });
@@ -432,6 +490,10 @@ function setup(){
  setupHeroPicker();
  setupGlance();
  setupNotice();
+ setupEdition();
+ setupPrivacy();
+ setupShortcuts();
+ setupOffline();
  $('addEnemy').addEventListener('click',()=>{
    if(state.enemies.length>=6)return;
    state.enemies.push({hero:'',items:''});
@@ -449,6 +511,7 @@ function setup(){
  $('heroPortrait').addEventListener('error',()=>{$('heroPortrait').hidden=true;});
  $('sync').addEventListener('click',async()=>{
   if(!window.desktopAPI?.syncCatalog){$('syncStatus').textContent='Catalog sync requires the Windows desktop executable.';return;}
+  if(isOffline()){$('syncStatus').textContent="You're offline. Check your internet connection, then sync again.";return;}
   $('sync').disabled=true;$('syncStatus').textContent='Fetching public items and released heroes…';
   try{await syncCatalogNow();}
   catch(e){$('syncStatus').textContent='Sync failed: '+String(e?.message||e).slice(0,180)+'. Keeping prior catalog.';}
@@ -468,6 +531,7 @@ function setup(){
  setupDesktopWindow();
  window.DeadlockDebriefUI?.setup({$,getCatalog:()=>catalog,ensureCatalog:async()=>{if(!catalog.complete)await syncCatalogNow();},engine,debrief:window.DeadlockDebrief,base,escapeHTML,fmt});
  updateCatalogUI();setInputs();
+ setupIntro();
 }
 setup();
 })();

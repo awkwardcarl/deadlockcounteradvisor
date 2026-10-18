@@ -35,8 +35,12 @@
     </header>
     <div class="topNotice" id="topNotice">
       <span class="noticeIcon">ⓘ</span>
-      <div><strong>Independent second-screen app.</strong> Manual recommendations remain available. Game detection checks only Windows process names; live inventory needs a separate, authorized game-data provider. This app does not read Deadlock memory or inject an overlay.</div>
+      <div><strong>Independent second-screen app.</strong> <span class="owOnly">Live match data comes from Overwolf's approved game events, the same information the in-game scoreboard shows.</span><span class="standardOnly">Pick the enemy heroes and the items you see them buy.</span> This app never reads Deadlock's memory, injects an overlay or sends input.</div>
       <button id="dismissNotice" class="noticeDismiss" type="button" aria-label="Dismiss this notice (it stays under About &amp; safety)" title="Dismiss (it stays under About &amp; safety)">×</button>
+    </div>
+    <div class="topNotice offlineNotice" id="offlineNotice" role="status" hidden>
+      <span class="noticeIcon">⚠</span>
+      <div><strong>You're offline.</strong> Recommendations keep working. Catalog sync, the post-match debrief and update checks need an internet connection.</div>
     </div>
     <div class="workspace">
       <aside class="leftPanel" id="inputPanel">
@@ -57,20 +61,32 @@
         </section>
         <!-- Used once per session, so tucked away; the summary shows the status. -->
         <details class="setupPanel" id="setupPanel">
-          <summary><span class="setupTitle">SETUP · GAME DETECTION &amp; CATALOG</span><span class="setupStatus" id="setupStatus">Starter catalog</span></summary>
+          <summary><span class="setupTitle">SETTINGS · LIVE DATA, CATALOG &amp; PRIVACY</span><span class="setupStatus" id="setupStatus">Starter catalog</span></summary>
           <div class="setupCards">
         <section class="card liveCard">
-          <div class="sectionHeading"><div><div class="overline">OPTIONAL / READ-ONLY</div><h2>Game & event status</h2></div><span class="miniPill" id="liveMode">Disconnected</span></div>
-          <div class="liveIndicators"><div><span>WINDOWS GAME PROCESS</span><strong id="gameProcess">Not monitoring</strong></div><div><span>MATCH TELEMETRY</span><strong id="matchTelemetry">No approved source</strong></div></div>
-          <div class="actionRow"><button id="toggleGameDetection" class="addButton" type="button">Enable game detection</button><button id="selectEventFeed" class="muted" type="button">Load local event feed</button><button id="stopEventFeed" class="muted" type="button" disabled>Stop feed</button></div>
+          <div class="sectionHeading"><div><div class="overline">READ-ONLY</div><h2>Live game data</h2></div><span class="miniPill" id="liveMode">Disconnected</span></div>
+          <div class="liveIndicators"><div class="devOnly"><span>WINDOWS GAME PROCESS</span><strong id="gameProcess">Not monitoring</strong></div><div><span>MATCH TELEMETRY</span><strong id="matchTelemetry">No approved source</strong></div></div>
+          <div class="actionRow devOnly"><button id="toggleGameDetection" class="addButton" type="button">Enable game detection</button><button id="selectEventFeed" class="muted" type="button">Load local event feed</button><button id="stopEventFeed" class="muted" type="button" disabled>Stop feed</button></div>
           <p class="supportText" id="liveInfo">Game process detection cannot identify whether you're in a match. A selected JSONL feed can update enemy heroes and items, but this program does not generate that feed or connect directly to Deadlock.</p>
-          <p class="supportText tiny">For development tests or an explicitly approved external feed only. Never assume available enemy data is authorized to use in live competitive matches.</p>
+          <p class="supportText tiny devOnly">The local event feed is for testing with your own files. The Overwolf edition fills in live match data by itself.</p>
         </section>
         <section class="card syncCard">
           <div class="sectionHeading"><div><div class="overline">CATALOG SOURCE</div><h2>Patch-aware data</h2></div><span id="catalogCounts" class="miniPill">Starter data</span></div>
-          <div class="actionRow"><button id="sync" class="addButton" type="button">↻ Sync items & heroes</button><button id="importReplay" class="muted" type="button">Import saved replay</button></div>
+          <div class="actionRow"><button id="sync" class="addButton" type="button">↻ Sync items & heroes</button><button id="importReplay" class="muted devOnly" type="button">Import saved replay</button></div>
           <p class="supportText" id="syncStatus">Offline starter catalog loaded. Click Sync to fetch public game metadata and cache it locally. Replay import is offline, not live tracking.</p>
           <p class="supportText">Artwork and metadata: deadlock.io. Synced data is public shop and released heroes only.</p>
+        </section>
+        <section class="card privacyCard" id="privacyCard">
+          <div class="sectionHeading"><div><div class="overline">SETTINGS</div><h2>Privacy</h2></div></div>
+          <div class="actionRow"><button id="managePrivacy" class="addButton owOnly" type="button">Manage</button><button class="muted" type="button" data-legal="privacy">Privacy Policy</button><button class="muted" type="button" data-legal="terms">Terms of Use</button></div>
+          <p class="supportText owOnly">Manage opens Overwolf's privacy settings for data its platform uses. You can change your choices at any time.</p>
+          <p class="supportText">The app sends no usage data of its own. Your settings and enemy lineup stay on this PC.</p>
+        </section>
+        <section class="card shortcutsCard" id="shortcutsCard">
+          <div class="sectionHeading"><div><div class="overline">SETTINGS</div><h2>Shortcuts</h2></div></div>
+          <div class="hotkeyReminder"><span>SHOW / HIDE HOTKEY</span><kbd id="hotkeyLabel">Ctrl+Shift+F12</kbd></div>
+          <p class="supportText" id="hotkeyHelp">Press it in game to bring this window up or put it away.</p>
+          <div class="actionRow"><button id="showIntro" class="muted" type="button">Show intro</button></div>
         </section>
           </div>
         </details>
@@ -92,9 +108,9 @@
           <div class="shopSummary" id="shopSummary" aria-live="polite"></div><div id="unknown" class="unknown" role="status" hidden></div>
         </div>
         <details class="aboutPanel" id="aboutPanel"><summary>About &amp; safety</summary>
-        <div class="infoRow"><div><strong>Independent second-screen app</strong><p>Manual recommendations remain available. Game detection checks only Windows process names; live inventory needs a separate, authorized game-data provider. This app does not read Deadlock memory or inject an overlay.</p></div><div><strong>How rankings work</strong><p>Counters are explainable picks based on the enemy lineup, their visible items, your hero and your souls. Enemy heroes and recognized items contribute threat scores, and each counter is ranked by relevant protections and synergy. Suggestions are heuristics, not measured win-rate predictions.</p></div><div><strong>Game-safety boundary</strong><p>Process-name checks only, plus opt-in reading of a user-selected JSONL event feed. No memory reading, game injection, overlay, input automation, or network telemetry collector. Live item tracking still requires an authorized external data source.</p></div></div>
+        <div class="infoRow"><div><strong>Independent second-screen app</strong><p>Manual recommendations always work. The Overwolf edition fills in the enemy lineup and their items, your hero, souls and purchases live from Overwolf's approved game events. The standard edition can watch for the game process. This app does not read Deadlock memory or inject an overlay.</p></div><div><strong>How rankings work</strong><p>Counters are explainable picks based on the enemy lineup, their visible items, your hero and your souls. Enemy heroes and recognized items contribute threat scores, and each counter is ranked by relevant protections and synergy. Suggestions are heuristics, not measured win-rate predictions.</p></div><div><strong>Game-safety boundary</strong><p>Live data comes only from Overwolf's approved game events: information the in-game scoreboard already shows. No memory reading, game injection, overlay or input automation, and the app sends no usage data of its own. The standard edition checks process names and can read an event file you choose, for testing.</p></div></div>
         </details>
-        <footer>v0.11.1 · Post-match debrief · Unofficial community companion · opt-in process detection · development-only local feed · no Valve affiliation or ban-free guarantee</footer>
+        <footer>v0.12.0 · Unofficial community companion · not affiliated with Valve · no ban-free guarantee · <button class="linkButton" type="button" data-legal="privacy">Privacy Policy</button> · <button class="linkButton" type="button" data-legal="terms">Terms of Use</button></footer>
       </section>
     </div>
     <section class="debriefView" id="debriefView" hidden aria-labelledby="debriefTitle">
@@ -110,6 +126,25 @@
         <div id="debriefResults" class="debriefResults" hidden aria-live="polite"></div>
       </div>
     </section>
+    <dialog id="introDialog" class="heroDialog introDialog" aria-labelledby="introTitle">
+      <div class="heroDialogHead"><h2 id="introTitle">Welcome to Counter Advisor</h2><button id="introClose" class="iconButton" type="button" aria-label="Close">×</button></div>
+      <div class="introBody">
+        <ol class="introSteps">
+          <li><strong>Know what to buy next.</strong> The top of the window shows three next-item picks against the enemy team, with more options and the reasons below.</li>
+          <li class="owOnly"><strong>Live match data.</strong> Start a Deadlock match and the enemy heroes and their items, your hero, souls and purchases fill in by themselves. You can still change anything.</li>
+          <li class="standardOnly"><strong>Enter the match.</strong> Pick the enemy heroes and add the items you see them buy. Your souls and items sharpen the picks.</li>
+          <li><strong>Review after the match.</strong> Post-match debrief compares what you bought with what would have countered the enemy team.</li>
+          <li><strong>Keep it on your second screen.</strong> <span id="introHotkey">Press Ctrl+Shift+F12 in game to show or hide this window.</span> Use ↗ Move display to send it to another screen.</li>
+        </ol>
+        <section class="introPrivacy" id="introPrivacy" hidden>
+          <strong>Your privacy choices</strong>
+          <p>This edition runs on Overwolf, which asks for your consent before its platform uses data for personalized content or ads. Review your choices now; you can change them any time under Settings → Privacy.</p>
+          <div class="actionRow"><button id="introManagePrivacy" class="addButton" type="button">Manage choices</button><button id="introVendors" class="muted" type="button">View vendors</button></div>
+        </section>
+        <p class="supportText">By using the app you agree to the <button class="linkButton" type="button" data-legal="terms">Terms of Use</button>. See the <button class="linkButton" type="button" data-legal="privacy">Privacy Policy</button> for how data is handled.</p>
+      </div>
+      <div class="introActions"><button id="introDone" class="addButton" type="button">Get started</button></div>
+    </dialog>
     <dialog id="heroDialog" class="heroDialog" aria-labelledby="heroDialogTitle">
       <div class="heroDialogHead"><h2 id="heroDialogTitle">Choose a hero</h2><input id="heroSearch" type="search" placeholder="Search heroes…" aria-label="Search heroes"><button id="heroDialogClose" class="iconButton" type="button" aria-label="Close">×</button></div>
       <div id="heroGrid" class="heroGrid"></div>
