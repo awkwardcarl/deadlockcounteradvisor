@@ -97,6 +97,16 @@ const roster=[
   const keep={hero:'',souls:0,owned:'Typed',enemies:[]};merge(keep,null,base({ownItems:null}));
   test(keep.owned==='Typed','unreported items (null) leave your list alone');
 
+  // Network lock-down applies to the app's own window, not Overwolf's internal pages.
+  const security=require('../desktop/security.cjs');
+  let intercept;const fakeSession={setPermissionRequestHandler(){},webRequest:{onBeforeRequest:cb=>{intercept=cb;}}};
+  security.registerOfflineRestrictions(fakeSession,details=>details.webContentsId===7);
+  const decide=(url,id,type='xhr')=>{let r;intercept({url,webContentsId:id,resourceType:type},x=>{r=x;});return r.cancel;};
+  test(decide('https://example.org/x',7)===true&&decide('https://deadlock.io/assets/game/panorama/images/heroes/x.png',7,'image')===false,'app window: network blocked except allowlisted images');
+  test(decide('https://content.overwolf.com/monsdk/electron/latest/cmp/x.html',3,'mainFrame')===false&&decide('https://api.overwolf.com/verify',undefined)===false,'Overwolf runtime pages and main-process requests are not blocked');
+  security.registerOfflineRestrictions(fakeSession);
+  test(decide('https://content.overwolf.com/x',3)===true,'without a window check, everything stays locked (previous behavior)');
+
   // Wiring and packaging.
   const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
   test(pkg.scripts['start:overwolf']==='ow-electron .'&&pkg.overwolf?.packages?.includes('gep')&&/^\d+\.\d+\.\d+$/.test(pkg.devDependencies['@overwolf/ow-electron']),'start:overwolf script, gep package declared, runtime pinned');
@@ -104,6 +114,7 @@ const roster=[
   const main=fs.readFileSync(path.join(root,'desktop/main.cjs'),'utf8'),preload=fs.readFileSync(path.join(root,'desktop/preload.cjs'),'utf8'),ui=fs.readFileSync(path.join(root,'js/ui.js'),'utf8');
   test(main.includes("source:'overwolf'")&&main.includes("source:'file'")&&main.includes('overwolf:overwolfStatus'),'live snapshots tagged by source; status exposed');
   test(!/gep|overwolf\.packages/.test(preload),'the renderer never gets the GEP API');
+  test(main.includes('details.webContentsId === mainWindow.webContents.id'),'main process scopes the lock-down to the app window');
   test(ui.includes('({feedName,...row})=>row'),'in-game player names are not saved to local storage');
   console.log(`PASS: ${total} Overwolf live-mode checks (simulated API)`);
 })().catch(e=>{console.error(e);process.exit(1);});

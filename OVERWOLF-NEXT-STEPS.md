@@ -13,25 +13,30 @@ When the app runs on Overwolf's Electron runtime with valid credentials, `deskto
 
 ## Test it on your PC (dev mode)
 
-Dev mode only works when running from source; it can't activate in an installed build.
+Dev mode only works when running from source; it can't activate in an installed build. These steps use `npm.cmd`, which works even when PowerShell's script policy blocks the plain `npm` command.
 
-1. In the project folder, install dependencies (first time, or after pulling this change):
+1. Open PowerShell in the project folder:
    ```bash
-   npm ci
+   cd "C:\Users\claut\OneDrive\Documents\GitHub\deadlockcounteradvisor"
    ```
-2. In the **same PowerShell window**, set your dev key for this session only. Never commit it or paste it anywhere else:
+2. Install dependencies (first time, or after pulling changes):
    ```bash
-   $env:OW_DEV_KEY = '<your dev key>'
+   npm.cmd ci
    ```
-3. Start the Overwolf version:
+3. In the **same PowerShell window**, set your dev key for this session only. Replace `PASTE_YOUR_KEY_HERE` with the key itself: keep the single quotes, and add no angle brackets or spaces. Never commit the key or paste it into a chat or issue:
    ```bash
-   npm run start:overwolf
+   $env:OW_DEV_KEY = 'PASTE_YOUR_KEY_HERE'
    ```
-4. In the app's Setup section, the live status should go **Overwolf: loading → waiting for a match**. Start a Deadlock match (a bot match is fine); it should change to **connected**, and the enemy lineup, your hero, souls and owned items should fill in.
+4. Start the Overwolf version (the first launch downloads Overwolf's runtime):
+   ```bash
+   npm.cmd run start:overwolf
+   ```
+5. In the app's Setup section, the live status should go **Overwolf: loading → waiting for a match**. Start a Deadlock match (a bot match is fine); it should change to **connected**, and the enemy lineup, your hero, souls and owned items should fill in.
 
 **Troubleshooting**
 
-- *"Overwolf game events failed to load"*: the dev key wasn't set in that window, or is wrong.
+- *"Overwolf game events failed to load"*, or `invalid verification` in the terminal: the dev key wasn't set in that window, or is wrong (check for leftover angle brackets, spaces or a missing character).
+- *`npm.ps1 cannot be loaded because running scripts is disabled`*: use `npm.cmd` as shown above.
 - *"Deadlock is running as administrator"*: run the app as administrator too, or start Deadlock normally.
 - *Stays on "waiting for a match"*: game events only start once Deadlock is detected; check the [game events status page](https://dev.overwolf.com/ow-electron/live-game-data-gep/game-events-status-health).
 
