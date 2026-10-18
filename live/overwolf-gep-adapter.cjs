@@ -1,8 +1,9 @@
 'use strict';
 /**
- * Deadlock Counter Advisor — Overwolf GEP evaluation adapter.
- * NOT WIRED TO THE APPLICATION. Requires approved, whitelisted app and
- * separate, explicit clearance for real-time counter recommendations.
+ * Deadlock Counter Advisor — Overwolf GEP adapter.
+ * Wired to the app only through desktop/overwolf-live.cjs, which passes the
+ * approval switches from desktop/live-approval.cjs. Enemy item purchases are
+ * withheld unless enemyInventoryForLiveAdvice is approved.
  * No network, process-memory reads, hooks, injection or input automation.
  * The Overwolf GEP runtime itself is an external dependency.
  *
@@ -20,7 +21,7 @@ function validUpdate(raw) {
   const key=String(raw.key || '');
   if (feature==='game_info' && key==='phase') return {feature,key,data:raw.data ?? raw.value};
   if (feature!=='match_info') return null;
-  if (key==='match_id'||/^roster_(?:[0-9]|1[01])$/.test(key)||/^items_(?:[0-9]|1[01])$/.test(key)) {
+  if (key==='match_id'||key==='match_clock'||/^roster_(?:[0-9]|1[01])$/.test(key)||/^items_(?:[0-9]|1[01])$/.test(key)) {
     return {feature,key,data:raw.data ?? raw.value};
   }
   return null;
@@ -44,7 +45,9 @@ class OverwolfGepAdapter {
     this.approval=approval||{};
     this.onMatch=onMatch;
     this.onStatus=onStatus;
-    this.state=new EventState();
+    // Enemy purchases are withheld unless explicitly approved; your own items
+    // and the roster still flow (see desktop/live-approval.cjs).
+    this.state=new EventState({withholdEnemyItems:this.approval.enemyInventoryForLiveAdvice!==true});
     this.active=false;this.gameId=null;this.handlers=[];
   }
   start() {
@@ -55,14 +58,16 @@ class OverwolfGepAdapter {
     this.active=true;
     const bind=(name,fn)=>{this.gep.on(name,fn);this.handlers.push([name,fn]);};
     bind('game-detected',(e,id,name)=>this.detected(e,id,name));
-    bind('game-exit',(_e,id)=>{if(id===DEADLOCK_GEP_ID){this.gameId=null;this.state.clear();this.onMatch(this.state.snapshot());this.onStatus('Deadlock closed');}});
+    bind('game-exit',(_e,id)=>{if(id===DEADLOCK_GEP_ID){this.gameId=null;this.state.clear();this.onMatch(this.state.snapshot());this.onStatus('Deadlock closed. Waiting for the next game.','ready');}});
+    bind('elevated-privileges-required',(_e,id)=>{if(id===DEADLOCK_GEP_ID)this.onStatus('Deadlock is running as administrator, so live data needs this app to run as administrator too.','error');});
     bind('new-info-update',(_e,id,data)=>this.consume(id,data));
     bind('new-game-event',(_e,id,data)=>{
       if(id!==DEADLOCK_GEP_ID || !data || typeof data!=='object')return;
       const key=String(data.name||data.key||'');
       if(key==='match_start'||key==='match_end')this.consume(id,{event:key});
+      else if(key==='match_clock')this.consume(id,{feature:'match_info',key,value:data.value});
     });
-    bind('error',(_e,id,error)=>{if(id===DEADLOCK_GEP_ID)this.onStatus('GEP error: '+String(error).slice(0,160));});
+    bind('error',(_e,id,error)=>{if(id===DEADLOCK_GEP_ID)this.onStatus('Game events error: '+String(error).slice(0,160),'error');});
   }
   async detected(event,id,name) {
     if(!this.active || id!==DEADLOCK_GEP_ID)return;
@@ -75,22 +80,20 @@ class OverwolfGepAdapter {
     try{
       const available=await this.gep.getFeatures(id);
       if(!this.active)return;
-      if(!Array.isArray(available)||!available.includes('match_info')) {this.gameId=null;this.onStatus('Deadlock match_info is not available in this environment');return;}
+      if(!Array.isArray(available)||!available.includes('match_info')) {this.gameId=null;this.onStatus('Deadlock match data (match_info) is not available right now.','error');return;}
       await this.gep.setRequiredFeatures(id,FEATURES.filter(x=>available.includes(x)));
       if(!this.active)return;
-      this.onStatus('GEP attached to approved Deadlock event stream');
+      this.onStatus('Connected to Deadlock live data.','connected');
       if(typeof this.gep.getInfo==='function'){
         const info=await this.gep.getInfo(id);
         if(this.active)this.consume(id,info);
       }
-    }catch(e){this.gameId=null;this.onStatus('GEP initialization failed: '+String(e.message).slice(0,150));}
+    }catch(e){this.gameId=null;this.onStatus('Could not start Deadlock live data: '+String(e.message).slice(0,150),'error');}
   }
   consume(id,raw) {
     if(!this.active||this.gameId!==id) return;
     let update=validUpdate(raw);
     if(raw?.event==='match_start'||raw?.event==='match_end')update=raw;
-    if(!update)return;
-    update=removeUnapprovedInventory(update,this.approval.enemyInventoryForLiveAdvice === true);
     if(!update)return;
     const next=this.state.apply(update);
     // EventState fails closed when local team cannot be identified.
@@ -101,7 +104,7 @@ class OverwolfGepAdapter {
     this.active=false;
     for(const [name,fn] of this.handlers)this.gep.off?.(name,fn);
     this.handlers=[];this.gameId=null;this.state.clear();
-    this.onStatus('GEP stopped');
+    this.onStatus('Live data stopped.','stopped');
   }
 }
 module.exports={OverwolfGepAdapter,DEADLOCK_GEP_ID,FEATURES,validUpdate,removeUnapprovedInventory};

@@ -28,6 +28,8 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x){
  }
  if(match.ownHero&&(!prev||prev.ownHero!==match.ownHero)){state.hero=resolveHero(match.ownHero);changed=true;}
  if(Number.isFinite(match.souls)&&(!prev||prev.souls!==match.souls)){state.souls=match.souls;changed=true;}
+ // Your own purchases (Overwolf feed): same rule, a manual edit sticks until they change.
+ if(typeof match.ownItems==='string'&&(!prev||prev.ownItems!==match.ownItems)){state.owned=match.ownItems;changed=true;}
  return {changed};
 }
 root.DeadlockLiveMerge={mergeFeedSnapshot};

@@ -11,6 +11,7 @@ const matchService = require('./match-service.cjs');
 const replayService = require('../live/overwolf-normalizer.cjs');
 const {checkGame}=require('../live/process-detection.cjs');
 const {LocalFeed}=require('../live/local-feed.cjs');
+const {createOverwolfLive}=require('./overwolf-live.cjs');
 const {LAYOUT_REVISION, responsiveBounds, transferredBounds, inArea}=require('./window-layout.cjs');
 
 let mainWindow;
@@ -23,13 +24,21 @@ let saveTimer;
 let monitorActive=false, monitorTimer=null, monitorBusy=false;
 let gameStatus={supported:process.platform==='win32',running:false};
 let feedStatus={active:false,name:'',error:''};
+let overwolfStatus={state:'unavailable',message:'',at:0,enemyItems:false,lastUpdate:0};
 function trusted(event){return event.sender===mainWindow?.webContents;}
-function liveStatus(){return {monitorActive,gameStatus,feedStatus};}
+function liveStatus(){return {monitorActive,gameStatus,feedStatus,overwolf:overwolfStatus};}
 function broadcast(channel,value){if(mainWindow&&!mainWindow.isDestroyed()&&!mainWindow.webContents.isDestroyed())mainWindow.webContents.send(channel,value);}
 function publishStatus(){broadcast('live:status',liveStatus());}
 const localFeed=new LocalFeed({
-  onState:state=>broadcast('live:match',state),
+  onState:state=>broadcast('live:match',{...state,source:'file'}),
   onError:error=>{feedStatus={active:false,name:'',error};publishStatus();}
+});
+// Overwolf live data (only active under the Overwolf runtime). Registered at
+// startup so the package 'ready' event can't fire before we listen.
+const overwolfLive=createOverwolfLive({
+  app,
+  onMatch:snapshot=>{overwolfStatus={...overwolfStatus,lastUpdate:Date.now()};broadcast('live:match',{...snapshot,source:'overwolf'});},
+  onStatus:status=>{overwolfStatus={...overwolfStatus,...status};publishStatus();}
 });
 async function pollGame(){
  if(!monitorActive||monitorBusy)return;
@@ -270,4 +279,4 @@ app.whenReady().then(() => {
   console.error('[Counter Advisor] Startup error:', err);
   app.exit(1);
 });
-app.on('window-all-closed', () => {setMonitor(false);localFeed.stop();if (process.platform !== 'darwin') app.quit(); });
+app.on('window-all-closed', () => {setMonitor(false);localFeed.stop();overwolfLive.stop();if (process.platform !== 'darwin') app.quit(); });

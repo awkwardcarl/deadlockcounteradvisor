@@ -43,6 +43,7 @@ test(E.recommend(baseState,badCatalog).results.length===0,'no invented counter d
 test(E.recommend({...baseState,enemies:[{hero:'Nurse Harrow'}]},catalog).unknown.some(x=>x.includes('No reviewed combat profile')),'new unreleased kit remains unverified');
 for(const key of ['strategyMode','quickBuys','evidenceQuality','showAllResults'])test(fs.readFileSync(path.join(app,'index.html'),'utf8').includes(`id="${key}"`),`UI contains ${key}`);
 const main=fs.readFileSync(path.join(app,'desktop/main.cjs'),'utf8');
-test(!main.includes('overwolf-gep-adapter')&&!main.includes('overwolf.games.events'),'approval-gated adapter not wired to production');
+// The GEP adapter reaches the app only through desktop/overwolf-live.cjs, which applies the approval switches.
+test(!main.includes('overwolf-gep-adapter')&&main.includes("require('./overwolf-live.cjs')")&&!main.includes('overwolf.games.events'),'approval-gated adapter wired only through overwolf-live');
 test(!fs.readFileSync(path.join(app,'desktop/preload.cjs'),'utf8').includes('OverwolfGepAdapter'),'renderer cannot activate Overwolf adapter');
 console.log(`PASS: ${total} v0.6 ranking / UX / safety regression checks`);

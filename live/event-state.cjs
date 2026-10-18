@@ -15,7 +15,9 @@ function team(player){
   return '';
 }
 class EventState {
-  constructor(){this.clear();}
+  // withholdEnemyItems: keep the roster and your own items, but report no enemy
+  // purchases (used when live enemy-item use isn't approved).
+  constructor({withholdEnemyItems=false}={}){this.withholdEnemyItems=withholdEnemyItems===true;this.clear();}
   clear(){this.roster=new Map();this.items=new Map();this.matchId='';this.phase='unknown';this.clock='';this.count=0;}
   apply(raw){
     if(!raw||typeof raw!=='object'||Array.isArray(raw))return this.snapshot();
@@ -49,7 +51,9 @@ class EventState {
           this.roster.set(index,{index,name,hero,team:team(data),isLocal:data.is_local===true,souls:Number(data.souls)||0});
         }else if(Array.isArray(data.items)){
           // Empty array means inventory empty; new updates replace earlier state.
-          this.items.set(index,{index,name,items:data.items.slice(0,32).map(x=>clean(x?.name,100)).filter(Boolean)});
+          // Overwolf entries carry class_name; keep shop items (upgrade_*) only.
+          const shop=data.items.slice(0,40).filter(x=>!x?.class_name||/^upgrade_/.test(String(x.class_name)));
+          this.items.set(index,{index,name,items:shop.slice(0,32).map(x=>clean(x?.name,100)).filter(Boolean)});
         }
       }
     }
@@ -60,13 +64,16 @@ class EventState {
     const participants=[...this.roster.values()],local=participants.filter(p=>p.isLocal===true);
     const own=local.length===1?local[0]:null;
     // No local-player evidence or no team? Do not guess opponents.
+    // Require exact name agreement before joining inventory to player.
+    const inventoryOf=p=>{const indexed=this.items.get(p.index);return indexed&&indexed.name===p.name?indexed:null;};
     const enemies=own&&own.team?participants.filter(p=>p.team&&p.team!==own.team&&p.hero).slice(0,6).map(p=>{
-      const indexed=this.items.get(p.index);
-      // Require exact name agreement before joining inventory to player.
-      const matched=indexed&&indexed.name===p.name?indexed:null;
+      const matched=this.withholdEnemyItems?null:inventoryOf(p);
       return {hero:p.hero,name:p.name,items:matched?matched.items.join(', '):'',inventoryKnown:!!matched};
     }):[];
-    return {matchId:this.matchId,phase:this.phase,clock:this.clock,ownHero:own?.hero||'',souls:own?Math.max(0,Math.floor(own.souls)):null,enemies,observedInventories:enemies.filter(x=>x.inventoryKnown).length,players:participants.length,updates:this.count,warning:!own?'Local player not identified; enemy data withheld.':!own.team?'Local team unknown; enemy data withheld.':!enemies.length?'No confirmed enemy players in feed.':''};
+    const ownInventory=own?inventoryOf(own):null;
+    return {matchId:this.matchId,phase:this.phase,clock:this.clock,ownHero:own?.hero||'',souls:own?Math.max(0,Math.floor(own.souls)):null,
+      ownItems:ownInventory?ownInventory.items.join(', '):null,enemyItemsWithheld:this.withholdEnemyItems,
+      enemies,observedInventories:enemies.filter(x=>x.inventoryKnown).length,players:participants.length,updates:this.count,warning:!own?'Local player not identified; enemy data withheld.':!own.team?'Local team unknown; enemy data withheld.':!enemies.length?'No confirmed enemy players in feed.':''};
   }
 }
 module.exports={EventState,decode,team};
