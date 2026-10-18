@@ -1,0 +1,14 @@
+/* Shared style for the public policy pages (GitHub Pages from /docs). */
+:root{color-scheme:light dark;--bg:#ffffff;--text:#1d2733;--muted:#5b6b7b;--link:#16795c;--rule:#dfe6ec}
+@media (prefers-color-scheme:dark){:root{--bg:#0c1420;--text:#e3eaf0;--muted:#98abbc;--link:#7fd8b8;--rule:#24384a}}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 'Segoe UI',system-ui,-apple-system,sans-serif}
+main{max-width:720px;margin:0 auto;padding:40px 20px 64px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 6px}
+h2{font-size:1.15rem;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--rule)}
+a{color:var(--link)}
+code{font-size:.95em}
+ul{padding-left:22px}
+li{margin:6px 0}
+.meta,.crumb{color:var(--muted);font-size:.9rem}
+.crumb{margin:0 0 18px}
+.links li{margin:10px 0}

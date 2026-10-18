@@ -1,7 +1,7 @@
 'use strict';
 // Independent desktop window. Optional detection of the game executable name
 // and user-selected local event test files. No injection or game memory reads.
-const {app, BrowserWindow, screen, session, ipcMain, dialog} = require('electron');
+const {app, BrowserWindow, screen, session, ipcMain, dialog, globalShortcut, shell} = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const { registerOfflineRestrictions } = require('./security.cjs');
@@ -12,6 +12,8 @@ const replayService = require('../live/overwolf-normalizer.cjs');
 const {checkGame}=require('../live/process-detection.cjs');
 const {LocalFeed}=require('../live/local-feed.cjs');
 const {createOverwolfLive}=require('./overwolf-live.cjs');
+const {createPrivacy,LEGAL_URLS}=require('./privacy.cjs');
+const {SHOW_HIDE_LABEL,registerShowHideHotkey}=require('./hotkey.cjs');
 const {LAYOUT_REVISION, responsiveBounds, transferredBounds, inArea}=require('./window-layout.cjs');
 
 let mainWindow;
@@ -26,6 +28,8 @@ let gameStatus={supported:process.platform==='win32',running:false};
 let feedStatus={active:false,name:'',error:''};
 let overwolfStatus={state:'unavailable',message:'',at:0,enemyItems:false,lastUpdate:0};
 function trusted(event){return event.sender===mainWindow?.webContents;}
+const privacy=createPrivacy({app,getWindow:()=>mainWindow});
+let hotkeyLabel='';
 function liveStatus(){return {monitorActive,gameStatus,feedStatus,overwolf:overwolfStatus};}
 function broadcast(channel,value){if(mainWindow&&!mainWindow.isDestroyed()&&!mainWindow.webContents.isDestroyed())mainWindow.webContents.send(channel,value);}
 function publishStatus(){broadcast('live:status',liveStatus());}
@@ -170,7 +174,9 @@ function createWindow() {
       sandbox: true,
       webviewTag: false,
       webSecurity: true,
-      preload: path.join(__dirname, 'preload.cjs')
+      preload: path.join(__dirname, 'preload.cjs'),
+      // Read by the preload: which edition this is, and the show/hide hotkey if registered.
+      additionalArguments: ['--counter-advisor-edition='+(app.overwolf?'overwolf':'standard'), '--counter-advisor-hotkey='+(hotkeyLabel||'none')]
     }
   });
   mainWindow.webContents.setWindowOpenHandler(() => ({action:'deny'}));
@@ -278,6 +284,15 @@ app.whenReady().then(() => {
   ipcMain.handle('updates:check', event=>{if(!trusted(event))throw new Error('Unauthorized caller');return updates.check();});
   ipcMain.handle('updates:download', event=>{if(!trusted(event))throw new Error('Unauthorized caller');return updates.download();});
   ipcMain.handle('updates:install', event=>{if(!trusted(event))throw new Error('Unauthorized caller');return updates.install();});
+  ipcMain.handle('privacy:status', event=>{if(!trusted(event))throw new Error('Unauthorized caller');return privacy.status();});
+  ipcMain.handle('privacy:open', (event,tab)=>{if(!trusted(event))throw new Error('Unauthorized caller');return privacy.openSettings(String(tab||''));});
+  // Opens only the two fixed policy pages in the browser.
+  ipcMain.handle('legal:open', async (event,which)=>{
+    if(!trusted(event))throw new Error('Unauthorized caller');
+    if(!Object.prototype.hasOwnProperty.call(LEGAL_URLS,which))return false;
+    await shell.openExternal(LEGAL_URLS[which]);
+    return true;
+  });
   ipcMain.handle('desktop:getDisplays', event => {
     if (event.sender !== mainWindow?.webContents) return null;
     return getDisplayInfo();
@@ -289,6 +304,8 @@ app.whenReady().then(() => {
   screen.on('display-added', handleDisplayChange);
   screen.on('display-removed', handleDisplayChange);
   screen.on('display-metrics-changed', handleDisplayChange);
+  hotkeyLabel=registerShowHideHotkey(globalShortcut,()=>mainWindow)?SHOW_HIDE_LABEL:'';
+  if(!hotkeyLabel)console.warn('[Counter Advisor] Show/hide hotkey unavailable (another app may be using it).');
   createWindow();
   updates.start();
   // Check once after startup; do not download or install without a user click.
@@ -298,4 +315,5 @@ app.whenReady().then(() => {
   console.error('[Counter Advisor] Startup error:', err);
   app.exit(1);
 });
+app.on('will-quit', () => globalShortcut.unregisterAll());
 app.on('window-all-closed', () => {setMonitor(false);localFeed.stop();overwolfLive.stop();if (process.platform !== 'darwin') app.quit(); });

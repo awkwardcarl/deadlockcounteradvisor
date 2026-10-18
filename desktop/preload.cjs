@@ -1,6 +1,14 @@
 'use strict';
 const {contextBridge, ipcRenderer} = require('electron');
+// Flags set by the main process when it creates the window (additionalArguments).
+const flag = name => (process.argv.find(arg => arg.startsWith('--counter-advisor-'+name+'=')) || '').split('=')[1] || '';
+const hotkey = flag('hotkey');
 contextBridge.exposeInMainWorld('desktopAPI', Object.freeze({
+  edition: flag('edition') === 'overwolf' ? 'overwolf' : 'standard',
+  hotkey: hotkey && hotkey !== 'none' ? hotkey : '',
+  getPrivacyStatus: () => ipcRenderer.invoke('privacy:status'),
+  openPrivacySettings: tab => ipcRenderer.invoke('privacy:open', String(tab ?? '')),
+  openLegal: which => ipcRenderer.invoke('legal:open', which === 'terms' ? 'terms' : 'privacy'),
   getUpdateStatus: () => ipcRenderer.invoke('updates:status'),
   checkUpdates: () => ipcRenderer.invoke('updates:check'),
   downloadUpdate: () => ipcRenderer.invoke('updates:download'),

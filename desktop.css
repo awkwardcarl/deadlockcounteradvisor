@@ -517,3 +517,29 @@ body.debriefMode .workspace,body.debriefMode .topNotice{display:none!important}
 .threat.level-medium b{color:#9fe5d8}
 .threat.level-low{background:#18283a;border-color:#2f4659;color:#9fb4c4}
 .threat.level-low b{color:#8fa6b6;font-weight:600}
+
+/* Editions: the Overwolf edition hides developer-only controls. */
+body:not(.owEdition) .owOnly{display:none!important}
+body.owEdition .standardOnly,body.owEdition .devOnly{display:none!important}
+.offlineNotice{background:#33291a;border-bottom-color:#5c4a2a;color:#e3cfa6}
+.offlineNotice strong{color:#f3dfb8}
+.linkButton{background:none;border:0;padding:0;margin:0;color:#8fd8bf;font:inherit;text-decoration:underline;cursor:pointer}
+.linkButton:hover,.linkButton:focus-visible{color:#c4f3e0}
+/* Settings: privacy and shortcuts. */
+.privacyCard,.shortcutsCard{padding:18px 21px}
+.privacyCard .sectionHeading,.shortcutsCard .sectionHeading{margin-bottom:10px;align-items:center}
+.privacyCard h2,.shortcutsCard h2{font-size:19px}
+.privacyCard .actionRow{margin-top:0;flex-wrap:wrap}
+.shortcutsCard .actionRow{margin-top:12px;flex-wrap:wrap}
+.privacyCard .supportText,.shortcutsCard .supportText{font-size:11px;margin-top:10px}
+.hotkeyReminder{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:11px;font-weight:700;letter-spacing:.08em;color:#8fa6b7}
+kbd{display:inline-block;padding:3px 8px;border:1px solid #3d5b6e;border-bottom-width:2px;border-radius:6px;background:#0f1a27;color:#e3eef2;font:600 calc(12px * var(--ui-text-multiplier)) 'Segoe UI',system-ui,sans-serif;letter-spacing:0}
+/* First-run intro (reuses the hero dialog frame). */
+.introDialog{width:min(640px,92vw)}
+.introBody{padding:4px 22px 0;color:#b9c9d6;font-size:calc(13px * var(--ui-text-multiplier));line-height:1.55}
+.introSteps{display:grid;gap:10px;margin:14px 0;padding-left:20px}
+.introSteps strong{color:#e3eef2}
+.introPrivacy{margin:14px 0;padding:14px 16px;border:1px solid #2f5752;border-radius:12px;background:#132a2a}
+.introPrivacy strong{color:#c6eadd}
+.introPrivacy p{margin:6px 0 0}
+.introActions{display:flex;justify-content:flex-end;padding:14px 22px 18px}

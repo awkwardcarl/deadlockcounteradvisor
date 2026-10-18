@@ -44,7 +44,7 @@ function setup({$,getCatalog,ensureCatalog,engine,debrief,base,escapeHTML,fmt}){
       renderPlayers();
       if(match.youSlot!==null&&match.youSlot!==undefined)select(match.youSlot);
       else status(code?'Your friend code wasn\'t in this match. Pick which hero you were.':'Pick which hero you were.');
-    }catch(e){status(String(e?.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'').slice(0,220));}
+    }catch(e){if(navigator.onLine===false){status("You're offline. Check your internet connection and try again: match data comes from the internet.");return;}status(String(e?.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'').slice(0,220));}
     finally{$('loadMatch').disabled=false;}
   }
 
