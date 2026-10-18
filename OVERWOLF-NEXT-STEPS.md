@@ -50,14 +50,55 @@ Dev mode only works when running from source; it can't activate in an installed 
 - *"Deadlock detected. Connecting to match data..."* for a while: the app retries registration for about 30 seconds; if it then shows an error, the message includes Overwolf's reason and the features it reported.
 - *Stays on "waiting for a match"*: game events only start once Deadlock is detected; check the [game events status page](https://dev.overwolf.com/ow-electron/live-game-data-gep/game-events-status-health).
 
-## Before shipping live mode to players
+## Shipping live mode to players
 
-Packaged builds only load Overwolf packages when **both** signatures are present ([App Signing](https://dev.overwolf.com/ow-electron/guides/dev-tools/app-signing)):
+Installed builds only load Overwolf's packages when **both** signatures are present: Overwolf's signature on the app package, and a code signature on the `.exe` ([App Signing](https://dev.overwolf.com/ow-electron/guides/dev-tools/app-signing)).
 
-1. **Overwolf signing:** build with `@overwolf/ow-electron-builder` (≥ 26.9.0) using `OW_CLI_EMAIL`, `OW_CLI_API_KEY` and `OW_BUILD_KEY` from the Developer Console, for the app's registered App UID. Store these as GitHub Actions secrets, never in the repository.
-2. **Your own code-signing certificate** on the `.exe` (now required).
+The **Overwolf edition build** workflow (`.github/workflows/overwolf-build.yml`) builds that edition with `@overwolf/ow-electron-builder` and `electron-builder.overwolf.cjs`. It only runs when you start it, uploads the installer (`Deadlock-Counter-Advisor-Overwolf-Setup-<version>.exe`) as a downloadable artifact, and never publishes a release. The standard release workflow and auto-updates are unchanged. Installing the Overwolf edition replaces a standard install on the same PC (same app ID).
 
-Then switch the release workflow from `electron-builder` to `ow-electron-builder`, confirm the GitHub auto-update flow still works with it, and do a QA submission (Overwolf signs the first one for QA only). The app runs on Overwolf's Electron 42.11 (Electron 44 is beta there), a small step back from the standard build's 44.8.
+### 1. QA submission (no keys needed)
+
+1. On GitHub: **Actions → Overwolf edition build → Run workflow**, mode **qa**. Or from PowerShell in the project folder:
+   ```bash
+   gh workflow run overwolf-build.yml -f mode=qa
+   ```
+2. When it finishes, download the `deadlock-counter-advisor-overwolf-qa` artifact from the run's page.
+3. Submit the installer inside it for QA in the Overwolf Developer Console. Overwolf signs this first build for QA testing only.
+
+### 2. Add the signing credentials as repository secrets
+
+| Secret | Where to find it |
+|---|---|
+| `OW_CLI_EMAIL` | Your Overwolf Console account email |
+| `OW_CLI_API_KEY` | Overwolf Console → Profile → API Keys |
+| `OW_BUILD_KEY` | Overwolf Console → Release management → App Keys |
+
+Add each under **GitHub → Settings → Secrets and variables → Actions → New repository secret**, or from PowerShell in the project folder. Each command asks for the value, so it never lands in your command history or a chat:
+```bash
+gh secret set OW_CLI_EMAIL
+```
+```bash
+gh secret set OW_CLI_API_KEY
+```
+```bash
+gh secret set OW_BUILD_KEY
+```
+The App UID needs no setting: Overwolf's signing service identifies the app from the App Key.
+
+### 3. Code-sign the `.exe`
+
+- **Ask Overwolf first** whether this app is entitled to **Overwolf certificate signing**. If it is, the builder signs the app `.exe` with Overwolf's certificate (`enableOWCertSigning` is on in `electron-builder.overwolf.cjs`); if not, the build log says the app is not eligible. This covers the app `.exe`, not the installer, so Windows may still warn when the installer runs.
+- **Otherwise**, or to sign the installer too, get your own certificate (Azure Artifact Signing or an OV certificate) and add its settings under `win` in `electron-builder.overwolf.cjs` (`azureSignOptions` or `signtoolOptions`), plus its secrets in the workflow. Your own certificate takes priority over Overwolf's.
+
+### 4. Signed build
+
+Run the workflow with mode **signed**. It checks the three secrets first, and the build stops if Overwolf signing fails (`requireSigning`), so no unusable build comes out. Install it on a PC without `OW_DEV_KEY` set and confirm live mode reaches *connected* in a match.
+
+### 5. Switch releases (later)
+
+The Overwolf edition has no update feed for now, so it can never auto-update itself to the standard build (which has no live data). Once signed builds work, the release workflow moves to `ow-electron-builder` with the GitHub update feed, and that edition becomes the one players download. It runs on Overwolf's Electron 42.11 (Electron 44 is beta there), a small step back from the standard build's 44.8.
+
+**Building it on your own PC:** `npm run build:overwolf` (set `OW_QA_BUILD=1` for an unsigned QA build). Code signing needs electron-builder's signing tools, whose archive contains symbolic links; extracting them needs Windows Developer Mode or an administrator terminal. GitHub's Windows runners have this, so the workflow is unaffected.
 
 **Do not paste API keys, certificates, user authentication credentials, or signing secrets into a chat or public issue.**
 

@@ -225,6 +225,22 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
   test(pkg.scripts['start:overwolf']==='ow-electron .'&&pkg.overwolf?.packages?.includes('gep')&&/^\d+\.\d+\.\d+$/.test(pkg.devDependencies['@overwolf/ow-electron']),'start:overwolf script, gep package declared, runtime pinned');
   test(pkg.devDependencies.electron&&pkg.scripts.start==='electron .'&&pkg.scripts['release:win'].startsWith('electron-builder'),'standard build and release pipeline unchanged');
+
+  // Overwolf edition build: separate config and a manual workflow that never publishes.
+  test(/^\d+\.\d+\.\d+$/.test(pkg.devDependencies['@overwolf/ow-electron-builder'])&&pkg.scripts['build:overwolf']==='ow-electron-builder --config electron-builder.overwolf.cjs --win nsis --x64 --publish never','Overwolf builder pinned; build script uses its own config and never publishes');
+  test(!('overwolf' in pkg.build)&&pkg.build.win.signAndEditExecutable===false&&!pkg.build.files.some(f=>/overwolf\.cjs/.test(f)),'standard build config untouched (no Overwolf keys); the Overwolf config is not packaged');
+  const owConfigPath=path.join(root,'electron-builder.overwolf.cjs');
+  const loadOwConfig=qa=>{const saved=process.env.OW_QA_BUILD;if(qa)process.env.OW_QA_BUILD='1';else delete process.env.OW_QA_BUILD;delete require.cache[owConfigPath];try{return require(owConfigPath);}finally{if(saved===undefined)delete process.env.OW_QA_BUILD;else process.env.OW_QA_BUILD=saved;delete require.cache[owConfigPath];}};
+  const owRelease=loadOwConfig(false),owQa=loadOwConfig(true);
+  test(owRelease.overwolf.requireSigning===true&&owRelease.overwolf.enableOWCertSigning===true&&owQa.overwolf.requireSigning===false&&owQa.overwolf.enableOWCertSigning===false,'signed builds require Overwolf signing (and try Overwolf certificate signing); QA builds use neither');
+  test(owRelease.appId===pkg.build.appId&&JSON.stringify(owRelease.files)===JSON.stringify(pkg.build.files)&&JSON.stringify(owRelease.nsis)===JSON.stringify(pkg.build.nsis)&&owRelease.win.signAndEditExecutable===true&&/Overwolf-Setup/.test(owRelease.win.artifactName),'Overwolf config reuses the standard settings, turns exe signing on and names its installer');
+  test(owRelease.publish===null,'Overwolf edition has no update feed, so it cannot auto-update to the standard build');
+  const owWorkflow=fs.readFileSync(path.join(root,'.github/workflows/overwolf-build.yml'),'utf8').replace(/\r\n/g,'\n');
+  const owStep=name=>{const i=owWorkflow.indexOf('- name: '+name);const j=owWorkflow.indexOf('\n      - name:',i+1);return owWorkflow.slice(i,j<0?undefined:j);};
+  test(/^on:\n  workflow_dispatch:/m.test(owWorkflow)&&!/\n  push:|tags:/.test(owWorkflow)&&/permissions:\n  contents: read/.test(owWorkflow),'Overwolf workflow is manual only with read-only repository access');
+  test(!/secrets\./.test(owStep('Build QA installer (no signing keys)'))&&/OW_QA_BUILD: '1'/.test(owStep('Build QA installer (no signing keys)')),'QA build gets no signing keys');
+  test(['OW_CLI_EMAIL','OW_CLI_API_KEY','OW_BUILD_KEY'].every(k=>owStep('Build Overwolf-signed installer').includes(k+': ${{ secrets.'+k+' }}')&&owStep('Check Overwolf signing secrets').includes(k+': ${{ secrets.'+k+' }}')),'signed build checks for, then receives, the three Overwolf secrets');
+  test(!/publish always|GH_TOKEN|release:win/.test(owWorkflow)&&owWorkflow.includes('npm ci')&&owWorkflow.includes('npm test')&&owWorkflow.includes('path: dist/Deadlock-Counter-Advisor-Overwolf-Setup-*.exe'),'Overwolf workflow runs locked install and tests, uploads only its installer, never publishes');
   const main=fs.readFileSync(path.join(root,'desktop/main.cjs'),'utf8'),preload=fs.readFileSync(path.join(root,'desktop/preload.cjs'),'utf8'),ui=fs.readFileSync(path.join(root,'js/ui.js'),'utf8');
   test(main.includes("source:'overwolf'")&&main.includes("source:'file'")&&main.includes('overwolf:overwolfStatus'),'live snapshots tagged by source; status exposed');
   test(!/gep|overwolf\.packages/.test(preload),'the renderer never gets the GEP API');

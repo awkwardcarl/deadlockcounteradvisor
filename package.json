@@ -19,13 +19,15 @@
     "build:win": "electron-packager . \"Deadlock Counter Advisor\" --platform=win32 --arch=x64 --asar --icon=assets/icon.ico --out=release --overwrite --ignore=^/release$ --ignore=^/tests$ --ignore=^/preview.png$ --ignore=^/README.md$",
     "build:win:portable": "electron-builder --win portable --x64 --publish never",
     "build:win:installer": "electron-builder --win nsis --x64 --publish never",
-    "release:win": "electron-builder --win nsis --x64 --publish always"
+    "release:win": "electron-builder --win nsis --x64 --publish always",
+    "build:overwolf": "ow-electron-builder --config electron-builder.overwolf.cjs --win nsis --x64 --publish never"
   },
   "devDependencies": {
-    "electron": "44.8.0",
     "@electron/packager": "20.3.0",
-    "electron-builder": "26.0.12",
-    "@overwolf/ow-electron": "42.11.4"
+    "@overwolf/ow-electron": "42.11.4",
+    "@overwolf/ow-electron-builder": "26.9.3",
+    "electron": "44.8.0",
+    "electron-builder": "26.0.12"
   },
   "build": {
     "appId": "com.deadlockcounteradvisor.desktop",
