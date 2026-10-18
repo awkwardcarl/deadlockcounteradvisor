@@ -40,8 +40,8 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(open.snapshot().enemies[0].items==='Rapid Rounds'&&open.snapshot().enemyItemsWithheld===false,'default (local file feed) keeps enemy items');
   test(new EventState().snapshot().ownItems===null,'own items unknown until reported');
 
-  // Adapter with the real approval file: enemy items off, own items on, structured status.
-  test(APPROVAL.enemyInventoryForLiveAdvice===false&&APPROVAL.overwolfWhitelist&&APPROVAL.gameComplianceConfirmed&&Object.isFrozen(APPROVAL),'approval: whitelisted, enemy items off by default');
+  // Adapter with the real approval file: enemy items on (confirmed 2026-10-18), own items on, structured status.
+  test(APPROVAL.enemyInventoryForLiveAdvice===true&&APPROVAL.overwolfWhitelist&&APPROVAL.gameComplianceConfirmed&&Object.isFrozen(APPROVAL),'approval: whitelisted, enemy items on');
   const gep=new FakeGep(),matches=[],statuses=[];
   const a=new OverwolfGepAdapter({gep,approval:APPROVAL,onMatch:m=>matches.push(m),onStatus:(msg,state)=>statuses.push([state,msg])});
   a.start();
@@ -49,7 +49,8 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(statuses.some(([s])=>s==='connected')&&gep.required[0]===DEADLOCK_GEP_ID&&gep.required[1].join()==='game_info,match_info','connects and registers game_info + match_info');
   for(const u of roster)gep.emit('new-info-update',{},DEADLOCK_GEP_ID,u);
   snap=matches.at(-1);
-  test(snap.enemies[0].hero==='Haze'&&snap.enemies[0].items===''&&snap.ownItems==='Extra Spirit','live: enemy heroes yes, enemy items no, your items yes');
+  test(snap.enemies[0].hero==='Haze'&&snap.enemies[0].items==='Rapid Rounds'&&snap.enemies[0].inventoryKnown&&snap.observedInventories===1&&!snap.enemyItemsWithheld&&snap.ownItems==='Extra Spirit','live: enemy heroes and items, your items');
+  test(snap.enemies[0].itemIds.join()==='upgrade_rapid_rounds'&&snap.ownItemIds.join()==='upgrade_improved_spirit','class names travel with the item names');
   gep.emit('new-game-event',{},DEADLOCK_GEP_ID,{feature:'match_info',key:'match_clock',value:'07:30'});
   test(matches.at(-1).clock==='07:30','match clock events update the snapshot');
   gep.emit('elevated-privileges-required',{},DEADLOCK_GEP_ID,'Deadlock',1234);
@@ -66,7 +67,7 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   const packages=new EventEmitter();packages.gep=new FakeGep();
   const states=[],live=[];
   const ctl=createOverwolfLive({app:{overwolf:{packages}},onStatus:s=>states.push(s),onMatch:m=>live.push(m)});
-  test(states.at(-1).state==='waiting'&&states.at(-1).enemyItems===false,'waits for packages; reports enemy items off');
+  test(states.at(-1).state==='waiting'&&states.at(-1).enemyItems===true,'waits for packages; reports enemy items on');
   packages.emit('ready',{},'overlay','1.0');
   test(!ctl.active(),'other packages are ignored');
   packages.emit('ready',{},'gep','300.1');
@@ -118,6 +119,25 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   merge(heroSt,null,base({ownHero:'VIPER',ownHeroId:58,enemies:[{name:'EnemyA',hero:'VIPER',heroId:58,items:''}]}),(n,id)=>E.resolveHeroName(synced,n,id));
   test(heroSt.hero==='Vyper'&&heroSt.enemies[0].hero==='Vyper','live merge shows Vyper, not VIPER');
 
+  // Enemy items: joined to the right player, and matched to the catalog by class name.
+  const join=new EventState();
+  join.apply(info('roster_0',{player_name:'Me',hero_name:'Kelvin',team_name:'Amber',is_local:true}));
+  join.apply(info('roster_1',{player_name:'EnemyA',hero_name:'Haze',team_name:'Sapphire'}));
+  join.apply(info('items_7',{player_name:'EnemyA',items:[{name:'Rapid, Rounds',class_name:'upgrade_rapid_rounds'},{name:'Odd',class_name:'upgrade_bad name!'}]}));
+  let js=join.snapshot().enemies[0];
+  test(js.items==='Rapid Rounds, Odd'&&js.itemIds.join('|')==='upgrade_rapid_rounds|','items slot differs from roster slot: joined by unique name; commas and bad class names dropped');
+  join.apply(info('items_8',{player_name:'EnemyA',items:[{name:'Healbane',class_name:'upgrade_healbane'}]}));
+  js=join.snapshot().enemies[0];
+  test(js.items===''&&!js.inventoryKnown,'two inventories with the same name: no guess');
+  test(E.resolveFeedItems(synced,'Old Name, rapid rounds',['upgrade_magic_burst',''])==='Mystic Burst, Rapid Rounds','synced catalog: class name first, then a recognized name');
+  test(E.resolveFeedItems(synced,'Mystery Item',['upgrade_not_in_catalog'])==='Mystery Item'&&E.resolveFeedItems(synced,'rapid rounds, healbane',['upgrade_magic_burst'])==='Rapid Rounds, Healbane','unknown items keep their name; misaligned class names are ignored');
+  test(E.resolveFeedItems(starter,'mystic burst',['upgrade_magic_burst'])==='Mystic Burst'&&E.resolveFeedItems(synced,'',[])==='','starter catalog falls back to names');
+  const itemSt={hero:'',souls:0,owned:'',enemies:[]};
+  merge(itemSt,null,base({ownItems:'Old Name',ownItemIds:['upgrade_improved_spirit'],enemies:[{name:'EnemyA',hero:'Haze',items:'Old Name',itemIds:['upgrade_rapid_rounds']}]}),x=>x,(n,ids)=>E.resolveFeedItems(synced,n,ids));
+  test(itemSt.owned==='Extra Spirit'&&itemSt.enemies[0].items==='Rapid Rounds','live merge resolves your items and enemy items by class name');
+  const live2=E.recommend({hero:'Kelvin',souls:3000,owned:'',enemies:[{hero:'Haze',items:itemSt.enemies[0].items}]},synced),bare2=E.recommend({hero:'Kelvin',souls:3000,owned:'',enemies:[{hero:'Haze',items:''}]},synced);
+  test(JSON.stringify(live2.threats)!==JSON.stringify(bare2.threats),'live enemy items change the threat read');
+
   // Network lock-down applies to the app's own window, not Overwolf's internal pages.
   const security=require('../desktop/security.cjs');
   let intercept;const fakeSession={setPermissionRequestHandler(){},webRequest:{onBeforeRequest:cb=>{intercept=cb;}}};
@@ -138,6 +158,7 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(main.includes('details.webContentsId === mainWindow.webContents.id'),'main process scopes the lock-down to the app window');
   test(ui.includes('({feedName,...row})=>row'),'in-game player names are not saved to local storage');
   test(ui.includes('engine.resolveHeroName(catalog,name,id)')&&ui.includes('resolveHeroName(e.hero,e.heroId)'),'the UI resolves feed heroes with their game IDs');
+  test(ui.includes('mergeFeedSnapshot(state,prev,match,resolveHeroName,resolveFeedItems)')&&ui.includes('resolveFeedItems(e.items,e.itemIds)'),'the UI resolves feed items with their class names');
   finished=true;
   console.log(`PASS: ${total} Overwolf live-mode checks (simulated API)`);
 })().catch(e=>{console.error(e);process.exit(1);});

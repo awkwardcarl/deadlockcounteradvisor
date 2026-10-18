@@ -48,6 +48,8 @@ const heroes=()=>catalog.heroes.map(h=>h.name).sort((a,b)=>a.localeCompare(b));
 function persist(){try{localStorage.setItem(STORE,JSON.stringify({...state,enemies:state.enemies.map(({feedName,...row})=>row)}));}catch(_){}}
 // Map a typed or feed-supplied hero name ("HAZE", "VIPER") to the catalog's spelling.
 function resolveHeroName(name,id){return engine.resolveHeroName(catalog,name,id);}
+// Feed item lists to catalog names, by the game's class names where reported.
+function resolveFeedItems(names,ids){return engine.resolveFeedItems(catalog,names,ids);}
 function heroOptions(selected,blank){
  let names=heroes();
  if(selected&&!names.includes(selected))names=[selected,...names];
@@ -321,7 +323,7 @@ function onLiveMatch(match){
  if(!match||!Array.isArray(match.enemies))return;
  // Only compare with the previous snapshot from the same source.
  const prev=lastFeedSnapshot&&lastFeedSnapshot.source===match.source?lastFeedSnapshot:null;lastFeedSnapshot=match;
- const result=liveMerge.mergeFeedSnapshot(state,prev,match,resolveHeroName);
+ const result=liveMerge.mergeFeedSnapshot(state,prev,match,resolveHeroName,resolveFeedItems);
  // Skip the redraw when nothing changed, so typing in a field is not interrupted.
  if(result.changed){
    $('hero').innerHTML=heroOptions(state.hero,false);
@@ -458,7 +460,7 @@ function setup(){
    const match=await window.desktopAPI.importReplay();
    if(!match)return;
    if(!match.enemies.length){$('syncStatus').textContent=match.warning;return;}
-   state.enemies=match.enemies.map(e=>({hero:resolveHeroName(e.hero,e.heroId),items:e.items}));
+   state.enemies=match.enemies.map(e=>({hero:resolveHeroName(e.hero,e.heroId),items:resolveFeedItems(e.items,e.itemIds)}));
    renderEnemies();renderAdvice();persist();$('syncStatus').textContent=match.warning;
   }catch(e){$('syncStatus').textContent='Replay import failed: '+String(e?.message||e).slice(0,140);}
  });

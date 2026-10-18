@@ -165,6 +165,15 @@ function resolveItemName(catalog,raw){
  const text=String(raw||'').trim();
  return itemSuggestions(catalog).find(name=>norm(name)===norm(text))||text;
 }
+// Feed item lists: Overwolf sends display names (which can be stale) plus the
+// game's class names, which are the synced catalog's item IDs. Prefer the ID,
+// then a recognized name; otherwise keep the name as sent.
+function resolveFeedItems(catalog,names,ids){
+ const list=cleanList(names);
+ const aligned=Array.isArray(ids)&&ids.length===list.length;
+ const byId=new Map(catalog.items.map(i=>[i.id,i.name]));
+ return list.map((name,i)=>(aligned&&byId.get(ids[i]))||resolveItemName(catalog,name)).join(', ');
+}
 // Names for the item-entry suggestions: every item the app recognizes. The
 // offline starter catalog's items are only the counter picks, so the curated
 // enemy-item names are added too.
@@ -307,5 +316,5 @@ function recommend(state,catalog,options={}){
  patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,resolveHeroName,recommend,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
+root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
 })(typeof window!=='undefined'?window:globalThis);

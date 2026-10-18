@@ -61,12 +61,11 @@ This update keeps the v0.6.1 feature set, catalog, saved matches, read-only proc
 - Full explanations are below the quick picks, collapsed to four cards by default with **Show all suggestions** for the rest.
 - No overlays or input control, and your familiar hero, inventory, enemy, catalog-sync and second-monitor controls remain.
 
-### 3. Official Overwolf integration readiness (still approval-gated)
+### 3. Overwolf live game data (approved; dev mode for now)
 
-- `live/overwolf-gep-adapter.cjs` is a **separate, simulated and testable integration module** based on the documented Deadlock event shapes.
-- It listens for game detection, match roster updates and inventory changes in mocked tests, resets on game exit/match boundaries, and withholds enemy inventory without a separate affirmative permission flag.
-- The module is **not imported into the Electron main process, preload or renderer**, and this release **does not** connect to Overwolf, Steam or Deadlock to read live inventory.
-- Your Overwolf application idea has been submitted. Do not use live GEP to advise players until Overwolf has granted whitelisting and appropriate publisher/fair-play permission.
+- Overwolf approved and whitelisted the app for Deadlock game events. On Overwolf's Electron runtime, `desktop/overwolf-live.cjs` connects them in the main process: enemy heroes and their items, your hero, souls and items, and match start, end and clock flow into the same keep-your-edits merge as the local feed.
+- Approval switches live in `desktop/live-approval.cjs` (see `LIVE-DATA-APPROVAL.md`). The renderer never receives the Overwolf API, Steam IDs or credentials.
+- For now it runs only from source with an Overwolf dev key (`npm run start:overwolf`). Installed builds report live data as unavailable until Overwolf signing is set up.
 
 See `OVERWOLF-NEXT-STEPS.md` for precise technical and approval steps.
 

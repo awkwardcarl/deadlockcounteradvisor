@@ -55,7 +55,10 @@ class EventState {
           // Empty array means inventory empty; new updates replace earlier state.
           // Overwolf entries carry class_name; keep shop items (upgrade_*) only.
           const shop=data.items.slice(0,40).filter(x=>!x?.class_name||/^upgrade_/.test(String(x.class_name)));
-          this.items.set(index,{index,name,items:shop.slice(0,32).map(x=>clean(x?.name,100)).filter(Boolean)});
+          // Keep the class name (the synced catalog's item ID) beside the display
+          // name, which can be stale. Commas separate the list, so drop them from names.
+          const entries=shop.slice(0,32).map(x=>({name:clean(x?.name,100).replace(/,/g,' ').replace(/\s+/g,' ').trim(),id:/^upgrade_\w{1,80}$/.test(String(x?.class_name||''))?String(x.class_name):''})).filter(x=>x.name);
+          this.items.set(index,{index,name,items:entries.map(x=>x.name),ids:entries.map(x=>x.id)});
         }
       }
     }
@@ -67,14 +70,18 @@ class EventState {
     const own=local.length===1?local[0]:null;
     // No local-player evidence or no team? Do not guess opponents.
     // Require exact name agreement before joining inventory to player.
-    const inventoryOf=p=>{const indexed=this.items.get(p.index);return indexed&&indexed.name===p.name?indexed:null;};
+    // Slot numbers normally line up; otherwise fall back to a unique exact name.
+    const inventoryOf=p=>{
+      const indexed=this.items.get(p.index);if(indexed&&indexed.name===p.name)return indexed;
+      const named=[...this.items.values()].filter(x=>x.name===p.name);return named.length===1?named[0]:null;
+    };
     const enemies=own&&own.team?participants.filter(p=>p.team&&p.team!==own.team&&p.hero).slice(0,6).map(p=>{
       const matched=this.withholdEnemyItems?null:inventoryOf(p);
-      return {hero:p.hero,heroId:p.heroId??null,name:p.name,items:matched?matched.items.join(', '):'',inventoryKnown:!!matched};
+      return {hero:p.hero,heroId:p.heroId??null,name:p.name,items:matched?matched.items.join(', '):'',itemIds:matched?matched.ids:[],inventoryKnown:!!matched};
     }):[];
     const ownInventory=own?inventoryOf(own):null;
     return {matchId:this.matchId,phase:this.phase,clock:this.clock,ownHero:own?.hero||'',ownHeroId:own?.heroId??null,souls:own?Math.max(0,Math.floor(own.souls)):null,
-      ownItems:ownInventory?ownInventory.items.join(', '):null,enemyItemsWithheld:this.withholdEnemyItems,
+      ownItems:ownInventory?ownInventory.items.join(', '):null,ownItemIds:ownInventory?ownInventory.ids:[],enemyItemsWithheld:this.withholdEnemyItems,
       enemies,observedInventories:enemies.filter(x=>x.inventoryKnown).length,players:participants.length,updates:this.count,warning:!own?'Local player not identified; enemy data withheld.':!own.team?'Local team unknown; enemy data withheld.':!enemies.length?'No confirmed enemy players in feed.':''};
   }
 }
