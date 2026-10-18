@@ -136,12 +136,17 @@ const norm=x=>String(x||'').normalize('NFKC').toLocaleLowerCase('en-US').replace
 const iconPath=x=>typeof x==='string'&&/^\/assets\/game\/panorama\/images\/[\w\/.\-]+\.png$/.test(x)?'https://deadlock.io'+x:'';
 // Live feeds can use old or internal hero names (Overwolf sends "VIPER" for
 // Vyper). Match the name first, then the game's hero ID (synced catalog only),
-// then a known rename; otherwise keep the name as sent.
+// then a known rename; otherwise keep the name as sent. Overwolf sends
+// "UNKNOWN" for heroes its own table lacks (Deadman Danny and Rat King in a
+// 2026-10-18 match): only the ID can name those, else the slot is left blank
+// for the player to pick.
 const HERO_ALIASES={viper:'Vyper'};
+const HERO_PLACEHOLDERS=new Set(['','unknown','none']);
 function resolveHeroName(catalog,name,id){
  const byName=n=>n?catalog.heroes.find(h=>norm(h.name)===norm(n))?.name:undefined;
  const gameId=Number(id);
  const byId=id!=null&&Number.isInteger(gameId)&&gameId>0?catalog.heroes.find(h=>h.id===gameId)?.name:undefined;
+ if(HERO_PLACEHOLDERS.has(norm(name)))return byId||'';
  return byName(name)||byId||byName(HERO_ALIASES[norm(name)])||String(name||'');
 }
 function createCatalog(base,snapshot){

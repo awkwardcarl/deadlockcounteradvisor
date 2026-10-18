@@ -98,8 +98,16 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(st.owned==='Extra Spirit, Healbane','manual owned edit kept while the feed is unchanged');
   merge(st,prev,base({ownItems:'Extra Spirit, Mystic Burst'}));
   test(st.owned==='Extra Spirit, Mystic Burst','a new purchase replaces it');
-  const keep={hero:'',souls:0,owned:'Typed',enemies:[]};merge(keep,null,base({ownItems:null}));
-  test(keep.owned==='Typed','unreported items (null) leave your list alone');
+  const keep={hero:'',souls:0,owned:'Typed',liveMatchId:'M',enemies:[]};merge(keep,null,base({ownItems:null}));
+  test(keep.owned==='Typed','same match (app restarted mid-game): unreported items (null) leave your list alone');
+  // A new game clears last game's items, even before the feed reports a purchase.
+  const next={hero:'',souls:0,owned:'Last game item',liveMatchId:'OLD',enemies:[]};merge(next,null,base({ownItems:null}));
+  test(next.owned===''&&next.liveMatchId==='M','new match ID: last game\'s items cleared');
+  const nextKnown={hero:'',souls:0,owned:'Last game item',liveMatchId:'OLD',enemies:[]};merge(nextKnown,null,base());
+  test(nextKnown.owned==='Extra Spirit','new match ID with items reported: the new list replaces the old one');
+  const noId={hero:'',souls:0,owned:'Last game item',enemies:[]};
+  merge(noId,base({matchId:'',phase:'ended'}),base({matchId:'',ownItems:null}));
+  test(noId.owned==='','no match ID: play resuming after a match ended also clears items');
 
   // Hero names: Overwolf sent "VIPER" for Vyper in a real match. Resolve by name, game ID, then known renames.
   const ids=new EventState({withholdEnemyItems:true});
@@ -118,6 +126,15 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   const heroSt={hero:'',souls:0,owned:'',enemies:[]};
   merge(heroSt,null,base({ownHero:'VIPER',ownHeroId:58,enemies:[{name:'EnemyA',hero:'VIPER',heroId:58,items:''}]}),(n,id)=>E.resolveHeroName(synced,n,id));
   test(heroSt.hero==='Vyper'&&heroSt.enemies[0].hero==='Vyper','live merge shows Vyper, not VIPER');
+  // Overwolf sent "UNKNOWN" for Deadman Danny (78) and Rat King (84) in a real match.
+  test(E.resolveHeroName(synced,'UNKNOWN',78)==='Deadman Danny'&&E.resolveHeroName(synced,'UNKNOWN','84')==='Rat King','UNKNOWN placeholder: named by game ID');
+  test(E.resolveHeroName(synced,'UNKNOWN',null)===''&&E.resolveHeroName(starter,'UNKNOWN',78)===''&&E.resolveHeroName(synced,'Unknown',99999)==='','UNKNOWN without a usable ID: blank slot to pick, not the placeholder');
+  const late={hero:'',souls:0,owned:'',liveMatchId:'M',enemies:[]},resolveSynced=(n,id)=>E.resolveHeroName(synced,n,id);
+  const before=base({enemies:[{name:'EnemyA',hero:'UNKNOWN',heroId:null,items:''}]});
+  merge(late,null,before,resolveSynced);
+  test(late.enemies[0].hero==='','placeholder with no ID yet: blank');
+  merge(late,before,base({enemies:[{name:'EnemyA',hero:'UNKNOWN',heroId:78,items:''}]}),resolveSynced);
+  test(late.enemies[0].hero==='Deadman Danny','the ID arriving later (same name) fills the hero in');
 
   // Enemy items: joined to the right player, and matched to the catalog by class name.
   const join=new EventState();
@@ -156,6 +173,8 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(main.includes("source:'overwolf'")&&main.includes("source:'file'")&&main.includes('overwolf:overwolfStatus'),'live snapshots tagged by source; status exposed');
   test(!/gep|overwolf\.packages/.test(preload),'the renderer never gets the GEP API');
   test(main.includes('details.webContentsId === mainWindow.webContents.id'),'main process scopes the lock-down to the app window');
+  const heroLog=main.slice(main.indexOf('function logOverwolfHeroes'),main.indexOf('const overwolfLive'));
+  test(main.includes('logOverwolfHeroes(snapshot)')&&heroLog.includes('e.heroId')&&!/\.name\b|player/.test(heroLog),'terminal hero log shows hero names and IDs, never player names');
   test(ui.includes('({feedName,...row})=>row'),'in-game player names are not saved to local storage');
   test(ui.includes('engine.resolveHeroName(catalog,name,id)')&&ui.includes('resolveHeroName(e.hero,e.heroId)'),'the UI resolves feed heroes with their game IDs');
   test(ui.includes('mergeFeedSnapshot(state,prev,match,resolveHeroName,resolveFeedItems)')&&ui.includes('resolveFeedItems(e.items,e.itemIds)'),'the UI resolves feed items with their class names');

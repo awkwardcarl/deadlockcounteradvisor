@@ -18,7 +18,7 @@ function applyUISize(size){
 const fmt=new Intl.NumberFormat('en-US');
 const escapeHTML=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let catalog=engine.createCatalog(base,null);
-const defaultState=()=>({hero:'Kelvin',souls:1600,owned:'',enemies:[]});
+const defaultState=()=>({hero:'Kelvin',souls:1600,owned:'',liveMatchId:'',enemies:[]});
 // "Load example match" (a fresh copy each time, so edits never change the example).
 const demoMatch=()=>({hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamina',enemies:[
  {hero:'Lash',items:'Mystic Burst, Improved Spirit'},
@@ -35,6 +35,7 @@ function loadState(){
    hero:String(saved.hero||'Kelvin').slice(0,100),
    souls:Math.max(0,Number(saved.souls)||0),
    owned:String(saved.owned||'').slice(0,1500),
+   liveMatchId:String(saved.liveMatchId||'').slice(0,50),
    enemies:Array.isArray(saved.enemies)?saved.enemies.slice(0,6).map(e=>({hero:String(e?.hero||'').slice(0,100),items:String(e?.items||'').slice(0,1000)})):[]
   };
  }catch(_){return defaultState();}

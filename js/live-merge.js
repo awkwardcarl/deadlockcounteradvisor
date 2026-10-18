@@ -22,14 +22,24 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
   for(const e of match.enemies){
    const row=state.enemies.find(r=>r.feedName===e.name),old=before.get(e.name);
    if(!row||!old)continue; // row removed by the user
-   if(e.hero!==old.hero){row.hero=resolveHero(e.hero,e.heroId);changed=true;}
+   // The ID can arrive after the name (Overwolf's "UNKNOWN" placeholder), so check both.
+   if(e.hero!==old.hero||(e.heroId??null)!==(old.heroId??null)){row.hero=resolveHero(e.hero,e.heroId);changed=true;}
    if((e.items||'')!==(old.items||'')){row.items=resolveItems(e.items||'',e.itemIds);changed=true;}
   }
  }
  if(match.ownHero&&(!prev||prev.ownHero!==match.ownHero)){state.hero=resolveHero(match.ownHero,match.ownHeroId);changed=true;}
  if(Number.isFinite(match.souls)&&(!prev||prev.souls!==match.souls)){state.souls=match.souls;changed=true;}
+ // A new game (new match ID, or play resuming after a match ended) starts with
+ // no items: the feed may not report purchases until the first one, and last
+ // game's list must not linger. The same match ID keeps them (app restarted mid-game).
+ const newGame=match.matchId?state.liveMatchId!==match.matchId:!!(prev&&ended(prev.phase));
+ if(newGame){
+  if(match.matchId)state.liveMatchId=match.matchId;
+  state.owned=typeof match.ownItems==='string'?resolveItems(match.ownItems,match.ownItemIds):'';
+  changed=true;
+ }
  // Your own purchases (Overwolf feed): same rule, a manual edit sticks until they change.
- if(typeof match.ownItems==='string'&&(!prev||prev.ownItems!==match.ownItems)){state.owned=resolveItems(match.ownItems,match.ownItemIds);changed=true;}
+ else if(typeof match.ownItems==='string'&&(!prev||prev.ownItems!==match.ownItems)){state.owned=resolveItems(match.ownItems,match.ownItemIds);changed=true;}
  return {changed};
 }
 root.DeadlockLiveMerge={mergeFeedSnapshot};
