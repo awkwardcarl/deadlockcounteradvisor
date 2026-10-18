@@ -47,10 +47,33 @@ const starterOut=E.recommend({hero:'Kelvin',souls:1600,owned:'',enemies},starter
 test(starterOut.buildPicks.length===0&&starterOut.quickBuys.every(r=>r.kind==='counter'),'starter catalog (no shop groups): counters only, as before');
 test(rec({owned:'Healbane'},{clock:'12:00'}).quickBuys.every(r=>r.name!=='Healbane')&&rec({owned:'Extended Magazine'},{clock:'12:00'}).buildPicks.every(r=>r.name!=='Extended Magazine'),'items you own are never suggested');
 
+// Lane opponents matter most while laning.
+const {EventState}=require('../live/event-state.cjs');
+const lanes=new EventState(),info=(key,data)=>({feature:'match_info',key,value:JSON.stringify(data)});
+lanes.apply(info('roster_0',{player_name:'Me',hero_name:'SHIV',hero_id:19,team_name:'Amber',is_local:true,assigned_lane:4}));
+lanes.apply(info('roster_1',{player_name:'E1',hero_name:'INFERNUS',hero_id:1,team_name:'Sapphire',assigned_lane:4}));
+lanes.apply(info('roster_2',{player_name:'E2',hero_name:'HAZE',hero_id:13,team_name:'Sapphire',assigned_lane:'x'}));
+const laneSnap=lanes.snapshot();
+test(laneSnap.ownLane===4&&laneSnap.enemies[0].lane===4&&laneSnap.enemies[1].lane===null,'roster lanes are read (invalid ones dropped)');
+const mctx=vm.createContext({});vm.runInContext(read('js/live-merge.js'),mctx);
+const laneState={hero:'',souls:0,owned:'',enemies:[]};
+mctx.DeadlockLiveMerge.mergeFeedSnapshot(laneState,null,{...laneSnap,phase:'in-progress'});
+test(laneState.ownLane===4&&laneState.enemies[0].lane===4,'lanes reach your state and the enemy rows');
+const laneEnemies=[{hero:'Infernus',items:'Extra Spirit, Mystic Burst',lane:4},{hero:'Haze',items:'Headshot Booster, Rapid Rounds',lane:1},{hero:'Vindicta',items:'Headshot Booster, Rapid Rounds, Burst Fire',lane:1},{hero:'Grey Talon',items:'Rapid Rounds',lane:6}];
+const laneRec=(ownLane,clock='05:00')=>E.recommend({hero:'Shiv',souls:1400,owned:'',enemies:laneEnemies,ownLane},catalog,{clock});
+const mid=laneRec(4),left=laneRec(1),noLane=laneRec(null),later=laneRec(4,'14:00');
+test(mid.lane.focus&&mid.lane.opponents.join()==='Infernus'&&mid.threats[0].name==='spirit','laning in the middle against Infernus: spirit becomes the top threat');
+test(mid.quickBuys[0].tags.includes('spirit')&&mid.quickBuys[0].vsItems.every(n=>['Extra Spirit','Mystic Burst'].includes(n)),'the top counter answers your lane opponent and cites only their items');
+test(left.quickBuys[0].tags.includes('bullet')&&left.lane.opponents.join()==='Haze,Vindicta','laning on the left against Haze and Vindicta: a weapon counter leads');
+test(mid.quickBuys.some(r=>r.kind==='build'&&r.reasons[0]==='Helps your lane vs Infernus'),'build picks help your lane while laning');
+test(!noLane.lane.focus&&!later.lane.focus&&later.threats[0].name==='bullet','without lane data, or after laning, the whole team counts equally');
+test(E.LANE_WEIGHT.lane>1&&E.LANE_WEIGHT.other<.5,'lane opponents weigh more than the rest of the team');
+test(read('desktop/main.cjs').includes("(lane?' lane '+lane:'')")&&read('js/ui.js').includes("`Laning vs ${lane.opponents.join(' and ')}`")&&read('js/ui.js').includes('<span class="laneTag">Your lane</span>'),'terminal log shows lanes; the strip and team rows show your lane opponents');
+
 // Debrief and UI wiring.
 const debrief=read('js/debrief.js'),ui=read('js/ui.js'),html=read('index.html');
 test(debrief.includes('{affordableOnly:true,clock:buy.t}'),'debrief timeline picks use the phase at each purchase');
-test(ui.includes("clock:liveWasOn?lastFeedSnapshot?.clock||'':''")&&ui.includes("$('livePhase').textContent=lastAdvice?.phase?.label||'';")&&ui.includes("$('liveBuild').classList.toggle('liveGap',!!lastAdvice?.build?.durabilityGap);"),'live clock drives the phase; the strip shows phase, build split and a durability gap');
+test(ui.includes("clock:liveWasOn?lastFeedSnapshot?.clock||'':''")&&ui.includes("$('livePhase').textContent=")&&ui.includes(":lastAdvice?.phase?.label||'';")&&ui.includes("$('liveBuild').classList.toggle('liveGap',!!lastAdvice?.build?.durabilityGap);"),'live clock drives the phase; the strip shows phase, build split and a durability gap');
 test(html.includes('id="livePhase"')&&html.includes('id="liveBuild"')&&html.includes('id="phaseSummary"')&&ui.includes("out.phase.source==='souls'?' (estimated)':''"),'manual mode shows the estimated phase and build split under the picks heading');
 test(ui.includes("const KIND_LABELS={counter:'Counter',build:'Build',both:'Counter + build'};")&&ui.includes('<span class="kindTag kind-${r.kind||\'counter\'}">')&&ui.includes('` vs ${escapeHTML(r.vsItems.join(\', \'))}`'),'pick cards say Counter, Build or both, and cite enemy items');
 

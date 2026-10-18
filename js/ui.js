@@ -371,7 +371,7 @@ function renderLiveTeam(){
   return [
    `<div class="liveRow${isNew.size?' liveRowNew':''}">`,
    src?`<img class="livePortrait" src="${escapeHTML(src)}" alt="">`:'<span class="livePortrait"></span>',
-   `<div class="liveRowBody"><strong>${escapeHTML(e.hero||'Hero not reported yet')}</strong>`,
+   `<div class="liveRowBody"><strong>${escapeHTML(e.hero||'Hero not reported yet')}${state.ownLane&&e.lane===state.ownLane?' <span class="laneTag">Your lane</span>':''}</strong>`,
    `<div class="liveItems">${items||'<span class="emptyText">No items yet</span>'}</div></div></div>`
   ].join('');
  }).join('');
@@ -386,7 +386,8 @@ function renderLiveStrip(){
  $('liveSouls').textContent=fmt.format(state.souls);
  const owned=engine.cleanList(state.owned).length;
  $('liveOwned').textContent=`${owned} ${owned===1?'item':'items'}`;
- $('livePhase').textContent=lastAdvice?.phase?.label||'';
+ const lane=lastAdvice?.lane;
+ $('livePhase').textContent=lane?.focus&&lane.opponents.length?`Laning vs ${lane.opponents.join(' and ')}`:lastAdvice?.phase?.label||'';
  $('liveBuild').textContent=lastAdvice?.build?buildSplit(lastAdvice.build):'';
  $('liveBuild').classList.toggle('liveGap',!!lastAdvice?.build?.durabilityGap);
  $('liveBuild').title=lastAdvice?.build?.durabilityGap?'Little vitality against a damage-heavy team: one pick covers durability.':'';

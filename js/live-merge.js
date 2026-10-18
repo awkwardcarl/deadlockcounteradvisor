@@ -24,7 +24,7 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  // so fields it carried still need applying.
  const last=prev&&!ended(prev.phase)&&!prev.warning?prev:null;
  if(!last||rosterKey(last)!==rosterKey(match)){
-  state.enemies=match.enemies.map(e=>({hero:resolveHero(e.hero,e.heroId),items:resolveItems(e.items||'',e.itemIds),feedName:e.name}));
+  state.enemies=match.enemies.map(e=>({hero:resolveHero(e.hero,e.heroId),items:resolveItems(e.items||'',e.itemIds),lane:e.lane??null,feedName:e.name}));
   changed=true;
  }else{
   const before=new Map(last.enemies.map(e=>[e.name,e]));
@@ -33,9 +33,11 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
    if(!row||!old)continue; // row removed by the user
    // The ID can arrive after the name (Overwolf's "UNKNOWN" placeholder), so check both.
    if(e.hero!==old.hero||(e.heroId??null)!==(old.heroId??null)){row.hero=resolveHero(e.hero,e.heroId);changed=true;}
+   if((e.lane??null)!==(old.lane??null)){row.lane=e.lane??null;changed=true;}
    if((e.items||'')!==(old.items||'')){row.items=resolveItems(e.items||'',e.itemIds);changed=true;}
   }
  }
+ if((match.ownLane??null)!==(last?.ownLane??null)||(!last&&match.ownLane!=null)){state.ownLane=match.ownLane??null;changed=true;}
  if(match.ownHero&&(!last||last.ownHero!==match.ownHero)){state.hero=resolveHero(match.ownHero,match.ownHeroId);changed=true;}
  if(Number.isFinite(match.souls)&&(!last||last.souls!==match.souls)){state.souls=match.souls;changed=true;}
  // A new game (new match ID, or play resuming after a match ended) starts with
