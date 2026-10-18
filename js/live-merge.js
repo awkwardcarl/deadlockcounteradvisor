@@ -8,8 +8,11 @@ const ended=phase=>phase==='ended'||phase==='postgame';
 const rosterKey=snap=>`${snap.matchId||''}\n`+snap.enemies.map(e=>e.name).join('\n');
 function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  if(ended(match.phase)){
+  // Once per match end (also when the app starts after a match): the lineup and
+  // your items belong to the finished game. Edits made between matches stick.
   if(prev&&ended(prev.phase))return {changed:false};
   state.enemies=[];
+  state.owned='';
   return {changed:true,ended:true};
  }
  if(match.warning)return {changed:false,warning:match.warning};

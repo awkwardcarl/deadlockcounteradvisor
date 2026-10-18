@@ -108,6 +108,12 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   const noId={hero:'',souls:0,owned:'Last game item',enemies:[]};
   merge(noId,base({matchId:'',phase:'ended'}),base({matchId:'',ownItems:null}));
   test(noId.owned==='','no match ID: play resuming after a match ended also clears items');
+  // App started after a match (post-game): last game's items go with the lineup.
+  const post={hero:'Ivy',souls:3146,owned:'Extended Magazine',liveMatchId:'M',enemies:[{hero:'Haze',items:''}]};
+  let pr=merge(post,null,base({phase:'postgame',enemies:[]}));
+  test(pr.ended&&post.owned===''&&post.enemies.length===0,'match end clears the lineup and your items');
+  post.owned='Planned item';pr=merge(post,base({phase:'postgame',enemies:[]}),base({phase:'postgame',enemies:[],clock:'0:02'}));
+  test(!pr.changed&&post.owned==='Planned item','items typed between matches stick');
 
   // Hero names: Overwolf sent "VIPER" for Vyper in a real match. Resolve by name, game ID, then known renames.
   const ids=new EventState({withholdEnemyItems:true});
