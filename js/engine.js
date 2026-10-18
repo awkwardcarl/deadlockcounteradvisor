@@ -134,6 +134,16 @@ const TAG_LABELS={spirit:'Spirit pressure',bullet:'Weapon damage',burst:'Burst d
 const cleanList=x=>Array.isArray(x)?x.map(v=>String(v||'').trim()).filter(Boolean):String(x||'').split(',').map(v=>v.trim()).filter(Boolean);
 const norm=x=>String(x||'').normalize('NFKC').toLocaleLowerCase('en-US').replace(/[^\p{L}\p{N}]+/gu,'');
 const iconPath=x=>typeof x==='string'&&/^\/assets\/game\/panorama\/images\/[\w\/.\-]+\.png$/.test(x)?'https://deadlock.io'+x:'';
+// Live feeds can use old or internal hero names (Overwolf sends "VIPER" for
+// Vyper). Match the name first, then the game's hero ID (synced catalog only),
+// then a known rename; otherwise keep the name as sent.
+const HERO_ALIASES={viper:'Vyper'};
+function resolveHeroName(catalog,name,id){
+ const byName=n=>n?catalog.heroes.find(h=>norm(h.name)===norm(n))?.name:undefined;
+ const gameId=Number(id);
+ const byId=id!=null&&Number.isInteger(gameId)&&gameId>0?catalog.heroes.find(h=>h.id===gameId)?.name:undefined;
+ return byName(name)||byId||byName(HERO_ALIASES[norm(name)])||String(name||'');
+}
 function createCatalog(base,snapshot){
  if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.heroes)){
   return {heroes:Object.keys(base.heroes).map(name=>({name,id:name,tags:base.heroes[name],portrait:'',unverified:base.unverifiedHeroes.includes(name)})),
@@ -297,5 +307,5 @@ function recommend(state,catalog,options={}){
  patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,recommend,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
+root.DeadlockEngine={createCatalog,resolveHeroName,recommend,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
 })(typeof window!=='undefined'?window:globalThis);

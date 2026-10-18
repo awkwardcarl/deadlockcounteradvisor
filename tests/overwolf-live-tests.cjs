@@ -27,6 +27,9 @@ const roster=[
   info('items_1',{player_name:'EnemyA',items:[{name:'Rapid Rounds',class_name:'upgrade_rapid_rounds'}]})
 ];
 
+// Fail instead of exiting 0 if the async checks stop before the end.
+let finished=false;
+process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped before finishing.');process.exitCode=1;}});
 (async()=>{
   // EventState: enemy items withheld on request; own items reported; shop items only.
   const held=new EventState({withholdEnemyItems:true});for(const u of roster)held.apply(u);
@@ -97,6 +100,24 @@ const roster=[
   const keep={hero:'',souls:0,owned:'Typed',enemies:[]};merge(keep,null,base({ownItems:null}));
   test(keep.owned==='Typed','unreported items (null) leave your list alone');
 
+  // Hero names: Overwolf sent "VIPER" for Vyper in a real match. Resolve by name, game ID, then known renames.
+  const ids=new EventState({withholdEnemyItems:true});
+  ids.apply(info('roster_0',{player_name:'Me',hero_name:'Kelvin',hero_id:12,team_name:'Amber',is_local:true}));
+  ids.apply(info('roster_1',{player_name:'EnemyA',hero_name:'VIPER',hero_id:58,team_name:'Sapphire'}));
+  test(ids.snapshot().enemies[0].heroId===58&&ids.snapshot().ownHeroId===12,'hero IDs pass through from the roster');
+  ids.apply(info('roster_1',{player_name:'EnemyA',hero_name:'VIPER',hero_id:'abc',team_name:'Sapphire'}));
+  test(ids.snapshot().enemies[0].heroId===null,'invalid hero IDs are dropped');
+  const ectx=vm.createContext({});for(const file of ['js/catalog.js','js/engine.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),ectx);
+  const E=ectx.DeadlockEngine;
+  const synced=E.createCatalog(ectx.DeadlockCatalog,require('./fixtures/catalog-snapshot.json')),starter=E.createCatalog(ectx.DeadlockCatalog,null);
+  test(E.resolveHeroName(synced,'VIPER',58)==='Vyper'&&E.resolveHeroName(synced,'HAZE',13)==='Haze','synced catalog: case-insensitive name, then game ID');
+  test(E.resolveHeroName(starter,'VIPER')==='Vyper'&&E.resolveHeroName(synced,'VIPER')==='Vyper'&&E.resolveHeroName(starter,'viper',58)==='Vyper','known rename works without an ID (starter catalog)');
+  test(E.resolveHeroName(synced,'Haze',58)==='Haze','a matching name wins over the ID');
+  test(E.resolveHeroName(synced,'Nobody',99999)==='Nobody'&&E.resolveHeroName(starter,'Nobody',58)==='Nobody'&&E.resolveHeroName(synced,'',null)==='','unknown heroes keep the name as sent');
+  const heroSt={hero:'',souls:0,owned:'',enemies:[]};
+  merge(heroSt,null,base({ownHero:'VIPER',ownHeroId:58,enemies:[{name:'EnemyA',hero:'VIPER',heroId:58,items:''}]}),(n,id)=>E.resolveHeroName(synced,n,id));
+  test(heroSt.hero==='Vyper'&&heroSt.enemies[0].hero==='Vyper','live merge shows Vyper, not VIPER');
+
   // Network lock-down applies to the app's own window, not Overwolf's internal pages.
   const security=require('../desktop/security.cjs');
   let intercept;const fakeSession={setPermissionRequestHandler(){},webRequest:{onBeforeRequest:cb=>{intercept=cb;}}};
@@ -116,5 +137,7 @@ const roster=[
   test(!/gep|overwolf\.packages/.test(preload),'the renderer never gets the GEP API');
   test(main.includes('details.webContentsId === mainWindow.webContents.id'),'main process scopes the lock-down to the app window');
   test(ui.includes('({feedName,...row})=>row'),'in-game player names are not saved to local storage');
+  test(ui.includes('engine.resolveHeroName(catalog,name,id)')&&ui.includes('resolveHeroName(e.hero,e.heroId)'),'the UI resolves feed heroes with their game IDs');
+  finished=true;
   console.log(`PASS: ${total} Overwolf live-mode checks (simulated API)`);
 })().catch(e=>{console.error(e);process.exit(1);});

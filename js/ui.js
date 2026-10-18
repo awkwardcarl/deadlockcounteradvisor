@@ -46,8 +46,8 @@ const heroes=()=>catalog.heroes.map(h=>h.name).sort((a,b)=>a.localeCompare(b));
 // Live feeds tag enemy rows with in-game player names (feedName); those are
 // for matching only and are not saved.
 function persist(){try{localStorage.setItem(STORE,JSON.stringify({...state,enemies:state.enemies.map(({feedName,...row})=>row)}));}catch(_){}}
-// Map a typed or feed-supplied hero name ("HAZE") to the catalog's spelling.
-function resolveHeroName(name){return catalog.heroes.find(h=>engine.norm(h.name)===engine.norm(name))?.name||name;}
+// Map a typed or feed-supplied hero name ("HAZE", "VIPER") to the catalog's spelling.
+function resolveHeroName(name,id){return engine.resolveHeroName(catalog,name,id);}
 function heroOptions(selected,blank){
  let names=heroes();
  if(selected&&!names.includes(selected))names=[selected,...names];
@@ -458,7 +458,7 @@ function setup(){
    const match=await window.desktopAPI.importReplay();
    if(!match)return;
    if(!match.enemies.length){$('syncStatus').textContent=match.warning;return;}
-   state.enemies=match.enemies.map(e=>({hero:resolveHeroName(e.hero),items:e.items}));
+   state.enemies=match.enemies.map(e=>({hero:resolveHeroName(e.hero,e.heroId),items:e.items}));
    renderEnemies();renderAdvice();persist();$('syncStatus').textContent=match.warning;
   }catch(e){$('syncStatus').textContent='Replay import failed: '+String(e?.message||e).slice(0,140);}
  });
