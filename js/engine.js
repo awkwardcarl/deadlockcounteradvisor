@@ -302,6 +302,8 @@ function recommend(state,catalog,options={}){
   return {id:item.id,name:item.name,cost,effectiveCost,upgradeFrom,category:item.category||'vitality',icon:item.icon||'',
    score:Math.round(score*100)/100,affordable,missing:Math.max(0,effectiveCost-soulCount),
    tags:leads.map(x=>x.tag),reasons,sources,coverage:coveredEnemies.size,
+   // The heroes this item answers, in lineup order (shown as portraits on the pick cards).
+   counters:[...coveredEnemies].sort((x,y)=>x-y).map(i=>String(enemies[i].hero)),
    why:item.why||`Can help against ${reasons.join(', ').toLowerCase()}. Verify its current in-game tooltip and activation conditions.`,
    caution:item.caution||'A reviewable category heuristic, not a verified ability-by-ability counter. Item slots, cooldowns, positioning and patch-specific effects are not modeled.',
    confidence:item.id.startsWith('starter:')?'starter':heroNotes.length?'matchup + category':'category rule',heroNotes,evidence,

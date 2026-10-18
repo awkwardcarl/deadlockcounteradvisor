@@ -44,6 +44,10 @@
     </div>
     <div class="workspace">
       <aside class="leftPanel" id="inputPanel">
+        <section class="card liveTeamCard" id="liveTeamCard" hidden>
+          <div class="sectionHeading"><div><div class="overline">LIVE</div><h2>Enemy team</h2></div><button id="editLineup" class="iconButton" type="button" aria-pressed="false" title="Correct the lineup or your build by hand">Edit</button></div>
+          <div id="liveTeam" class="liveTeam" aria-live="polite"></div>
+        </section>
         <section class="card enemyBlock">
           <div class="sectionHeading"><div><div class="overline">01 / OPPOSITION</div><h2>Enemy lineup</h2></div><button id="addEnemy" class="addButton" type="button">+ Add enemy</button></div>
           <p class="supportText">Pick up to six enemy heroes and add items you can <em>see</em> them buy.</p>
@@ -93,10 +97,19 @@
       </aside>
       <section class="rightPanel">
         <div class="card recommCard">
+          <div class="liveStrip" id="liveStrip" role="status" hidden>
+            <span class="liveBadge"><i aria-hidden="true"></i><span id="liveClock">Live</span></span>
+            <span class="liveHero"><img id="liveHeroPortrait" alt="" hidden><b id="liveHeroName">Your hero</b></span>
+            <span class="liveSouls"><b id="liveSouls">0</b> souls</span>
+            <span class="liveOwned" id="liveOwned">0 items</span>
+            <span class="liveFresh" id="liveFresh"></span>
+          </div>
           <div class="sectionHeading recommendationHeading"><div><div class="overline">03 / PURCHASE PRIORITIES</div><h2>Recommended counters</h2></div><div class="rightActions"><span class="miniPill" id="matchLabel">Waiting</span><div class="viewButtons"><button id="glance" class="iconButton" type="button" title="Only the three picks, in large type (G)" aria-pressed="false">Glance mode</button><button id="focus" class="iconButton" type="button" title="Show or hide input panel">Hide inputs</button></div></div></div>
           <div class="glanceBar" id="glanceBar"><span id="glanceSummary"></span><span class="glanceSouls"><button class="soulsStep" type="button" data-step="-500" aria-label="500 fewer souls">−500</button><b id="glanceSoulsValue">0</b> souls<button class="soulsStep" type="button" data-step="500" aria-label="500 more souls">+500</button></span></div>
-          <div class="summaryRow"><div class="recommendationFilters"><label>Priority <select id="strategyMode" aria-label="Current purchase priority"><option value="balanced">Balanced counters</option><option value="survive">Survive damage</option><option value="escape">Escape / disables</option><option value="antiheal">Stop sustain</option></select></label><label>Show <select id="sortMode"><option value="smart">Best fit</option><option value="affordable">Affordable first</option><option value="cost">Lowest cost</option></select></label><label>Filter <select id="filterCategory"><option value="all">All categories</option><option value="weapon">Weapon</option><option value="vitality">Vitality</option><option value="spirit">Spirit</option></select></label><label><input type="checkbox" id="affordableOnly"> Affordable only</label><span id="evidenceQuality" class="evidenceQuality" role="status">Waiting for matchup</span></div></div>
-          <div class="quickHeading"><div><div class="overline">QUICK PURCHASE PLAN</div><h3>Three next-item options</h3></div><small>Rankings are heuristic · verify the shop tooltip</small></div>
+          <details class="tunePanel" id="tunePanel"><summary>Tune picks</summary>
+          <div class="summaryRow"><div class="recommendationFilters"><label>Priority <select id="strategyMode" aria-label="Current purchase priority"><option value="balanced">Balanced counters</option><option value="survive">Survive damage</option><option value="escape">Escape / disables</option><option value="antiheal">Stop sustain</option></select></label><label>Show <select id="sortMode"><option value="smart">Best fit</option><option value="affordable">Affordable first</option><option value="cost">Lowest cost</option></select></label><label>Filter <select id="filterCategory"><option value="all">All categories</option><option value="weapon">Weapon</option><option value="vitality">Vitality</option><option value="spirit">Spirit</option></select></label><label><input type="checkbox" id="affordableOnly"> Affordable only</label></div></div>
+          </details>
+          <div class="quickHeading"><div><div class="overline">QUICK PURCHASE PLAN</div><h3>Three next-item options</h3></div><small><span id="evidenceQuality" class="evidenceQuality" role="status">Waiting for matchup</span></small></div>
           <div id="quickBuys" class="quickBuys" aria-live="polite"></div>
           <div class="whySection">
             <span class="miniTitle">IDENTIFIED THREATS</span><div class="threats" id="threats"><span class="emptyText">Waiting for a lineup</span></div>
