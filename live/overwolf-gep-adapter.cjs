@@ -14,6 +14,12 @@
 const {EventState} = require('./event-state.cjs');
 const DEADLOCK_GEP_ID = 24482;
 const FEATURES = Object.freeze(['game_info', 'match_info']);
+// Right after detection GEP may not accept features yet; retry for ~30 s.
+const REGISTER_ATTEMPTS = 10;
+const REGISTER_RETRY_MS = 3000;
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+// Feature names only (no game data), shortened for a one-line status.
+const describeFeatures = list => Array.isArray(list) ? (list.map(String).join(', ').slice(0,160) || 'none') : 'unknown (' + typeof list + ')';
 function validUpdate(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
   if (raw.info && typeof raw.info === 'object') return raw;
@@ -37,7 +43,7 @@ function removeUnapprovedInventory(update, permitEnemyInventory) {
   return safe;
 }
 class OverwolfGepAdapter {
-  constructor({gep, approval, onMatch=()=>{}, onStatus=()=>{}}={}) {
+  constructor({gep, approval, onMatch=()=>{}, onStatus=()=>{}, retryMs=REGISTER_RETRY_MS, attempts=REGISTER_ATTEMPTS}={}) {
     if (!gep || typeof gep.on!=='function' || typeof gep.getFeatures!=='function' || typeof gep.setRequiredFeatures!=='function') {
       throw new TypeError('A supported Overwolf GEP API object is required.');
     }
@@ -48,7 +54,8 @@ class OverwolfGepAdapter {
     // Enemy purchases are withheld unless explicitly approved; your own items
     // and the roster still flow (see desktop/live-approval.cjs).
     this.state=new EventState({withholdEnemyItems:this.approval.enemyInventoryForLiveAdvice!==true});
-    this.active=false;this.gameId=null;this.handlers=[];
+    this.retryMs=retryMs;this.attempts=attempts;
+    this.active=false;this.gameId=null;this.handlers=[];this.session=0;
   }
   start() {
     if (!this.approval.overwolfWhitelist || !this.approval.gameComplianceConfirmed) {
@@ -76,19 +83,40 @@ class OverwolfGepAdapter {
     event.enable();
     this.gameId=id;
     this.state.clear();
-    // Check capability before registering; do not silently assume match_info exists.
-    try{
-      const available=await this.gep.getFeatures(id);
-      if(!this.active)return;
-      if(!Array.isArray(available)||!available.includes('match_info')) {this.gameId=null;this.onStatus('Deadlock match data (match_info) is not available right now.','error');return;}
-      await this.gep.setRequiredFeatures(id,FEATURES.filter(x=>available.includes(x)));
-      if(!this.active)return;
-      this.onStatus('Connected to Deadlock live data.','connected');
-      if(typeof this.gep.getInfo==='function'){
-        const info=await this.gep.getInfo(id);
-        if(this.active)this.consume(id,info);
+    const session=++this.session;
+    // A newer detection, game exit or stop() ends this attempt.
+    const current=()=>this.active&&this.gameId===id&&this.session===session;
+    // Register straight after enable(), as Overwolf's sample does. Do not gate
+    // on getFeatures(): its list can be incomplete right after detection.
+    let lastError=null;
+    for(let attempt=1;attempt<=this.attempts;attempt++){
+      try{
+        await this.gep.setRequiredFeatures(id,[...FEATURES]);
+        if(!current())return;
+        this.onStatus('Connected to Deadlock live data.','connected');
+        await this.readCurrentInfo(id,current);
+        return;
+      }catch(e){
+        if(!current())return;
+        lastError=e;
+        if(attempt===1)this.onStatus('Deadlock detected. Connecting to match data...','waiting');
       }
-    }catch(e){this.gameId=null;this.onStatus('Could not start Deadlock live data: '+String(e.message).slice(0,150),'error');}
+      if(attempt<this.attempts){await wait(this.retryMs);if(!current())return;}
+    }
+    let features;
+    try{features=await this.gep.getFeatures(id);}catch(_){features=null;}
+    if(!current())return;
+    this.onStatus('Could not register for Deadlock match data: '+String(lastError?.message||lastError).slice(0,120)+'. Overwolf reports these features: '+describeFeatures(features)+'.','error');
+  }
+  async readCurrentInfo(id,current) {
+    // Catch up on a match already in progress. Live updates still flow if this fails.
+    if(typeof this.gep.getInfo!=='function')return;
+    try{
+      const info=await this.gep.getInfo(id);
+      // The result's shape isn't documented: accept {info}, {res} or the feature map itself.
+      const map=info?.info||info?.res||info;
+      if(current()&&map&&typeof map==='object'&&!Array.isArray(map))this.consume(id,{info:map});
+    }catch(_){}
   }
   consume(id,raw) {
     if(!this.active||this.gameId!==id) return;
@@ -107,4 +135,4 @@ class OverwolfGepAdapter {
     this.onStatus('Live data stopped.','stopped');
   }
 }
-module.exports={OverwolfGepAdapter,DEADLOCK_GEP_ID,FEATURES,validUpdate,removeUnapprovedInventory};
+module.exports={OverwolfGepAdapter,DEADLOCK_GEP_ID,FEATURES,validUpdate,removeUnapprovedInventory,describeFeatures};

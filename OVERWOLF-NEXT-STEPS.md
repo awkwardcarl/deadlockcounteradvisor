@@ -2,6 +2,8 @@
 
 **Status 2026-10-18:** Overwolf approved the app and whitelisted it for Deadlock game events. The developer has a dev key (`OW_DEV_KEY`) and Developer Console access.
 
+**Verified 2026-10-18 in a real match (dev mode):** status reached *connected*; enemy heroes, your hero, souls (rising as earned) and your purchased items filled in; enemy items stayed empty. Overwolf sends some heroes under old names ("VIPER" for Vyper); the app maps them by name, then the game's hero ID, then a short rename list.
+
 ## What live mode does
 
 When the app runs on Overwolf's Electron runtime with valid credentials, `desktop/overwolf-live.cjs` connects Overwolf's game events package (GEP) to the advisor in the main process:
@@ -38,6 +40,7 @@ Dev mode only works when running from source; it can't activate in an installed 
 - *"Overwolf game events failed to load"*, or `invalid verification` in the terminal: the dev key wasn't set in that window, or is wrong (check for leftover angle brackets, spaces or a missing character).
 - *`npm.ps1 cannot be loaded because running scripts is disabled`*: use `npm.cmd` as shown above.
 - *"Deadlock is running as administrator"*: run the app as administrator too, or start Deadlock normally.
+- *"Deadlock detected. Connecting to match data..."* for a while: the app retries registration for about 30 seconds; if it then shows an error, the message includes Overwolf's reason and the features it reported.
 - *Stays on "waiting for a match"*: game events only start once Deadlock is detected; check the [game events status page](https://dev.overwolf.com/ow-electron/live-game-data-gep/game-events-status-health).
 
 ## Before shipping live mode to players
