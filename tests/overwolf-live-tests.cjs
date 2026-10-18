@@ -111,7 +111,7 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   // App started after a match (post-game): last game's items go with the lineup.
   const post={hero:'Ivy',souls:3146,owned:'Extended Magazine',liveMatchId:'M',enemies:[{hero:'Haze',items:''}]};
   let pr=merge(post,null,base({phase:'postgame',enemies:[]}));
-  test(pr.ended&&post.owned===''&&post.enemies.length===0,'match end clears the lineup and your items');
+  test(pr.ended&&post.owned===''&&post.souls===0&&post.enemies.length===0,'match end clears the lineup, souls and your items');
   post.owned='Planned item';pr=merge(post,base({phase:'postgame',enemies:[]}),base({phase:'postgame',enemies:[],clock:'0:02'}));
   test(!pr.changed&&post.owned==='Planned item','items typed between matches stick');
 
@@ -161,6 +161,56 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   const live2=E.recommend({hero:'Kelvin',souls:3000,owned:'',enemies:[{hero:'Haze',items:itemSt.enemies[0].items}]},synced),bare2=E.recommend({hero:'Kelvin',souls:3000,owned:'',enemies:[{hero:'Haze',items:''}]},synced);
   test(JSON.stringify(live2.threats)!==JSON.stringify(bare2.threats),'live enemy items change the threat read');
 
+  // Replay of a real match log (2026-10-18): your roster entry arrives before any
+  // enemy, heroes start as UNKNOWN with no ID, IDs arrive later (Deadman Danny
+  // stays UNKNOWN=78), and leaving sends match_end, then menu phases.
+  const rs=new EventState(),rst={hero:'Ivy',souls:3146,owned:'Extended Magazine',liveMatchId:'119591229',enemies:[]};
+  let rprev=null;const step=u=>{const snapNow=rs.apply(u);merge(rst,rprev,snapNow,resolveSynced,(n,ids)=>E.resolveFeedItems(synced,n,ids));rprev=snapNow;};
+  const phase=value=>step({feature:'game_info',category:'game_info',key:'phase',value});
+  step({event:'match_start'});phase('Init');phase('MatchIntro');step(info('match_id','119595351'));
+  step(info('roster_0',{player_name:'Me',hero_name:'SHIV',hero_id:19,team_name:'Amber',is_local:true,souls:0}));
+  step(info('roster_6',{player_name:'E1',hero_name:'UNKNOWN',team_name:'Sapphire'}));
+  step(info('roster_7',{player_name:'E2',hero_name:'UNKNOWN',team_name:'Sapphire'}));
+  test(rst.hero==='Shiv','new match: your hero switches even though your entry arrived before any enemy');
+  test(rst.owned===''&&rst.souls===0&&rst.liveMatchId==='119595351','new match: items and souls from the last match are gone');
+  test(rst.enemies.length===2&&rst.enemies.every(e=>e.hero===''),'heroes still loading (UNKNOWN, no ID): blank slots');
+  phase('WaitForMapToLoad');phase('PreGameWait');
+  step(info('roster_6',{player_name:'E1',hero_name:'VINDICTA',hero_id:3,team_name:'Sapphire'}));
+  step(info('roster_7',{player_name:'E2',hero_name:'UNKNOWN',hero_id:78,team_name:'Sapphire'}));
+  test(rst.enemies.map(e=>e.hero).join()==='Vindicta,Deadman Danny','heroes fill in as IDs arrive; UNKNOWN=78 is Deadman Danny');
+  phase('GameInProgress');
+  step(info('roster_0',{player_name:'Me',hero_name:'SHIV',hero_id:19,team_name:'Amber',is_local:true,souls:1200}));
+  step(info('items_0',{player_name:'Me',items:[{name:'Extra Spirit',class_name:'upgrade_improved_spirit'}]}));
+  step(info('items_7',{player_name:'E2',items:[{name:'Rapid Rounds',class_name:'upgrade_rapid_rounds'}]}));
+  test(rst.souls===1200&&rst.owned==='Extra Spirit'&&rst.enemies[1].items==='Rapid Rounds','souls, your purchases and enemy purchases flow during the match');
+  step({event:'match_end'});
+  test(rst.enemies.length===0&&rst.owned===''&&rst.souls===0,'leaving (match_end): lineup, items and souls cleared');
+  phase('Init');phase('HeroSelection');phase('GameInProgress');
+  test(rst.enemies.length===0&&rst.owned===''&&rst.souls===0,'menu phases after leaving change nothing');
+
+  // Match boundaries: the terminal log shows boundary signals and first-seen keys,
+  // never player data; closing Deadlock counts as a match end.
+  const bg=new FakeGep(),bm=[],dbg=[];
+  const bnd=new OverwolfGepAdapter({gep:bg,approval:APPROVAL,onMatch:m=>bm.push(m),onDebug:m=>dbg.push(m)});
+  bnd.start();await bnd.detected({enable(){}},DEADLOCK_GEP_ID,'Deadlock');
+  const ev=key=>bg.emit('new-game-event',{},DEADLOCK_GEP_ID,{feature:'match_info',key,value:null});
+  const up=u=>bg.emit('new-info-update',{},DEADLOCK_GEP_ID,u);
+  ev('match_start');up(info('match_id','123'));
+  up({feature:'game_info',category:'game_info',key:'phase',value:'GameInProgress'});up({feature:'game_info',category:'game_info',key:'phase',value:'GameInProgress'});
+  for(const u of roster)up(u);
+  ev('player_left');ev('player_left');ev('kill');
+  up(info('team_score',{amber:'1',sapphire:'0'}));up(info('team_score',{amber:'2',sapphire:'0'}));
+  test(dbg.join('|')==='match_start|match_id: 123|phase: GameInProgress|first event player_left|first info key match_info.team_score','boundary log: start, id, phase changes, and each unhandled key once');
+  test(!dbg.some(m=>/EnemyA|Kelvin|Haze|Extra Spirit|amber/.test(m)),'boundary log carries no player data or values of other keys');
+  const lastLive=bm.at(-1);
+  test(lastLive.enemies.length===1&&lastLive.ownItems==='Extra Spirit','match data flows before the game closes');
+  bg.emit('game-exit',{},DEADLOCK_GEP_ID,'Deadlock');
+  test(bm.at(-1).phase==='ended'&&dbg.at(-1)==='Deadlock closed','closing Deadlock reports a match end');
+  const exitSt={hero:'Ivy',souls:3000,owned:'Extended Magazine',liveMatchId:'123',enemies:[{hero:'Haze',items:''}]};
+  merge(exitSt,lastLive,bm.at(-1));
+  test(exitSt.owned===''&&exitSt.enemies.length===0,'closing Deadlock clears the lineup and your items');
+  bnd.stop();
+
   // Network lock-down applies to the app's own window, not Overwolf's internal pages.
   const security=require('../desktop/security.cjs');
   let intercept;const fakeSession={setPermissionRequestHandler(){},webRequest:{onBeforeRequest:cb=>{intercept=cb;}}};
@@ -180,6 +230,7 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   test(!/gep|overwolf\.packages/.test(preload),'the renderer never gets the GEP API');
   test(main.includes('details.webContentsId === mainWindow.webContents.id'),'main process scopes the lock-down to the app window');
   const heroLog=main.slice(main.indexOf('function logOverwolfHeroes'),main.indexOf('const overwolfLive'));
+  test(main.includes("onDebug:message=>console.log('[Counter Advisor] Overwolf event:',message)")&&fs.readFileSync(path.join(root,'desktop/overwolf-live.cjs'),'utf8').includes('approval,onMatch,onDebug,'),'boundary log reaches the terminal');
   test(main.includes('logOverwolfHeroes(snapshot)')&&heroLog.includes('e.heroId')&&!/\.name\b|player/.test(heroLog),'terminal hero log shows hero names and IDs, never player names');
   test(ui.includes('({feedName,...row})=>row'),'in-game player names are not saved to local storage');
   test(ui.includes('engine.resolveHeroName(catalog,name,id)')&&ui.includes('resolveHeroName(e.hero,e.heroId)'),'the UI resolves feed heroes with their game IDs');

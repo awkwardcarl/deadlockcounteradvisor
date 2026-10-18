@@ -49,6 +49,7 @@ function logOverwolfHeroes(snapshot){
 const overwolfLive=createOverwolfLive({
   app,
   onMatch:snapshot=>{overwolfStatus={...overwolfStatus,lastUpdate:Date.now()};logOverwolfHeroes(snapshot);broadcast('live:match',{...snapshot,source:'overwolf'});},
+  onDebug:message=>console.log('[Counter Advisor] Overwolf event:',message),
   onStatus:status=>{
     overwolfStatus={...overwolfStatus,...status};publishStatus();
     // Plain dots: the Windows console garbles the "…" character.

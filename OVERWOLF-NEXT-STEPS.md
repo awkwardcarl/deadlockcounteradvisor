@@ -4,6 +4,12 @@
 
 **Verified 2026-10-18 in a real match (dev mode):** status reached *connected*; enemy heroes, your hero, souls (rising as earned) and your purchased items filled in; enemy items stayed empty (they were still switched off then). Overwolf sends some heroes under old names ("VIPER" for Vyper); the app maps them by name, then the game's hero ID, then a short rename list.
 
+**Seen in later matches (terminal log):**
+- Enemy items arrived for all six opponents and matched the catalog by class name.
+- Hero names arrive in capitals ("SHIV") and resolve regardless of case. Overwolf's `hero_id` matches the catalog's hero IDs (Vindicta 3, Yamato 27, Abrams 6, Viscous 35, Paige 67, Shiv 19). Deadman Danny came as `UNKNOWN` with ID 78 arriving after the name; heroes start as `UNKNOWN` with no ID during the intro and fill in as they load.
+- Phases seen: `Init`, `MatchIntro`, `WaitForMapToLoad`, `PreGameWait`, `GameInProgress`, and after leaving `Init`, `HeroSelection`, `GameInProgress`. A new `match_id` arrives for each match, and `match_end` fires when you leave early as well as at a normal end. At match end the app clears the lineup, your items and souls.
+- The terminal prints these boundaries (`Overwolf event: ...`) and each match's hero names and IDs (`Overwolf heroes ...`), never player names.
+
 ## What live mode does
 
 When the app runs on Overwolf's Electron runtime with valid credentials, `desktop/overwolf-live.cjs` connects Overwolf's game events package (GEP) to the advisor in the main process:

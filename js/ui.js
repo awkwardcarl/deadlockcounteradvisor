@@ -333,7 +333,7 @@ function onLiveMatch(match){
    updatePortrait();renderOwned();renderEnemies();renderAdvice();persist();
  }
  const overwolf=match.source==='overwolf';
- if(result.ended)$('liveInfo').textContent=`${overwolf?'Match':'Feed reports match'} ended. Enemy lineup and your items cleared for the next match.`;
+ if(result.ended)$('liveInfo').textContent=`${overwolf?'Match':'Feed reports match'} ended. Enemy lineup, souls and your items cleared for the next match.`;
  else if(result.warning)$('liveInfo').textContent=result.warning;
  else if(!(match.phase==='ended'||match.phase==='postgame'))$('liveInfo').textContent=overwolf
    ?`Live from Overwolf: ${match.enemies.length} opponents${match.clock?' · '+match.clock:''} · ${match.ownItems===null?'your items not reported yet':'your items synced'} · enemy items ${match.enemyItemsWithheld?'off (awaiting confirmation)':`${match.observedInventories}/${match.enemies.length} observed`}. Your manual edits are kept until the game reports a change.`
