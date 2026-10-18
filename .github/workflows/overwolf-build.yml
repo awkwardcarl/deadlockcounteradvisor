@@ -1,0 +1,64 @@
+name: Overwolf edition build
+
+# Manual only. Builds the Overwolf edition installer (live game data) as a
+# downloadable artifact. It never publishes a release and has no update feed,
+# so the standard release and auto-update flow are unaffected.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'qa = first QA submission, built without signing keys (Overwolf signs it for QA). signed = Overwolf-signed build, needs the OW_* secrets.'
+        type: choice
+        options:
+          - qa
+          - signed
+        default: qa
+
+permissions:
+  contents: read
+
+jobs:
+  build-overwolf:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Check Overwolf signing secrets
+        if: inputs.mode == 'signed'
+        shell: pwsh
+        env:
+          OW_CLI_EMAIL: ${{ secrets.OW_CLI_EMAIL }}
+          OW_CLI_API_KEY: ${{ secrets.OW_CLI_API_KEY }}
+          OW_BUILD_KEY: ${{ secrets.OW_BUILD_KEY }}
+        run: |
+          $missing = @('OW_CLI_EMAIL', 'OW_CLI_API_KEY', 'OW_BUILD_KEY') | Where-Object { -not [Environment]::GetEnvironmentVariable($_) }
+          if ($missing) { throw "Missing repository secrets: $($missing -join ', '). See OVERWOLF-NEXT-STEPS.md." }
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Run tests
+        run: npm test
+      # Overwolf asks for the first QA submission to be built without any
+      # signing keys, so this step gets none.
+      - name: Build QA installer (no signing keys)
+        if: inputs.mode == 'qa'
+        env:
+          OW_QA_BUILD: '1'
+        run: npm run build:overwolf
+      - name: Build Overwolf-signed installer
+        if: inputs.mode == 'signed'
+        env:
+          OW_CLI_EMAIL: ${{ secrets.OW_CLI_EMAIL }}
+          OW_CLI_API_KEY: ${{ secrets.OW_CLI_API_KEY }}
+          OW_BUILD_KEY: ${{ secrets.OW_BUILD_KEY }}
+        run: npm run build:overwolf
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: deadlock-counter-advisor-overwolf-${{ inputs.mode }}
+          path: dist/Deadlock-Counter-Advisor-Overwolf-Setup-*.exe
+          if-no-files-found: error
