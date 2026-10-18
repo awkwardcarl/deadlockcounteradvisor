@@ -45,7 +45,7 @@ function analyzeMatch(match,youSlot,catalog,engine,base){
   const timeline=you.purchases.map(buy=>{
     const item=items.get(buy.className);
     const budget=Math.max(item?.cost||0,buy.cost||0);
-    const out=E.recommend({hero:you.hero,souls:budget,owned:ownedBefore(you,buy.t).map(nameOf).join(', '),enemies:enemyState(buy.t)},cat,{affordableOnly:true});
+    const out=E.recommend({hero:you.hero,souls:budget,owned:ownedBefore(you,buy.t).map(nameOf).join(', '),enemies:enemyState(buy.t)},cat,{affordableOnly:true,clock:buy.t});
     const picks=out.results.slice(0,3);
     const pressing=out.threats.filter(t=>t.level!=='low');
     const verdict=picks.some(r=>r.id===buy.className)?'top':pressing.some(t=>strongFor(buy.className,t.name))?'counter':'build';

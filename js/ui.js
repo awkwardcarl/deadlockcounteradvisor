@@ -292,10 +292,18 @@ function counterFaces(r){
 }
 // Picks that just changed during a live match stay highlighted for a few seconds.
 const PICK_HIGHLIGHT_MS=6000;
+const KIND_LABELS={counter:'Counter',build:'Build',both:'Counter + build'};
+// "Build: 68% weapon · 32% vitality" from the engine's build profile.
+function buildSplit(build){
+ if(!build?.shares)return 'No items yet';
+ return 'Build: '+Object.entries(build.shares).filter(([,v])=>v>=.05).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${Math.round(v*100)}% ${k}`).join(' · ');
+}
+let lastAdvice=null;
 const pickHighlights=new Map();
 let lastPickNames=[];
 function quickCard(r,i){
- const reason=r.reasons.length?`Counters ${r.reasons.slice(0,2).join(' and ').toLowerCase()}`:'General utility';
+ const counters=r.reasons.length?`Counters ${r.reasons.slice(0,2).join(' and ').toLowerCase()}`:'General utility';
+ const reason=r.kind==='build'?r.reasons[0]:counters;
  const changed=(pickHighlights.get(r.name)||0)>Date.now();
  return [
   `<article class="quickItem ${r.affordable?'quickReady':'quickSaving'}${changed?' quickChanged':''}">`,
@@ -303,6 +311,7 @@ function quickCard(r,i){
   `<div class="quickIdentity"><span class="quickEyebrow">PICK ${i+1} · ${escapeHTML(r.category||'utility')}</span><strong>${escapeHTML(r.name)}</strong></div>`,
   `<span class="quickCost">${fmt.format(r.effectiveCost)}<small> souls</small></span></div>`,
   `<p class="quickReason">${escapeHTML(reason)}</p>`,
+  `<p class="quickVs"><span class="kindTag kind-${r.kind||'counter'}">${KIND_LABELS[r.kind]||KIND_LABELS.counter}</span>${r.vsItems?.length?` vs ${escapeHTML(r.vsItems.join(', '))}`:''}</p>`,
   counterFaces(r),
   `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`}</span>${r.upgradeFrom?`<span class="quickUpgrade">uses your ${escapeHTML(r.upgradeFrom)}</span>`:''}</div>`,
   `</article>`
@@ -377,6 +386,10 @@ function renderLiveStrip(){
  $('liveSouls').textContent=fmt.format(state.souls);
  const owned=engine.cleanList(state.owned).length;
  $('liveOwned').textContent=`${owned} ${owned===1?'item':'items'}`;
+ $('livePhase').textContent=lastAdvice?.phase?.label||'';
+ $('liveBuild').textContent=lastAdvice?.build?buildSplit(lastAdvice.build):'';
+ $('liveBuild').classList.toggle('liveGap',!!lastAdvice?.build?.durabilityGap);
+ $('liveBuild').title=lastAdvice?.build?.durabilityGap?'Little vitality against a damage-heavy team: one pick covers durability.':'';
  renderFreshness();
 }
 // "Updated 3s ago"; turns amber when live data stops arriving.
@@ -426,7 +439,10 @@ function renderEnemies(){
  document.querySelectorAll('.remove').forEach(el=>el.addEventListener('click',()=>{state.enemies.splice(Number(el.dataset.index),1);renderEnemies();renderAdvice();persist();}));
 }
 function renderAdvice(){
- const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode});
+ // The live clock sets the match phase; without one the engine estimates it from your souls.
+ const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode,clock:liveWasOn?lastFeedSnapshot?.clock||'':''});
+ lastAdvice=out;
+ $('phaseSummary').textContent=out.phase?`${out.phase.label}${out.phase.source==='souls'?' (estimated)':''} · ${buildSplit(out.build)} · `:'';
  $('matchLabel').textContent=out.count?`${out.count}/6 enemies`:'No lineup';
  const opponents=state.enemies.map(e=>e.hero).filter(Boolean);
  $('glanceSummary').textContent=`${state.hero||'No hero'}${opponents.length?' vs '+opponents.join(', '):' · no enemies entered'}`;

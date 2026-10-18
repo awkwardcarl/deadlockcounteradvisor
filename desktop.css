@@ -595,3 +595,16 @@ body.glanceMode .quickReason{font-size:calc(15px * var(--ui-text-multiplier))}
 .quickHeading .evidenceQuality{display:inline;padding:0;border:0;background:none;color:inherit;font:inherit}
 .topbar{min-height:64px;padding-top:12px;padding-bottom:12px}
 .displayInfo:empty{display:none}
+
+/* Match phase, build split and pick kinds. */
+.livePhase{padding:2px 8px;border-radius:6px;background:#1f3347;color:#cfe0ec;font-weight:700}
+.livePhase:empty,.liveBuild:empty{display:none}
+.liveBuild{color:#a9c4c9}
+.liveBuild.liveGap{color:#f0cf8a}
+.quickVs{margin:4px 0 0;color:#e8c98f;font-size:calc(11px * var(--ui-text-multiplier))}
+.phaseSummary{color:#a9c4c9}
+body.liveMatch .phaseSummary{display:none}
+.kindTag{display:inline-block;margin-right:4px;padding:1px 7px;border-radius:999px;font-weight:700;letter-spacing:0}
+.kind-counter{background:#3a2a1d;color:#f3c99a}
+.kind-build{background:#1d3550;color:#a9d3f5}
+.kind-both{background:#2c2a4f;color:#cbc4ff}

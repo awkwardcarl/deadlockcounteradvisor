@@ -142,12 +142,18 @@ const iconPath=x=>typeof x==='string'&&/^\/assets\/game\/panorama\/images\/[\w\/
 // for the player to pick.
 const HERO_ALIASES={viper:'Vyper'};
 const HERO_PLACEHOLDERS=new Set(['','unknown','none']);
+// Heroes newer than the synced catalog (Violet, ID 86, in October 2026) are
+// named from the match service's hero list (catalog.extraHeroNames, by ID).
+// A name still unmatched and in capitals ("VIOLET") is shown as "Violet".
+const titleCase=n=>/[A-Z]/.test(n)&&n===n.toUpperCase()?n.toLowerCase().replace(/(^|[\s'&.-])([a-z])/g,(m,p,c)=>p+c.toUpperCase()):n;
 function resolveHeroName(catalog,name,id){
  const byName=n=>n?catalog.heroes.find(h=>norm(h.name)===norm(n))?.name:undefined;
- const gameId=Number(id);
- const byId=id!=null&&Number.isInteger(gameId)&&gameId>0?catalog.heroes.find(h=>h.id===gameId)?.name:undefined;
- if(HERO_PLACEHOLDERS.has(norm(name)))return byId||'';
- return byName(name)||byId||byName(HERO_ALIASES[norm(name)])||String(name||'');
+ const gameId=Number(id),validId=id!=null&&Number.isInteger(gameId)&&gameId>0;
+ const byId=validId?catalog.heroes.find(h=>h.id===gameId)?.name:undefined;
+ const fallback=validId?catalog.extraHeroNames?.[String(gameId)]:undefined;
+ const byFallback=fallback?byName(fallback)||fallback:undefined;
+ if(HERO_PLACEHOLDERS.has(norm(name)))return byId||byFallback||'';
+ return byName(name)||byId||byFallback||byName(HERO_ALIASES[norm(name)])||titleCase(String(name||''));
 }
 function createCatalog(base,snapshot){
  if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.heroes)){
@@ -155,7 +161,11 @@ function createCatalog(base,snapshot){
    items:base.counterItems.map((x,i)=>({id:'starter:'+i,name:x.name,cost:x.cost,category:'vitality',icon:'',weights:x.weights,why:x.why,caution:x.caution,synergy:x.synergy})),
    enemyItems:base.enemyItems,complete:false,build:'starter',generatedAt:base.rosterDate};
  }
- return {heroes:snapshot.heroes.map(h=>({...h,portrait:iconPath(h.portrait),tags:base.heroes[h.name]||[],unverified:!Object.prototype.hasOwnProperty.call(base.heroes,h.name)})),
+ const synced=new Set(snapshot.heroes.map(h=>norm(h.name)));
+ // Curated heroes the public roster doesn't list yet (new or ballot heroes).
+ const curatedOnly=Object.keys(base.heroes).filter(name=>!synced.has(norm(name))).map(name=>({name,id:name,tags:base.heroes[name],portrait:'',unverified:base.unverifiedHeroes.includes(name)||!base.heroes[name].length}));
+ const extraHeroNames=Object.fromEntries(Object.entries(snapshot.extraHeroNames||{}).filter(([id,n])=>/^\d{1,5}$/.test(id)&&typeof n==='string'&&n.trim()&&n.length<=40).map(([id,n])=>[id,n.trim()]));
+ return {heroes:[...snapshot.heroes.map(h=>({...h,portrait:iconPath(h.portrait),tags:base.heroes[h.name]||[],unverified:!Object.prototype.hasOwnProperty.call(base.heroes,h.name)})),...curatedOnly],extraHeroNames,
   items:snapshot.items.map(i=>({...i,icon:iconPath(i.icon)})),
   enemyItems:base.enemyItems,complete:true,build:snapshot.build,generatedAt:snapshot.generatedAt};
 }
@@ -195,6 +205,45 @@ const STRATEGY={
  escape:{control:1.65,slow:1.55,mobility:1.3},
  antiheal:{sustain:2.0}
 };
+// Match phase: from the live clock ("mm:ss" or seconds) when there is one,
+// otherwise estimated from your net worth (souls spent on items plus unspent).
+const PHASE_LABELS={laning:'Laning',mid:'Mid game',late:'Late game'};
+function clockMinutes(clock){
+ if(typeof clock==='number')return Number.isFinite(clock)&&clock>=0?clock/60:null;
+ const m=/^(?:(\d{1,2}):)?(\d{1,3}):(\d{2})$/.exec(String(clock||'').trim());
+ return m?(Number(m[1]||0)*60+Number(m[2])+Number(m[3])/60):null;
+}
+function matchPhase(clock,netWorth){
+ const minutes=clockMinutes(clock);
+ if(minutes!==null)return {key:minutes<10?'laning':minutes<25?'mid':'late',source:'clock',minutes:Math.floor(minutes)};
+ return {key:netWorth<9000?'laning':netWorth<28000?'mid':'late',source:'souls',minutes:null};
+}
+// What each phase favors: item tiers (800 / 1,600 / 3,200 / 6,400), which
+// threats matter more, and how counters and build picks are balanced.
+const PHASE_TUNING={
+ laning:{tier:{1:1.15,2:1,3:.6,4:.3},threat:{range:1.2,sustain:1.15,slow:1.05,burst:.9,area:.85,control:.9},counter:.85,build:1.15},
+ mid:{tier:{1:.7,2:1,3:1.05,4:.75},threat:{},counter:1,build:.95},
+ late:{tier:{1:.35,2:.65,3:1,4:1.15},threat:{burst:1.15,control:1.2,area:1.15,range:.9,sustain:1.05},counter:1.1,build:.8}
+};
+const tierOf=item=>[1,2,3,4].includes(Number(item.tier))?Number(item.tier):(Number(item.cost)||0)<=800?1:(Number(item.cost)||0)<=1600?2:(Number(item.cost)||0)<=3200?3:4;
+// Shop groups that make an item a build (power) pick, and how central each is.
+// Only items with a known group qualify, so no effect is invented for others.
+const BUILD_GROUPS={
+ ERateOfFire:1,EMagazines:1,EHeadshotEnthusiasts:1,ESpiritSlinger:.9,EBulletVelocity:.85,EWeaponRange:.8,ETankingBullets:.8,EMisc:.75,ESlowingBullets:.7,
+ EMoreSpirit:1,EBurstDamage:1,ECooldown:.95,EDuration:.85,ECharges:.85,ESpiritRange:.8,EMagicVulnerability:.8,EMiscSpirit:.75,ESlowingMagic:.7,ECrownControl:.7,EMeleeSpirit:.7,
+ EMoreHealth:1,ELifesteal:.9,EBulletProtection:.85,ESpiritProtection:.85,ERevitalization:.85,EAdditionalProtection:.8,EHealing:.8,
+ EMovementAndAgility:.75,EMelee:.7,EActives:.6,EDebuffs:.6,EAntiGun:.6,EAntiHealing:.6
+};
+const DURABILITY_GROUPS=new Set(['EMoreHealth','ELifesteal','EBulletProtection','ESpiritProtection','ERevitalization','EAdditionalProtection','EHealing']);
+// Your build: souls spent per category, plus your hero's damage type.
+function buildProfile(owned,itemMap,ownHero){
+ const spent={weapon:0,spirit:0,vitality:0};
+ for(const name of owned){const item=itemMap.get(norm(name));if(item&&item.category in spent)spent[item.category]+=Math.max(0,Number(item.cost)||0);}
+ const total=spent.weapon+spent.spirit+spent.vitality;
+ const shares=total?{weapon:spent.weapon/total,spirit:spent.spirit/total,vitality:spent.vitality/total}:null;
+ const tags=ownHero?.tags||[];
+ return {spent,total,shares,heroType:tags.includes('spirit')?'spirit':tags.includes('bullet')?'weapon':null};
+}
 function recommend(state,catalog,options={}){
  const enemies=(Array.isArray(state.enemies)?state.enemies:[]).filter(e=>e&&String(e.hero||'').trim()).slice(0,6);
  if(!enemies.length)return {results:[],quickBuys:[],threats:[],patterns:[],abilityTips:[],unknown:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
@@ -269,13 +318,27 @@ function recommend(state,catalog,options={}){
  const ownHero=heroMap.get(norm(state.hero));
  const ownTags=ownHero?.tags||[];
  const strategy=STRATEGY[options.strategy]||STRATEGY.balanced;
+ const profile=buildProfile(cleanList(state.owned),itemMap,ownHero);
+ const phase=matchPhase(options.clock,profile.total+soulCount);
+ const tune=PHASE_TUNING[phase.key];
+ // How well an item's category fits your build. Concentrated investment pays
+ // off in Deadlock, so a category you've bought into scores higher; before
+ // your first item, your hero's damage type decides. Past laning, everyone
+ // needs some vitality.
+ const alignment=category=>{
+  let fit=profile.shares?.35+.9*(profile.shares[category]||0):profile.heroType?(category===profile.heroType?.95:category==='vitality'?.6:.4):.6;
+  if(category==='vitality'&&phase.key!=='laning')fit=Math.max(fit,.5);
+  return fit;
+ };
+ const damageThreat=Math.max(...['bullet','spirit','burst'].map(tag=>byTag.get(tag)?.score||0));
+ const durabilityGap=phase.key!=='laning'&&(profile.shares?.vitality||0)<.15&&damageThreat>=1.2;
  const all=catalog.items.filter(i=>!owned.has(norm(i.name))).map(item=>{
   const weights=item.weights||COUNTERS[item.id];
   if(!weights)return null; // never manufacture effects for unreviewed shop items
   const contributes=Object.entries(weights).filter(([tag,weight])=>byTag.has(tag)&&Number(weight)>0).map(([tag,weight])=>{
    // tagFactors: optional per-threat weighting (the debrief uses it to lean
    // toward the damage a player actually took).
-   const t=byTag.get(tag),factor=(strategy[tag]||1)*(Number(options.tagFactors?.[tag])||1);
+   const t=byTag.get(tag),factor=(strategy[tag]||1)*(Number(options.tagFactors?.[tag])||1)*(tune.threat[tag]||1);
    return {tag,raw:Math.sqrt(t.score)*Number(weight)*factor,source:t.sources,enemies:t.enemies};
   }).sort((a,b)=>b.raw-a.raw);
   if(!contributes.length)return null;
@@ -288,9 +351,10 @@ function recommend(state,catalog,options={}){
   const fitTags=OWN_AFFINITY[item.id]||[];
   const ownMatch=fitTags.some(t=>ownTags.includes(t));
   const fit=item.synergy?(ownTags.includes(item.synergy)?1.12:0.78):(fitTags.length?(ownMatch?1.08:0.92):1);
-  const efficiency=Math.min(1.17,Math.max(.77,Math.sqrt(3200/Math.max(800,effectiveCost||cost||800))));
+  const tierFit=tune.tier[tierOf(item)]*(upgradeFrom&&phase.key!=='laning'?1.1:1);
+  const align=alignment(item.category||'vitality');
   const matchupBonus=matchedHeroes.reduce((sum,h)=>sum+(MATCHUPS[h]?.items[item.id]||0),0);
-  const score=contributes.reduce((sum,x)=>sum+x.raw,0)*fit*efficiency + Math.min(1.0,coveredEnemies.size*.12)+matchupBonus;
+  const score=contributes.reduce((sum,x)=>sum+x.raw,0)*fit*tierFit*(.9+.2*align)*tune.counter + Math.min(1.0,coveredEnemies.size*.12)+matchupBonus;
   const leads=contributes.slice(0,3);
   const reasons=leads.map(x=>TAG_LABELS[x.tag]);
   const sources=Array.from(new Set(leads.flatMap(x=>x.source.map(y=>y.name)))).slice(0,5);
@@ -298,10 +362,12 @@ function recommend(state,catalog,options={}){
   // Name only the evidence that actually drove this item's top reasons.
   const kinds=new Set(leads.flatMap(x=>x.source.map(s=>s.kind)));
   const evidence=[kinds.has('item')&&'Enemy purchases',kinds.has('pair')&&'Item pair',kinds.has('hero')&&'Hero profiles',heroNotes.length&&'Matchup note'].filter(Boolean);
+  // The enemy purchases behind this pick's top reasons ("vs Burst Fire, Rapid Rounds").
+  const vsItems=[...new Set(leads.flatMap(x=>x.source.filter(y=>y.kind==='item').map(y=>String(y.name).split(' · ').pop())))].slice(0,3);
   const affordable=soulCount>=effectiveCost;
   return {id:item.id,name:item.name,cost,effectiveCost,upgradeFrom,category:item.category||'vitality',icon:item.icon||'',
    score:Math.round(score*100)/100,affordable,missing:Math.max(0,effectiveCost-soulCount),
-   tags:leads.map(x=>x.tag),reasons,sources,coverage:coveredEnemies.size,
+   tags:leads.map(x=>x.tag),reasons,sources,vsItems,coverage:coveredEnemies.size,kind:profile.shares&&align>=.75?'both':'counter',
    // The heroes this item answers, in lineup order (shown as portraits on the pick cards).
    counters:[...coveredEnemies].sort((x,y)=>x-y).map(i=>String(enemies[i].hero)),
    why:item.why||`Can help against ${reasons.join(', ').toLowerCase()}. Verify its current in-game tooltip and activation conditions.`,
@@ -313,7 +379,41 @@ function recommend(state,catalog,options={}){
  all.sort((a,b)=>b.score-a.score||a.effectiveCost-b.effectiveCost||a.name.localeCompare(b.name));
  const affordable=all.filter(x=>x.affordable);
  const saving=all.filter(x=>!x.affordable);
- const quickBuys=affordable.length?[...affordable.slice(0,2),...saving.slice(0,1),...affordable.slice(2,3)].slice(0,3):all.slice(0,3);
+ // Build picks: power for your build from the full shop (by category and shop
+ // group), excluding items already ranked as counters.
+ const counterIds=new Set(all.map(r=>r.id));
+ const build=catalog.items.filter(i=>!owned.has(norm(i.name))&&!counterIds.has(i.id)&&BUILD_GROUPS[i.group]).map(item=>{
+  const category=item.category||'vitality';
+  const cost=Math.max(0,Number(item.cost)||0);
+  const validComponents=(item.components||[]).map(c=>idMap.get(String(c))).filter(c=>c&&owned.has(norm(c.name)));
+  const credit=Math.min(cost,validComponents.reduce((best,c)=>Math.max(best,Number(c.cost)||0),0));
+  const upgradeFrom=validComponents.sort((a,b)=>b.cost-a.cost)[0]?.name||'';
+  const effectiveCost=Math.max(0,cost-credit);
+  const gap=durabilityGap&&category==='vitality'&&DURABILITY_GROUPS.has(item.group);
+  const align=alignment(category);
+  const score=2*align*BUILD_GROUPS[item.group]*tune.tier[tierOf(item)]*(category===profile.heroType?1.1:1)*(gap?1.4:1)*(upgradeFrom?1.15:1)*tune.build;
+  const reason=gap?'Fills a durability gap':profile.shares&&(profile.shares[category]||0)>=.4?`Builds on your ${category} investment`:!profile.shares&&category===profile.heroType?`Fits ${ownHero.name}'s ${category} damage`:upgradeFrom?`Upgrades your ${upgradeFrom}`:'Rounds out your build';
+  const affordable=soulCount>=effectiveCost;
+  return {id:item.id,name:item.name,cost,effectiveCost,upgradeFrom,category,icon:item.icon||'',
+   score:Math.round(score*100)/100,affordable,missing:Math.max(0,effectiveCost-soulCount),
+   tags:[],reasons:[reason],sources:[],vsItems:[],coverage:0,kind:'build',counters:[],gap,
+   why:`${reason}. ${item.groupLabel?item.groupLabel+' item':'Shop item'} for the ${PHASE_LABELS[phase.key].toLowerCase()} stage.`,
+   caution:'A build-fit heuristic from the item\'s shop category and group, your purchases and the match phase. It does not model exact stat values or investment thresholds.',
+   confidence:'build fit',heroNotes:[],evidence:['Your build'],ownFit:reason};
+ }).sort((a,b)=>b.score-a.score||a.effectiveCost-b.effectiveCost||a.name.localeCompare(b.name));
+ // Three picks: the best counter, the best build item, then a third from the
+ // side the phase leans to (build while laning, counters late), preferring a
+ // target to save for. Affordable picks come first within each side.
+ const quickBuys=[],taken=new Set();
+ const take=r=>{if(r&&!taken.has(r.name)&&quickBuys.length<3){quickBuys.push(r);taken.add(r.name);}};
+ const next=list=>{const open=list.filter(r=>!taken.has(r.name));return open.find(r=>r.affordable)||open[0];};
+ take(next(all));
+ take(next(build));
+ // A durability gap gets a pick of its own.
+ if(durabilityGap&&!quickBuys.some(r=>r.gap))take(next(build.filter(r=>r.gap)));
+ const lean=phase.key==='laning'?[build,all]:[all,build];
+ for(const list of lean){const target=list.find(r=>!taken.has(r.name)&&!r.affordable);if(target){take(target);break;}}
+ for(const list of [...lean,all,build])while(quickBuys.length<3&&next(list))take(next(list));
  const sort=options.sort||'smart';
  if(sort==='affordable')all.sort((a,b)=>Number(b.affordable)-Number(a.affordable)||b.score-a.score);
  else if(sort==='cost')all.sort((a,b)=>a.effectiveCost-b.effectiveCost||b.score-a.score);
@@ -321,7 +421,10 @@ function recommend(state,catalog,options={}){
  const quality=!catalog.complete?'Starter catalog':profiledHeroes===0?'Limited profiles':listedItems>0&&knownItems<listedItems?'Partial item recognition':listedItems===0?'Hero profiles only':'Hero + recognized item evidence';
  return {results:filtered.slice(0,12),quickBuys,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,level:threatLevel(value.score),coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
  patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
+ buildPicks:build.slice(0,6),
+ phase:{key:phase.key,label:PHASE_LABELS[phase.key],source:phase.source,minutes:phase.minutes},
+ build:{shares:profile.shares,spent:profile.total,heroType:profile.heroType,durabilityGap},
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
+root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
 })(typeof window!=='undefined'?window:globalThis);
