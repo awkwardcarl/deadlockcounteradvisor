@@ -43,7 +43,9 @@ const state=loadState();
 let sortMode='smart',category='all',onlyAffordable=false,strategyMode='balanced',showAllResults=false;
 let currentLiveStatus=null,lastFeedSnapshot=null;
 const heroes=()=>catalog.heroes.map(h=>h.name).sort((a,b)=>a.localeCompare(b));
-function persist(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}}
+// Live feeds tag enemy rows with in-game player names (feedName); those are
+// for matching only and are not saved.
+function persist(){try{localStorage.setItem(STORE,JSON.stringify({...state,enemies:state.enemies.map(({feedName,...row})=>row)}));}catch(_){}}
 // Map a typed or feed-supplied hero name ("HAZE") to the catalog's spelling.
 function resolveHeroName(name){return catalog.heroes.find(h=>engine.norm(h.name)===engine.norm(name))?.name||name;}
 function heroOptions(selected,blank){
@@ -291,33 +293,48 @@ function renderAdvice(){
  $('shopSummary').textContent=catalog.complete?`${catalog.items.length} public shop items; ${out.totalCandidates||0} reviewed counter candidates; ${out.knownItems||0} recognized entered enemy purchases. No win-rate predictions.`:'Starter counter list only — sync the catalog to show current items and component upgrade prices.';
  const unknown=$('unknown');unknown.hidden=out.unknown.length===0;unknown.textContent=out.unknown.length?out.unknown.slice(0,6).join(' • '):'';
 }
+const OVERWOLF_LABELS={connected:'Overwolf: connected',ready:'Overwolf: waiting for a match',waiting:'Overwolf: loading',error:'Overwolf: needs attention',stopped:'Overwolf: stopped'};
+let liveWasOn=false,lastOverwolfMessage='';
 function onLiveStatus(status){
  currentLiveStatus=status||{};
  const run=!!status?.monitorActive,game=!!status?.gameStatus?.running,feed=!!status?.feedStatus?.active;
- if(!feed)lastFeedSnapshot=null; // the next feed starts from a full lineup
+ const ow=status?.overwolf||{},owConnected=ow.state==='connected';
+ // When a live source stops, the next one starts from a full lineup. (Status
+ // also updates often while a source runs; that must not reset the merge.)
+ const liveOn=feed||owConnected;
+ if(liveWasOn&&!liveOn)lastFeedSnapshot=null;
+ liveWasOn=liveOn;
  $('toggleGameDetection').textContent=run?'Stop game detection':'Enable game detection';
  $('gameProcess').textContent=!run?'Not monitoring':status.gameStatus?.error||(!status.gameStatus?.supported?'Not supported':game?'Deadlock running':'Game not found');
- $('matchTelemetry').textContent=feed?'Watching '+String(status.feedStatus.name||'local file'):'No live game source';
- $('liveMode').textContent=feed?'Event feed selected':game?'Game detected':run?'Monitoring':'Disconnected';
+ $('matchTelemetry').textContent=feed?'Watching '+String(status.feedStatus.name||'local file'):OVERWOLF_LABELS[ow.state]||'No live game source';
+ $('liveMode').textContent=feed?'Event feed selected':owConnected?'Live (Overwolf)':game?'Game detected':run?'Monitoring':'Disconnected';
  $('stopEventFeed').disabled=!feed;
- $('topLiveStatus').textContent=feed?'Local feed: active':game?'Game running · match unknown':'Live source: disconnected';
+ $('topLiveStatus').textContent=feed?'Local feed: active':owConnected?'Live: Overwolf connected':OVERWOLF_LABELS[ow.state]&&ow.state!=='stopped'?OVERWOLF_LABELS[ow.state]:game?'Game running · match unknown':'Live source: disconnected';
  if(status?.feedStatus?.error)$('liveInfo').textContent=status.feedStatus.error;
+ else if(ow.message&&ow.state!=='unavailable'&&ow.message!==lastOverwolfMessage){
+   lastOverwolfMessage=ow.message;
+   $('liveInfo').textContent=ow.message+(ow.enemyItems?'':' Enemy item purchases stay off until live use is confirmed; heroes, your souls and your items update live.');
+ }
  updateSetupStatus();
 }
 function onLiveMatch(match){
  if(!match||!Array.isArray(match.enemies))return;
- const prev=lastFeedSnapshot;lastFeedSnapshot=match;
+ // Only compare with the previous snapshot from the same source.
+ const prev=lastFeedSnapshot&&lastFeedSnapshot.source===match.source?lastFeedSnapshot:null;lastFeedSnapshot=match;
  const result=liveMerge.mergeFeedSnapshot(state,prev,match,resolveHeroName);
  // Skip the redraw when nothing changed, so typing in a field is not interrupted.
  if(result.changed){
    $('hero').innerHTML=heroOptions(state.hero,false);
    $('hero').value=state.hero;
    $('souls').value=state.souls;
-   updatePortrait();renderEnemies();renderAdvice();persist();
+   updatePortrait();renderOwned();renderEnemies();renderAdvice();persist();
  }
- if(result.ended)$('liveInfo').textContent='Feed reports match ended. Previous enemy inventories cleared.';
+ const overwolf=match.source==='overwolf';
+ if(result.ended)$('liveInfo').textContent=`${overwolf?'Match':'Feed reports match'} ended. Previous enemy inventories cleared.`;
  else if(result.warning)$('liveInfo').textContent=result.warning;
- else if(!(match.phase==='ended'||match.phase==='postgame'))$('liveInfo').textContent=`Local feed: ${match.players} players · ${match.enemies.length} opponents · ${match.observedInventories}/${match.enemies.length} item inventories observed${match.clock?' · '+match.clock:''}. Your manual edits are kept until the feed reports a change. This is not a direct game connection.`;
+ else if(!(match.phase==='ended'||match.phase==='postgame'))$('liveInfo').textContent=overwolf
+   ?`Live from Overwolf: ${match.enemies.length} opponents${match.clock?' · '+match.clock:''} · ${match.ownItems===null?'your items not reported yet':'your items synced'} · enemy items ${match.enemyItemsWithheld?'off (awaiting confirmation)':`${match.observedInventories}/${match.enemies.length} observed`}. Your manual edits are kept until the game reports a change.`
+   :`Local feed: ${match.players} players · ${match.enemies.length} opponents · ${match.observedInventories}/${match.enemies.length} item inventories observed${match.clock?' · '+match.clock:''}. Your manual edits are kept until the feed reports a change. This is not a direct game connection.`;
 }
 function onUpdateStatus(update){
  const status=$('updateStatus'),button=$('updateAction');

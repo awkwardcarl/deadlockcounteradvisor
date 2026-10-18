@@ -1,31 +1,53 @@
-# Overwolf approval and integration handoff
+# Overwolf live data
 
-**Status 2026-10-16: application idea submitted by project owner; Overwolf approval / app whitelisting not yet confirmed.**
+**Status 2026-10-18:** Overwolf approved the app and whitelisted it for Deadlock game events. The developer has a dev key (`OW_DEV_KEY`) and Developer Console access.
 
-We will ship a standard independent Electron build until the following are confirmed in writing:
+## What live mode does
 
-1. Overwolf has approved the public app concept and enabled developer whitelisting for the relevant Deadlock gaming package.
-2. The developer and publisher's fair-play rules expressly permit using `roster_N` and `items_N` **for real-time recommendations on enemy purchases**; approval for use of public or post-game stats alone is not enough.
-3. We can determine when enemy inventories are visible/legitimately available to the player. If visibility is restricted or ambiguous, turn off live enemy inventory collection and recommend using manual/shop/post-game data only.
-4. Review data retention, privacy, developer API credentials, signing certificate management, and Overwolf's Electron runtime/build requirements.
+When the app runs on Overwolf's Electron runtime with valid credentials, `desktop/overwolf-live.cjs` connects Overwolf's game events package (GEP) to the advisor in the main process:
 
-## Code already prepared
+- **Live:** enemy heroes, your hero, your souls, **your own items**, match start/end and the match clock. They flow into the same keep-your-edits merge as the local feed.
+- **Withheld:** enemy item purchases. Overwolf's approval did not address using them for live recommendations, so `enemyInventoryForLiveAdvice` in `desktop/live-approval.cjs` is `false`. Turn it on only after **written** confirmation that live use of enemy purchases is allowed and limited to information players can legitimately see.
+- The renderer only receives validated `EventState` snapshots, never the GEP API, Steam IDs or credentials. In-game player names are used for matching but not saved.
+- The standard Electron build (the current installer and auto-updates) is unchanged; there, live mode reports itself unavailable.
 
-- `live/event-state.cjs` converts documented roster, item, match ID and match boundaries to validated state while withholding enemy labels when local team identification fails.
-- `live/overwolf-gep-adapter.cjs` is a deliberately **disconnected** API integration concept, copied from the approval kit. Constructor accepts a GEP client (the tests supply a mock). Activation checks approval flags, subscribes to `game-detected`, `new-info-update`, `new-game-event`, and cleans up on stop. If `enemyInventoryForLiveAdvice` is false, inventory payloads are stripped.
-- `tests/adapter-tests.cjs` exercises that isolation with a fake provider. Tests are **not** proof of SDK or ban-policy approval.
+## Test it on your PC (dev mode)
 
-## After permission
+Dev mode only works when running from source; it can't activate in an installed build.
 
-- Replace the stock `electron` module with the supported `@overwolf/ow-electron` runtime and packaging/signing infrastructure in a **separate branch**, then verify API signatures against the installed SDK.
-- Route approved GEP events to the **main process** and `EventState`, exposing only minimal validated match snapshots via a restricted IPC path. Don't expose the entire provider API, raw Steam IDs or authentication secrets to the renderer.
-- Feature-gate live enemy item collection **separately** from detection or roster collection, and fail closed when permission is missing, GEP status is degraded, local team identity is unverified, events are stale or match IDs change.
-- Keep the second-monitor window; no in-game overlay or game-control mechanism is required.
-- Use an approval-controlled public beta and verify behavior against actual Windows runtime events only after receiving permission. Document availability and disable telemetry features promptly if rules or event support change.
+1. In the project folder, install dependencies (first time, or after pulling this change):
+   ```bash
+   npm ci
+   ```
+2. In the **same PowerShell window**, set your dev key for this session only. Never commit it or paste it anywhere else:
+   ```bash
+   $env:OW_DEV_KEY = '<your dev key>'
+   ```
+3. Start the Overwolf version:
+   ```bash
+   npm run start:overwolf
+   ```
+4. In the app's Setup section, the live status should go **Overwolf: loading → waiting for a match**. Start a Deadlock match (a bot match is fine); it should change to **connected**, and the enemy lineup, your hero, souls and owned items should fill in.
 
-**Do not paste API keys, certificates, user authentication credentials, or signing secrets into a ChatGPT conversation or public issue.**
+**Troubleshooting**
+
+- *"Overwolf game events failed to load"*: the dev key wasn't set in that window, or is wrong.
+- *"Deadlock is running as administrator"*: run the app as administrator too, or start Deadlock normally.
+- *Stays on "waiting for a match"*: game events only start once Deadlock is detected; check the [game events status page](https://dev.overwolf.com/ow-electron/live-game-data-gep/game-events-status-health).
+
+## Before shipping live mode to players
+
+Packaged builds only load Overwolf packages when **both** signatures are present ([App Signing](https://dev.overwolf.com/ow-electron/guides/dev-tools/app-signing)):
+
+1. **Overwolf signing:** build with `@overwolf/ow-electron-builder` (≥ 26.9.0) using `OW_CLI_EMAIL`, `OW_CLI_API_KEY` and `OW_BUILD_KEY` from the Developer Console, for the app's registered App UID. Store these as GitHub Actions secrets, never in the repository.
+2. **Your own code-signing certificate** on the `.exe` (now required).
+
+Then switch the release workflow from `electron-builder` to `ow-electron-builder`, confirm the GitHub auto-update flow still works with it, and do a QA submission (Overwolf signs the first one for QA only). The app runs on Overwolf's Electron 42.11 (Electron 44 is beta there), a small step back from the standard build's 44.8.
+
+**Do not paste API keys, certificates, user authentication credentials, or signing secrets into a chat or public issue.**
 
 Official docs:
-- https://dev.overwolf.com/ow-electron/reference/Overwolf-electron-APIs/gep/Overview/
+- https://dev.overwolf.com/ow-electron/guides/dev-tools/dev-mode/
+- https://dev.overwolf.com/ow-electron/guides/dev-tools/app-signing
 - https://dev.overwolf.com/ow-electron/live-game-data-gep/supported-games/deadlock/
-- https://dev.overwolf.com/ow-electron/getting-started/develop-your-idea/
+- https://dev.overwolf.com/ow-electron/reference/Overwolf-electron-APIs/gep/Overview/
