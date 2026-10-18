@@ -81,10 +81,16 @@ class EventState {
       const matched=this.withholdEnemyItems?null:inventoryOf(p);
       return {hero:p.hero,heroId:p.heroId??null,lane:p.lane??null,name:p.name,items:matched?matched.items.join(', '):'',itemIds:matched?matched.ids:[],inventoryKnown:!!matched};
     }):[];
+    // Your teammates: hero, lane and items only, never their player names. Their
+    // purchases follow the same switch as enemy purchases.
+    const allies=own&&own.team?participants.filter(p=>p!==own&&p.team===own.team&&p.hero).slice(0,5).map(p=>{
+      const matched=this.withholdEnemyItems?null:inventoryOf(p);
+      return {hero:p.hero,heroId:p.heroId??null,lane:p.lane??null,items:matched?matched.items.join(', '):'',itemIds:matched?matched.ids:[],inventoryKnown:!!matched};
+    }):[];
     const ownInventory=own?inventoryOf(own):null;
     return {matchId:this.matchId,phase:this.phase,clock:this.clock,ownHero:own?.hero||'',ownHeroId:own?.heroId??null,ownLane:own?.lane??null,souls:own?Math.max(0,Math.floor(own.souls)):null,
       ownItems:ownInventory?ownInventory.items.join(', '):null,ownItemIds:ownInventory?ownInventory.ids:[],enemyItemsWithheld:this.withholdEnemyItems,
-      enemies,observedInventories:enemies.filter(x=>x.inventoryKnown).length,players:participants.length,updates:this.count,warning:!own?'Local player not identified; enemy data withheld.':!own.team?'Local team unknown; enemy data withheld.':!enemies.length?'No confirmed enemy players in feed.':''};
+      enemies,allies,observedInventories:enemies.filter(x=>x.inventoryKnown).length,players:participants.length,updates:this.count,warning:!own?'Local player not identified; enemy data withheld.':!own.team?'Local team unknown; enemy data withheld.':!enemies.length?'No confirmed enemy players in feed.':''};
   }
 }
 module.exports={EventState,decode,team};

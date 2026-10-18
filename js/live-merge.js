@@ -6,6 +6,7 @@
 // reports something new. A new match or roster replaces the lineup outright.
 const ended=phase=>phase==='ended'||phase==='postgame';
 const rosterKey=snap=>`${snap.matchId||''}\n`+snap.enemies.map(e=>e.name).join('\n');
+const allyKey=list=>JSON.stringify((list||[]).map(a=>[a.hero,a.heroId??null,a.lane??null,a.items||'',a.inventoryKnown===true]));
 function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  if(ended(match.phase)){
   // Once per match end (also when the app starts after a match, and when you
@@ -13,6 +14,7 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
   // items belong to the finished game. Edits made between matches stick.
   if(prev&&ended(prev.phase))return {changed:false};
   state.enemies=[];
+  state.allies=[];
   state.owned='';
   state.souls=0;
   return {changed:true,ended:true};
@@ -36,6 +38,13 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
    if((e.lane??null)!==(old.lane??null)){row.lane=e.lane??null;changed=true;}
    if((e.items||'')!==(old.items||'')){row.items=resolveItems(e.items||'',e.itemIds);changed=true;}
   }
+ }
+ // Your teammates (hero, lane, items; no player names) for team-aware picks.
+ // They can't be edited by hand: the feed's list replaces them, and returns after Clear.
+ const allies=Array.isArray(match.allies)?match.allies.slice(0,5):[];
+ if(!last||allyKey(last.allies)!==allyKey(allies)||(allies.length&&!state.allies?.length)){
+  state.allies=allies.map(a=>({hero:resolveHero(a.hero,a.heroId),items:resolveItems(a.items||'',a.itemIds),lane:a.lane??null,inventoryKnown:a.inventoryKnown===true}));
+  changed=true;
  }
  if((match.ownLane??null)!==(last?.ownLane??null)||(!last&&match.ownLane!=null)){state.ownLane=match.ownLane??null;changed=true;}
  if(match.ownHero&&(!last||last.ownHero!==match.ownHero)){state.hero=resolveHero(match.ownHero,match.ownHeroId);changed=true;}

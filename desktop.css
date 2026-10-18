@@ -609,3 +609,16 @@ body.liveMatch .phaseSummary{display:none}
 .kind-build{background:#1d3550;color:#a9d3f5}
 .kind-both{background:#2c2a4f;color:#cbc4ff}
 .laneTag{margin-left:6px;padding:1px 7px;border-radius:999px;background:#2b3d1f;color:#c6f0a4;font-size:calc(10px * var(--ui-text-multiplier));font-weight:700;vertical-align:middle}
+/* Your team: the team line on pick cards and the panel under the threats. */
+.quickTeam{display:block;margin-top:5px;color:#bfe6d4;font-size:calc(11px * var(--ui-text-multiplier));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.teamTag{display:inline-block;margin-right:5px;padding:1px 7px;border-radius:999px;background:#1f3b33;color:#a9ecc9;font-weight:700}
+.quickTeam.teamDown{color:#b7c2c8}
+.quickTeam.teamDown .teamTag{background:#2a3138;color:#c3cdd3}
+.teamNote{font-size:calc(12px * var(--ui-text-multiplier));color:#bfe6d4;margin:6px 0}
+.teamInsight{margin:9px 0 12px;padding:12px 14px;border:1px solid rgba(110,190,150,.3);background:rgba(28,66,52,.25);border-radius:10px;color:#d1f2e4;font-size:calc(12px * var(--ui-text-multiplier))}
+.teamInsight[hidden]{display:none}
+.teamInsight>strong{display:block;font-size:.82em;font-weight:700;letter-spacing:.09em;color:#8fdcb4;margin-bottom:8px}
+.teamInsight small{display:block;margin-top:7px;line-height:1.5;color:#a3bfca}
+.teamChips{display:flex;gap:7px;flex-wrap:wrap}
+.teamChip{padding:5px 9px;border-radius:7px;background:rgba(9,30,26,.65);border:1px solid rgba(120,190,155,.3);line-height:1.4}
+.teamChip.teamDown{border-color:rgba(160,170,180,.3);color:#c3cdd3}

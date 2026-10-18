@@ -21,10 +21,11 @@ const escapeHTML=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 let catalog=engine.createCatalog(base,null);
 // Your hero, souls and items describe one match, so every launch starts them
 // fresh (the live feed fills them in once a match starts). Only the enemy
-// lineup is saved; live mode clears it at match end.
-const defaultState=()=>({hero:'Kelvin',souls:0,owned:'',liveMatchId:'',enemies:[]});
+// lineup is saved; live mode clears it at match end. Allies come only from
+// the live roster and are never saved.
+const defaultState=()=>({hero:'Kelvin',souls:0,owned:'',liveMatchId:'',enemies:[],allies:[]});
 // "Load example match" (a fresh copy each time, so edits never change the example).
-const demoMatch=()=>({hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamina',enemies:[
+const demoMatch=()=>({hero:'Kelvin',souls:3200,owned:'Extra Spirit, Extra Stamina',allies:[],enemies:[
  {hero:'Lash',items:'Mystic Burst, Improved Spirit'},
  {hero:'Bebop',items:'Tankbuster'},
  {hero:'Haze',items:'Rapid Rounds, Burst Fire'},
@@ -293,6 +294,22 @@ function counterFaces(r){
 // Picks that just changed during a live match stay highlighted for a few seconds.
 const PICK_HIGHLIGHT_MS=6000;
 const KIND_LABELS={counter:'Counter',build:'Build',both:'Counter + build'};
+// What your team (live roster) changed about a pick: the first note, under
+// the reason (so the card grows by one line), all of them in the tooltip.
+// Lowered picks are marked as such.
+function teamLine(r){
+ const notes=r.team||[];
+ if(!notes.length)return '';
+ const first=notes[0];
+ return `<span class="quickTeam${first.up?'':' teamDown'}" title="${escapeHTML(notes.map(n=>n.text).join(' · '))}"><span class="teamTag">Team</span>${escapeHTML(first.text)}</span>`;
+}
+// "Your team" panel under the threats: allies, then the signals in play.
+function teamPanel(team){
+ if(!team?.allies?.length)return '';
+ const chips=team.signals.map(x=>`<span class="teamChip${x.up?'':' teamDown'}">${escapeHTML(x.label)}</span>`).join('');
+ const mix=team.weaponShare===null?'':` · ${Math.round(team.weaponShare*100)}% weapon damage`;
+ return `<strong>YOUR TEAM · ${escapeHTML(team.allies.join(', '))}${mix}</strong>${chips?`<div class="teamChips">${chips}</div>`:''}<small>From the live roster: allies' heroes and the items the game reports. ${chips?'They weigh less while laning; each pick they change says why.':'Nothing about your team changes the picks right now.'}</small>`;
+}
 // "Build: 68% weapon · 32% vitality" from the engine's build profile.
 function buildSplit(build){
  if(!build?.shares)return 'No items yet';
@@ -310,7 +327,7 @@ function quickCard(r,i){
   `<div class="quickTop"><span class="quickArt ${escapeHTML(r.category)}">${itemArt(r)}</span>`,
   `<div class="quickIdentity"><span class="quickEyebrow">PICK ${i+1} · ${escapeHTML(r.category||'utility')}</span><strong>${escapeHTML(r.name)}</strong></div>`,
   `<span class="quickCost">${fmt.format(r.effectiveCost)}<small> souls</small></span></div>`,
-  `<p class="quickReason">${escapeHTML(reason)}</p>`,
+  `<p class="quickReason">${escapeHTML(reason)}${teamLine(r)}</p>`,
   `<p class="quickVs"><span class="kindTag kind-${r.kind||'counter'}">${KIND_LABELS[r.kind]||KIND_LABELS.counter}</span>${r.vsItems?.length?` vs ${escapeHTML(r.vsItems.join(', '))}`:''}</p>`,
   counterFaces(r),
   `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`}</span>${r.upgradeFrom?`<span class="quickUpgrade">uses your ${escapeHTML(r.upgradeFrom)}</span>`:''}</div>`,
@@ -326,6 +343,7 @@ function resultCard(r,i){
   `<span class="cost">${fmt.format(r.effectiveCost)} souls</span></div>`,
   `<p>${escapeHTML(r.why)}</p>`,
   r.heroNotes?.length?`<p class="heroNote">${r.heroNotes.map(escapeHTML).join(' · ')}</p>`:'',
+  r.team?.length?`<p class="teamNote">Your team: ${r.team.map(n=>escapeHTML(n.text)).join(' · ')}</p>`:'',
   `<div class="tags">${r.reasons.map(t=>`<span class="tag">${escapeHTML(t)}</span>`).join('')}</div>`,
   basedOn(r)?`<p class="evidenceLine">${basedOn(r)}</p>`:'',
   `<p class="sourceLine">${escapeHTML(r.ownFit)} · ${escapeHTML(r.coverage)} opponents · ${escapeHTML(r.sources.join(' · ')||'Selected enemy profiles')}</p>`,
@@ -453,6 +471,8 @@ function renderAdvice(){
  $('threats').innerHTML=out.threats.length?out.threats.slice(0,7).map(threatChip).join(''):'<span class="emptyText">Select opponents to calculate team pressure</span>';
  $('patternInsight').hidden=!out.patterns.length;
  $('patternInsight').innerHTML=pairPanel(out.patterns);
+ $('teamInsight').hidden=!out.team?.allies?.length;
+ $('teamInsight').innerHTML=teamPanel(out.team);
  // Only children are replaced, so the open/closed state of the <details> sticks.
  $('abilityTips').hidden=!out.abilityTips.length;
  $('abilityTips').innerHTML=tipPanel(out.abilityTips);

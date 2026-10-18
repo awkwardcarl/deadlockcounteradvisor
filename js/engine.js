@@ -246,9 +246,95 @@ function buildProfile(owned,itemMap,ownHero){
  const tags=ownHero?.tags||[];
  return {spent,total,shares,heroType:tags.includes('spirit')?'spirit':tags.includes('bullet')?'weapon':null};
 }
+// Your team (allies from the live roster): what they already bring changes
+// what you should add. Curated, explainable rules, not a team-composition or
+// win-rate model:
+//  - anti-heal: enemies sustain and nobody on your team has healing reduction
+//    (or someone already does, so another source matters less);
+//  - damage mix: your team leans on one damage type and several enemies bought
+//    protection against it, so resist shred and the other type get through;
+//  - durability: no ally has a durable (sustain) profile or a vitality-heavy
+//    build, so durable build items (not counters, which already answer threats) rise.
+// They count for more as the match goes on; while laning your lane matters most.
+const TEAM_PHASE={laning:.5,mid:1,late:1.2};
+// Healing reduction: the sustain answers in COUNTERS (shop names noted).
+const ANTI_HEAL={upgrade_healbane:'Healbane',upgrade_toxic_bullets:'Toxic Bullets',upgrade_spirit_burn:'Spirit Burn',upgrade_rupture:'Decay',upgrade_inhibitor:'Inhibitor'};
+// Per damage type: items that protect against it, and items that cut through
+// that protection. Rusted Barrel and Disarming Hex weaken the shooter instead,
+// so they don't count as protection.
+const RESIST={
+ weapon:{label:'bullet resist',other:'spirit',
+  protect:{upgrade_regenerating_bullet_shield:'Battle Vest',upgrade_return_fire:'Return Fire',upgrade_improved_bullet_armor:'Bullet Resilience',upgrade_deflecting_armor:'Plated Armor',upgrade_metal_skin:'Metal Skin',upgrade_weapon_shielding:'Weapon Shielding'},
+  shred:{upgrade_bullet_resist_shredder:'Bullet Resist Shredder',upgrade_aprounds:'Armor Piercer',upgrade_banshee_slugs:'Crippling Headshot'}},
+ spirit:{label:'spirit resist',other:'weapon',
+  protect:{upgrade_magic_shield:"Enchanter's Emblem",upgrade_tech_purge:'Spirit Resilience',upgrade_spirit_bubble:'Spirit Shielding',upgrade_spellbreaker:'Spellbreaker',upgrade_absorbing_armor:'Witchmail'},
+  shred:{upgrade_magic_vulnerability:'Mystic Vulnerability',upgrade_escalating_exposure:'Escalating Exposure',upgrade_tech_defense_shredders:'Spirit Shredder',upgrade_banshee_slugs:'Crippling Headshot'}}
+};
+const TEAM_LEAN=.75;     // share of the team's damage from one type
+const TEAM_DEFENDERS=2;  // enemies with protection against that type
+// Matches an item by the game's ID, or by shop name (starter catalog, typed text).
+const matcher=map=>{const names=new Set(Object.values(map).map(norm));return (item,raw)=>!!(item&&map[item.id])||names.has(norm(item?.name||raw));};
+// allies and you: {name,tags,items,known}, plus you:true on yours.
+function teamSignals({allies,you,enemies,itemMap,byTag,damageThreat,phaseKey}){
+ if(!allies.length)return {signals:[],weaponShare:null,lean:null,isAntiHeal:()=>false,adjust:()=>null};
+ const scale=f=>1+(f-1)*TEAM_PHASE[phaseKey];
+ const itemOf=raw=>itemMap.get(norm(raw));
+ const spend=m=>{
+  const by={weapon:0,spirit:0,vitality:0};
+  for(const raw of m.items){const it=itemOf(raw);if(it&&it.category in by)by[it.category]+=Math.max(0,Number(it.cost)||0);}
+  return by;
+ };
+ const members=[...allies,you];
+ // Each member's weapon share of damage: from purchases once there are
+ // enough, otherwise from the hero's curated tags (untagged heroes don't count).
+ const leans=members.map(m=>{
+  const s=spend(m);
+  if(s.weapon+s.spirit>=3000)return s.weapon/(s.weapon+s.spirit);
+  const b=m.tags.includes('bullet'),sp=m.tags.includes('spirit');
+  return b&&sp?.5:b?1:sp?0:null;
+ }).filter(x=>x!==null);
+ const weaponShare=leans.length>=3?leans.reduce((a,b)=>a+b,0)/leans.length:null;
+ const lean=weaponShare===null?null:weaponShare>=TEAM_LEAN?'weapon':weaponShare<=1-TEAM_LEAN?'spirit':null;
+ const signals=[];
+ // Anti-heal: needs every ally's inventory before claiming nobody has it.
+ const isAntiHeal=matcher(ANTI_HEAL);
+ const holder=members.find(m=>m.items.some(raw=>isAntiHeal(itemOf(raw),raw)));
+ const sustain=byTag.get('sustain')?.score||0;
+ let antiHeal=null;
+ if(sustain>=1.2&&holder)antiHeal={up:false,factor:scale(.8),note:holder.you?'You already have anti-heal':`${holder.name} already has anti-heal`};
+ else if(sustain>=1.2&&allies.every(a=>a.known))antiHeal={up:true,factor:scale(sustain>=2.5?1.5:1.35),note:'Your team has no anti-heal'};
+ if(antiHeal)signals.push({key:'antiheal',label:antiHeal.note,up:antiHeal.up});
+ // Damage mix: your team's main damage type against enemies protected from it.
+ let mix=null;
+ if(lean){
+  const r=RESIST[lean],protects=matcher(r.protect);
+  const defenders=enemies.filter(e=>cleanList(e.items).some(raw=>protects(itemOf(raw),raw))).length;
+  if(defenders>=TEAM_DEFENDERS){
+   mix={...r,shreds:matcher(r.shred),defenders,note:`${r.other==='spirit'?'Spirit':'Weapon'} for your ${lean}-heavy team`};
+   signals.push({key:'mix',label:`${lean==='weapon'?'Weapon':'Spirit'}-heavy team; ${defenders} enemies bought ${r.label}`,up:true});
+  }
+ }
+ // Durability: a roster of at least three allies, none of them durable.
+ const durable=allies.filter(a=>{const s=spend(a),total=s.weapon+s.spirit+s.vitality;return a.tags.includes('sustain')||total>=3000&&s.vitality/total>=.4;});
+ const frail=allies.length>=3&&!durable.length&&damageThreat>=1.2;
+ if(frail)signals.push({key:'durability',label:'Your team is short on durability',up:true});
+ // antiHealPick: one healing-reduction item covers the team, so "no anti-heal"
+ // lifts only that one (the best for you). build: the item is a build pick.
+ return {signals,weaponShare,lean,isAntiHeal,adjust(item,{antiHealPick,build=false}={}){
+  let factor=1;const notes=[];
+  const add=(f,text)=>{factor*=f;notes.push({text,up:f>1});};
+  if(antiHeal&&isAntiHeal(item)&&(!antiHeal.up||item.id===antiHealPick))add(antiHeal.factor,antiHeal.note);
+  // More enemies stacking the resist make shred worth more.
+  if(mix&&mix.shreds(item))add(scale(Math.min(1.8,1.4+.1*mix.defenders)),`Shreds ${mix.label} (${mix.defenders} enemies)`);
+  // The other damage type: build (power) picks only; defensive counters deal none.
+  else if(mix&&build&&item.category===mix.other)add(scale(1.15),mix.note);
+  if(frail&&build&&item.category==='vitality'&&DURABILITY_GROUPS.has(item.group))add(scale(you.tags.includes('sustain')?1.35:1.25),'Your team is short on durability');
+  return notes.length?{factor,notes}:null;
+ }};
+}
 function recommend(state,catalog,options={}){
  const enemies=(Array.isArray(state.enemies)?state.enemies:[]).filter(e=>e&&String(e.hero||'').trim()).slice(0,6);
- if(!enemies.length)return {results:[],quickBuys:[],threats:[],patterns:[],abilityTips:[],unknown:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
+ if(!enemies.length)return {results:[],quickBuys:[],threats:[],patterns:[],abilityTips:[],team:{allies:[],weaponShare:null,lean:null,signals:[]},unknown:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
  const heroMap=new Map(catalog.heroes.map(h=>[norm(h.name),h]));
  const itemMap=new Map(catalog.items.map(i=>[norm(i.name),i]));
  const idMap=new Map(catalog.items.map(i=>[String(i.id),i]));
@@ -346,6 +432,18 @@ function recommend(state,catalog,options={}){
  };
  const damageThreat=Math.max(...['bullet','spirit','burst'].map(tag=>byTag.get(tag)?.score||0));
  const durabilityGap=phase.key!=='laning'&&(profile.shares?.vitality||0)<.15&&damageThreat>=1.2;
+ // Your allies (live roster only; manual entry has none).
+ const allies=(Array.isArray(state.allies)?state.allies:[]).filter(a=>a&&String(a.hero||'').trim()).slice(0,5).map(a=>{
+  const hero=heroMap.get(norm(a.hero)),items=cleanList(a.items).slice(0,20);
+  return {name:hero?.name||String(a.hero).slice(0,80),tags:hero&&!hero.unverified?hero.tags||[]:[],items,known:a.inventoryKnown===true||items.length>0};
+ });
+ const team=teamSignals({allies,you:{name:ownHero?.name||'',tags:ownTags,items:cleanList(state.owned),known:true,you:true},enemies,itemMap,byTag,damageThreat,phaseKey:phase.key});
+ // Applied after an item's own score; the notes show on its pick card.
+ const withTeam=(r,context)=>{
+  const t=team.adjust(idMap.get(String(r.id))||r,context);
+  if(t){r.score=Math.round(r.score*t.factor*100)/100;r.team=t.notes;r.evidence=[...r.evidence,'Your team'];}
+  return r;
+ };
  const all=catalog.items.filter(i=>!owned.has(norm(i.name))).map(item=>{
   const weights=item.weights||COUNTERS[item.id];
   if(!weights)return null; // never manufacture effects for unreviewed shop items
@@ -394,6 +492,8 @@ function recommend(state,catalog,options={}){
    confidence:item.id.startsWith('starter:')?'starter':heroNotes.length?'matchup + category':'category rule',heroNotes,evidence,
    ownFit:fitTags.length?(ownMatch?'Supports your hero archetype':'General utility; weaker build alignment'):'Broad defensive / utility fit'};
  }).filter(Boolean);
+ const antiHealPick=all.filter(r=>team.isAntiHeal(idMap.get(String(r.id))||r)).sort((a,b)=>b.score-a.score)[0]?.id;
+ for(const r of all)withTeam(r,{antiHealPick});
  // Rankings are relative suggestions, not precise utility probabilities.
  all.sort((a,b)=>b.score-a.score||a.effectiveCost-b.effectiveCost||a.name.localeCompare(b.name));
  const affordable=all.filter(x=>x.affordable);
@@ -420,7 +520,7 @@ function recommend(state,catalog,options={}){
    why:`${reason}. ${item.groupLabel?item.groupLabel+' item':'Shop item'} for the ${PHASE_LABELS[phase.key].toLowerCase()} stage.`,
    caution:'A build-fit heuristic from the item\'s shop category and group, your purchases and the match phase. It does not model exact stat values or investment thresholds.',
    confidence:'build fit',heroNotes:[],evidence:['Your build'],ownFit:reason};
- }).sort((a,b)=>b.score-a.score||a.effectiveCost-b.effectiveCost||a.name.localeCompare(b.name));
+ }).map(r=>withTeam(r,{build:true})).sort((a,b)=>b.score-a.score||a.effectiveCost-b.effectiveCost||a.name.localeCompare(b.name));
  // Three picks: the strongest counter and the strongest build item (even if
  // you must save for them), a durability pick when there is a gap, then at
  // least one item you can buy now and one worth saving for, taken from the
@@ -447,7 +547,8 @@ function recommend(state,catalog,options={}){
  phase:{key:phase.key,label:PHASE_LABELS[phase.key],source:phase.source,minutes:phase.minutes},
  build:{shares:profile.shares,spent:profile.total,heroType:profile.heroType,durabilityGap},
  lane:{focus:laneFocus,opponents:laneOpponents},
+ team:{allies:allies.map(a=>a.name),weaponShare:team.weaponShare===null?null:Math.round(team.weaponShare*100)/100,lean:team.lean,signals:team.signals},
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS};
+root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
 })(typeof window!=='undefined'?window:globalThis);
