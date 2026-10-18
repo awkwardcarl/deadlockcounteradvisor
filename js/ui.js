@@ -8,6 +8,7 @@ const STORE_SETUP_OPEN='deadlock-counter-advisor-setup-open';
 const STORE_GLANCE='deadlock-counter-advisor-glance';
 const STORE_NOTICE='deadlock-counter-advisor-notice-dismissed';
 const STORE_INTRO='deadlock-counter-advisor-intro-seen';
+const STORE_BUILD_DATA='deadlock-counter-advisor-build-data';
 const VALID_UI_SIZES=new Set(['auto','standard','comfortable','large']);
 function applyUISize(size){
  const chosen=VALID_UI_SIZES.has(size)?size:'auto';
@@ -299,6 +300,45 @@ function buildSplit(build){
  return 'Build: '+Object.entries(build.shares).filter(([,v])=>v>=.05).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${Math.round(v*100)}% ${k}`).join(' · ');
 }
 let lastAdvice=null;
+// "In 13 of 20 popular builds · wins 46% vs Infernus" from the engine's backing.
+function backingText(r){
+ const b=r.backing;if(!b)return '';
+ const parts=[];
+ if(b.builds>=3&&b.share>0)parts.push(`In ${Math.round(b.share*b.builds)} of ${b.builds} popular builds`);
+ // The win rate is shown next to the average for items of the same tier in
+ // the same situation, so a tough matchup doesn't make every item look bad.
+ if(b.wr!==null&&b.wr!==undefined&&b.matches>=40)parts.push(`wins ${Math.round(b.wr*100)}%${b.vs?.length?' vs '+b.vs.join(' and '):''}${b.base?` (avg ${Math.round(b.base*100)}%)`:''}`);
+ return parts.join(' · ');
+}
+// Build data: popular builds and match stats for your hero, and your lane
+// opponents while laning. Fetched by the main process; can be switched off.
+let buildData=null,buildDataKey='',buildDataTimer=null;
+function buildDataEnabled(){try{return localStorage.getItem(STORE_BUILD_DATA)!=='0';}catch(_){return true;}}
+function heroIdOf(name){const id=catalog.heroes.find(h=>h.name===name)?.id;return Number.isInteger(id)?id:null;}
+function requestBuildData(){
+ clearTimeout(buildDataTimer);
+ buildDataTimer=setTimeout(async()=>{
+  const api=window.desktopAPI,heroId=heroIdOf(state.hero);
+  if(!api?.getBuildData||!buildDataEnabled()||!heroId){
+   if(buildData){buildData=null;buildDataKey='';renderAdvice();}
+   showBuildDataStatus(api?.getBuildData&&!buildDataEnabled()?'Community builds and match stats are off (Settings → Privacy).':heroId||!api?.getBuildData?'':'Build data needs a synced catalog and a hero.');
+   return;
+  }
+  const laneIds=state.ownLane?state.enemies.filter(e=>e.lane===state.ownLane).map(e=>heroIdOf(e.hero)).filter(Boolean).sort((a,b)=>a-b):[];
+  const key=heroId+'|'+laneIds.join(',');
+  if(key===buildDataKey)return;
+  buildDataKey=key;
+  showBuildDataStatus(`Fetching builds and match stats for ${state.hero}…`);
+  try{
+   const data=await api.getBuildData(heroId,laneIds);
+   if(buildDataKey!==key)return;
+   buildData=data&&(data.builds||data.stats)?data:null;
+   showBuildDataStatus(buildData?`Build data for ${state.hero}: ${buildData.builds?.count||0} popular builds and match stats (all ranks, last 30 days)${buildData.matchup?', plus your lane matchup':''}${buildData.stale?'. Offline: showing saved data':''}.`:data?.error?`Build data unavailable: ${data.error}.`:'');
+   renderAdvice();
+  }catch(_){if(buildDataKey===key){buildDataKey='';showBuildDataStatus('Build data unavailable right now.');}}
+ },600);
+}
+function showBuildDataStatus(text){const el=$('buildDataStatus');if(el)el.textContent=text;}
 const pickHighlights=new Map();
 let lastPickNames=[];
 function quickCard(r,i){
@@ -311,6 +351,7 @@ function quickCard(r,i){
   `<div class="quickIdentity"><span class="quickEyebrow">PICK ${i+1} · ${escapeHTML(r.category||'utility')}</span><strong>${escapeHTML(r.name)}</strong></div>`,
   `<span class="quickCost">${fmt.format(r.effectiveCost)}<small> souls</small></span></div>`,
   `<p class="quickReason">${escapeHTML(reason)}</p>`,
+  backingText(r)?`<p class="quickData">${escapeHTML(backingText(r))}</p>`:'',
   `<p class="quickVs"><span class="kindTag kind-${r.kind||'counter'}">${KIND_LABELS[r.kind]||KIND_LABELS.counter}</span>${r.vsItems?.length?` vs ${escapeHTML(r.vsItems.join(', '))}`:''}</p>`,
   counterFaces(r),
   `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`}</span>${r.upgradeFrom?`<span class="quickUpgrade">uses your ${escapeHTML(r.upgradeFrom)}</span>`:''}</div>`,
@@ -441,7 +482,7 @@ function renderEnemies(){
 }
 function renderAdvice(){
  // The live clock sets the match phase; without one the engine estimates it from your souls.
- const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode,clock:liveWasOn?lastFeedSnapshot?.clock||'':''});
+ const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode,clock:liveWasOn?lastFeedSnapshot?.clock||'':'',buildData:buildDataEnabled()?buildData:null});
  lastAdvice=out;
  $('phaseSummary').textContent=out.phase?`${out.phase.label}${out.phase.source==='souls'?' (estimated)':''} · ${buildSplit(out.build)} · `:'';
  $('matchLabel').textContent=out.count?`${out.count}/6 enemies`:'No lineup';
@@ -463,6 +504,7 @@ function renderAdvice(){
  lastPickNames=pickNames;
  $('quickBuys').innerHTML=out.quickBuys?.length?out.quickBuys.map(quickCard).join(''):'<div class="quickEmpty">Add your opponents to see three purchase choices. This is not automated gameplay.</div>';
  if(document.body.classList.contains('liveMatch'))renderLiveStrip();
+ requestBuildData();
  const visible=showAllResults?out.results:out.results.slice(0,4);
  $('showAllResults').textContent=showAllResults?'Show fewer':'Show all suggestions';
  $('showAllResults').hidden=out.results.length<=4;
@@ -624,6 +666,8 @@ function setup(){
  setupShortcuts();
  setupOffline();
  setupMatchView();
+ $('useBuildData').checked=buildDataEnabled();
+ $('useBuildData').addEventListener('change',e=>{try{localStorage.setItem(STORE_BUILD_DATA,e.target.checked?'1':'0');}catch(_){}buildDataKey='';requestBuildData();renderAdvice();});
  $('addEnemy').addEventListener('click',()=>{
    if(state.enemies.length>=6)return;
    state.enemies.push({hero:'',items:''});

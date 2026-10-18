@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('desktopAPI', Object.freeze({
   syncCatalog: () => ipcRenderer.invoke('catalog:sync'),
   importReplay: () => ipcRenderer.invoke('replay:import'),
   loadMatch: (matchId, ownAccountId) => ipcRenderer.invoke('debrief:load', String(matchId ?? ''), String(ownAccountId ?? '')),
+  getBuildData: (heroId, laneIds) => ipcRenderer.invoke('builddata:get', Number(heroId), Array.isArray(laneIds) ? laneIds.map(Number) : []),
   liveStatus: () => ipcRenderer.invoke('live:status'),
   setGameDetection: enabled => ipcRenderer.invoke('live:monitor', enabled===true),
   chooseEventFeed: () => ipcRenderer.invoke('live:feed:select'),

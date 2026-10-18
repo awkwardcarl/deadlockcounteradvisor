@@ -20,7 +20,8 @@ In short:
 
 - The app has no accounts, no advertising and no analytics of its own. Your
   settings and match details stay on your PC. It connects to deadlock.io
-  (item and hero data), deadlock-api.com (post-match records) and GitHub
+  (item and hero data), deadlock-api.com (post-match records, community builds
+  and match statistics; hero IDs only) and GitHub
   (update checks) only for those features. The Overwolf edition also connects
   to Overwolf's platform, which handles data under Overwolf's own privacy
   policy; you can review your choices in the app under Settings > Privacy.
