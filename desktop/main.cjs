@@ -38,7 +38,11 @@ const localFeed=new LocalFeed({
 const overwolfLive=createOverwolfLive({
   app,
   onMatch:snapshot=>{overwolfStatus={...overwolfStatus,lastUpdate:Date.now()};broadcast('live:match',{...snapshot,source:'overwolf'});},
-  onStatus:status=>{overwolfStatus={...overwolfStatus,...status};publishStatus();}
+  onStatus:status=>{
+    overwolfStatus={...overwolfStatus,...status};publishStatus();
+    // Plain dots: the Windows console garbles the "…" character.
+    if(status.state!=='unavailable')console.log('[Counter Advisor] Overwolf:',status.state,'-',String(status.message).replace(/…/g,'...'));
+  }
 });
 async function pollGame(){
  if(!monitorActive||monitorBusy)return;
@@ -187,6 +191,7 @@ function createWindow() {
     revealWindow('renderer-stopped');
   });
   const showTimeout = setTimeout(() => {
+    if (shown) return;
     console.warn('[Counter Advisor] Startup timeout; displaying window for diagnostics.');
     revealWindow('startup-timeout');
   }, 5000);
@@ -217,7 +222,9 @@ app.on('second-instance', () => {
 app.whenReady().then(() => {
   if (!primaryInstance) return;
   // Local assets load, external network requests fail; callbacks must complete.
-  registerOfflineRestrictions(session.defaultSession);
+  // Lock down only the app's own window; the Overwolf runtime's internal pages
+  // share this session and must reach Overwolf to verify the app.
+  registerOfflineRestrictions(session.defaultSession, details => !!mainWindow && !mainWindow.isDestroyed() && details.webContentsId === mainWindow.webContents.id);
   console.log('[Counter Advisor] Offline security rules installed.');
   ipcMain.handle('catalog:get', event => event.sender===mainWindow?.webContents ? dataService.readCache(app.getPath('userData')) : null);
   ipcMain.handle('catalog:sync', async event => {

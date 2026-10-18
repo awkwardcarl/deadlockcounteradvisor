@@ -48,7 +48,9 @@ class EventState {
         if(!name)continue;
         if(r){
           const hero=clean(data.hero_name,80);
-          this.roster.set(index,{index,name,hero,team:team(data),isLocal:data.is_local===true,souls:Number(data.souls)||0});
+          // The game's hero ID: a fallback when the feed's hero name is an old or internal one.
+          const id=Number(data.hero_id),heroId=Number.isInteger(id)&&id>0&&id<10000?id:null;
+          this.roster.set(index,{index,name,hero,heroId,team:team(data),isLocal:data.is_local===true,souls:Number(data.souls)||0});
         }else if(Array.isArray(data.items)){
           // Empty array means inventory empty; new updates replace earlier state.
           // Overwolf entries carry class_name; keep shop items (upgrade_*) only.
@@ -68,10 +70,10 @@ class EventState {
     const inventoryOf=p=>{const indexed=this.items.get(p.index);return indexed&&indexed.name===p.name?indexed:null;};
     const enemies=own&&own.team?participants.filter(p=>p.team&&p.team!==own.team&&p.hero).slice(0,6).map(p=>{
       const matched=this.withholdEnemyItems?null:inventoryOf(p);
-      return {hero:p.hero,name:p.name,items:matched?matched.items.join(', '):'',inventoryKnown:!!matched};
+      return {hero:p.hero,heroId:p.heroId??null,name:p.name,items:matched?matched.items.join(', '):'',inventoryKnown:!!matched};
     }):[];
     const ownInventory=own?inventoryOf(own):null;
-    return {matchId:this.matchId,phase:this.phase,clock:this.clock,ownHero:own?.hero||'',souls:own?Math.max(0,Math.floor(own.souls)):null,
+    return {matchId:this.matchId,phase:this.phase,clock:this.clock,ownHero:own?.hero||'',ownHeroId:own?.heroId??null,souls:own?Math.max(0,Math.floor(own.souls)):null,
       ownItems:ownInventory?ownInventory.items.join(', '):null,enemyItemsWithheld:this.withholdEnemyItems,
       enemies,observedInventories:enemies.filter(x=>x.inventoryKnown).length,players:participants.length,updates:this.count,warning:!own?'Local player not identified; enemy data withheld.':!own.team?'Local team unknown; enemy data withheld.':!enemies.length?'No confirmed enemy players in feed.':''};
   }
