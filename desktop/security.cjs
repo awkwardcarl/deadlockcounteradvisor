@@ -1,6 +1,7 @@
 'use strict';
-// Electron onBeforeRequest MUST invoke callback. All API calls are user-clicked
-// and occur in the main process against a single fixed public metadata source.
+// Electron onBeforeRequest MUST invoke callback. The page itself makes no network
+// requests: catalog sync, the debrief and build data are fetched by the main
+// process from fixed, allow-listed public routes.
 // Image paths are restricted to the provider's game artwork directory.
 function permittedImageURL(url){
  try{const u=new URL(url);return u.origin==='https://deadlock.io' && /^\/assets\/game\/panorama\/images\/[\w\/.\-]+\.png$/.test(u.pathname)&&!u.search&&!u.hash;}catch(_){return false;}

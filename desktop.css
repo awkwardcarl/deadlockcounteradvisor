@@ -609,3 +609,5 @@ body.liveMatch .phaseSummary{display:none}
 .kind-build{background:#1d3550;color:#a9d3f5}
 .kind-both{background:#2c2a4f;color:#cbc4ff}
 .laneTag{margin-left:6px;padding:1px 7px;border-radius:999px;background:#2b3d1f;color:#c6f0a4;font-size:calc(10px * var(--ui-text-multiplier));font-weight:700;vertical-align:middle}
+.quickData{margin:4px 0 0;color:#9fd2ea;font-size:calc(11px * var(--ui-text-multiplier))}
+.toggleRow{display:flex;align-items:center;gap:8px;margin-top:12px;color:#d7e4ec;font-size:calc(12px * var(--ui-text-multiplier))}
