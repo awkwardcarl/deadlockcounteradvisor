@@ -8,6 +8,7 @@ const { registerOfflineRestrictions } = require('./security.cjs');
 const { createUpdateManager } = require('./updater.cjs');
 const dataService = require('./data-service.cjs');
 const matchService = require('./match-service.cjs');
+const { createBuildData } = require('./build-data.cjs');
 const replayService = require('../live/overwolf-normalizer.cjs');
 const {checkGame}=require('../live/process-detection.cjs');
 const {LocalFeed}=require('../live/local-feed.cjs');
@@ -244,6 +245,13 @@ app.whenReady().then(() => {
   // share this session and must reach Overwolf to verify the app.
   registerOfflineRestrictions(session.defaultSession, details => !!mainWindow && !mainWindow.isDestroyed() && details.webContentsId === mainWindow.webContents.id);
   console.log('[Counter Advisor] Offline security rules installed.');
+  // Popular builds and item stats for your hero (and lane opponents while laning).
+  const buildData = createBuildData({ userData: app.getPath('userData'), readAssets: matchService.readAssets, refreshAssets: matchService.refreshAssets });
+  ipcMain.handle('builddata:get', (event, heroId, laneIds) => {
+    if(!trusted(event))throw new Error('Unauthorized caller');
+    const ids = Array.isArray(laneIds) ? laneIds.slice(0, 6).map(Number).filter(Number.isInteger) : [];
+    return buildData.get(Number(heroId), ids);
+  });
   // The catalog carries fallback hero names from the match service's hero list.
   const withHeroNames = snapshot => dataService.addFallbackHeroNames(snapshot, matchService.readAssets(app.getPath('userData')));
   ipcMain.handle('catalog:get', event => event.sender===mainWindow?.webContents ? withHeroNames(dataService.readCache(app.getPath('userData'))) : null);

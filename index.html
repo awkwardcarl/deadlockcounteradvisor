@@ -79,12 +79,15 @@
           <div class="actionRow"><button id="sync" class="addButton" type="button">↻ Sync items & heroes</button><button id="importReplay" class="muted devOnly" type="button">Import saved replay</button></div>
           <p class="supportText" id="syncStatus">Offline starter catalog loaded. Click Sync to fetch public game metadata and cache it locally. Replay import is offline, not live tracking.</p>
           <p class="supportText">Artwork and metadata: deadlock.io. Synced data is public shop and released heroes only.</p>
+          <p class="supportText" id="buildDataStatus" role="status"></p>
         </section>
         <section class="card privacyCard" id="privacyCard">
           <div class="sectionHeading"><div><div class="overline">SETTINGS</div><h2>Privacy</h2></div></div>
           <div class="actionRow"><button id="managePrivacy" class="addButton owOnly" type="button">Manage</button><button class="muted" type="button" data-legal="privacy">Privacy Policy</button><button class="muted" type="button" data-legal="terms">Terms of Use</button></div>
           <p class="supportText owOnly">Manage opens Overwolf's privacy settings for data its platform uses. You can change your choices at any time.</p>
           <p class="supportText">The app sends no usage data of its own. Your settings and enemy lineup stay on this PC.</p>
+          <label class="toggleRow"><input type="checkbox" id="useBuildData" checked> Use community builds and match stats</label>
+          <p class="supportText">Sends only hero IDs (yours, and your lane opponents' while laning) to deadlock-api.com. Results are kept on this PC for 12 hours.</p>
         </section>
         <section class="card shortcutsCard" id="shortcutsCard">
           <div class="sectionHeading"><div><div class="overline">SETTINGS</div><h2>Shortcuts</h2></div></div>

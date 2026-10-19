@@ -622,3 +622,9 @@ body.liveMatch .phaseSummary{display:none}
 .teamChips{display:flex;gap:7px;flex-wrap:wrap}
 .teamChip{padding:5px 9px;border-radius:7px;background:rgba(9,30,26,.65);border:1px solid rgba(120,190,155,.3);line-height:1.4}
 .teamChip.teamDown{border-color:rgba(160,170,180,.3);color:#c3cdd3}
+.quickData{margin:4px 0 0;color:#9fd2ea;font-size:calc(11px * var(--ui-text-multiplier))}
+.toggleRow{display:flex;align-items:center;gap:8px;margin-top:12px;color:#d7e4ec;font-size:calc(12px * var(--ui-text-multiplier))}
+/* Live view: the strip and cards say what these headings say; keep their buttons. */
+body.liveMatch .recommendationHeading>div:first-child,body.liveMatch .quickHeading>div:first-child{display:none}
+body.liveMatch .recommendationHeading{justify-content:flex-start;margin-bottom:6px}
+body.liveMatch .recommendationHeading .rightActions{flex-direction:row;align-items:center}
