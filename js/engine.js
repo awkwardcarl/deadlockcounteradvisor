@@ -165,7 +165,8 @@ function createCatalog(base,snapshot){
  // Curated heroes the public roster doesn't list yet (new or ballot heroes).
  const curatedOnly=Object.keys(base.heroes).filter(name=>!synced.has(norm(name))).map(name=>({name,id:name,tags:base.heroes[name],portrait:'',unverified:base.unverifiedHeroes.includes(name)||!base.heroes[name].length}));
  const extraHeroNames=Object.fromEntries(Object.entries(snapshot.extraHeroNames||{}).filter(([id,n])=>/^\d{1,5}$/.test(id)&&typeof n==='string'&&n.trim()&&n.length<=40).map(([id,n])=>[id,n.trim()]));
- return {heroes:[...snapshot.heroes.map(h=>({...h,portrait:iconPath(h.portrait),tags:base.heroes[h.name]||[],unverified:!Object.prototype.hasOwnProperty.call(base.heroes,h.name)})),...curatedOnly],extraHeroNames,
+ const investment=validTable(snapshot.investment?.default)?{default:snapshot.investment.default,heroes:Object.fromEntries(Object.entries(snapshot.investment.heroes||{}).filter(([id,t])=>/^\d{1,5}$/.test(id)&&validTable(t)))}:null;
+ return {investment,heroes:[...snapshot.heroes.map(h=>({...h,portrait:iconPath(h.portrait),tags:base.heroes[h.name]||[],unverified:!Object.prototype.hasOwnProperty.call(base.heroes,h.name)})),...curatedOnly],extraHeroNames,
   items:snapshot.items.map(i=>({...i,icon:iconPath(i.icon)})),
   enemyItems:base.enemyItems,complete:true,build:snapshot.build,generatedAt:snapshot.generatedAt};
 }
@@ -205,6 +206,19 @@ const STRATEGY={
  escape:{control:1.65,slow:1.55,mobility:1.3},
  antiheal:{sustain:2.0}
 };
+// Investment bonuses: total souls in a category's items unlock a bonus at
+// each step (weapon: % weapon damage, vitality: % health, spirit: spirit
+// power). The live table comes from the game's hero data via the match
+// service (catalog.investment); this built-in copy (October 2026) is the
+// fallback. Selling an item loses its investment.
+const DEFAULT_INVESTMENT={
+ weapon:[[800,9],[1600,12],[2400,15],[3200,18],[4800,46],[6400,54],[8000,62],[11200,74],[16000,86],[22400,100],[28800,115]],
+ vitality:[[800,9],[1600,12],[2400,15],[3200,20],[4800,38],[6400,42],[8000,46],[11200,50],[16000,54],[22400,60],[28800,66]],
+ spirit:[[800,7],[1600,11],[2400,15],[3200,19],[4800,38],[6400,45],[8000,52],[11200,59],[16000,66],[22400,75],[28800,100]]
+};
+const INVESTMENT_UNITS={weapon:'% weapon damage',vitality:'% health',spirit:' spirit power'};
+const bonusAt=(table,spent)=>{let bonus=0;for(const [at,b] of table||[])if(spent>=at)bonus=b;return bonus;};
+const validTable=t=>t&&['weapon','vitality','spirit'].every(c=>Array.isArray(t[c])&&t[c].length&&t[c].every(x=>Array.isArray(x)&&x.length===2&&x.every(n=>Number.isFinite(n)&&n>=0)));
 // Match phase: from the live clock ("mm:ss" or seconds) when there is one,
 // otherwise estimated from your net worth (souls spent on items plus unspent).
 const PHASE_LABELS={laning:'Laning',mid:'Mid game',late:'Late game'};
@@ -349,6 +363,26 @@ function recommend(state,catalog,options={}){
  const profile=buildProfile(cleanList(state.owned),itemMap,ownHero);
  const phase=matchPhase(options.clock,profile.total+soulCount);
  const tune=PHASE_TUNING[phase.key];
+ const investTable=(Number.isInteger(ownHero?.id)&&catalog.investment?.heroes?.[ownHero.id])||catalog.investment?.default||DEFAULT_INVESTMENT;
+ const investment=Object.fromEntries(['weapon','vitality','spirit'].map(c=>{
+  const spent=profile.spent[c]||0,table=investTable[c],next=table.find(([at])=>at>spent);
+  return [c,{spent,bonus:bonusAt(table,spent),unit:INVESTMENT_UNITS[c],next:next?{at:next[0],bonus:next[1]}:null}];
+ }));
+ // What buying an item adds to its category's bonus. An upgrade replaces its
+ // component's value, so only the difference counts. Most steps are small and
+ // every purchase crosses one, so only a spike (one step worth 15% or more of
+ // the category's maximum, like the 4,800 step) raises the score, up to +25%.
+ const investmentGain=(item,component)=>{
+  const c=item.category,table=investTable[c];if(!table)return null;
+  const spent=profile.spent[c]||0;
+  const value=spent-(component&&component.category===c?Math.max(0,Number(component.cost)||0):0)+Math.max(0,Number(item.cost)||0);
+  const gain=bonusAt(table,value)-bonusAt(table,spent);
+  if(gain<=0)return null;
+  const top=table[table.length-1][1]||1;
+  let prev=0,spike=0,spikeAt=null,at=null;
+  for(const [t,b] of table){if(t>spent&&t<=value){at=t;if(b-prev>=.15*top){spike+=b-prev;spikeAt=t;}}prev=b;}
+  return {category:c,gain,at:spikeAt||at,unit:INVESTMENT_UNITS[c],factor:1+Math.min(.25,.75*spike/top),notable:spike>0};
+ };
  // While laning, the enemies in your lane matter most: their pressure counts
  // more and the rest of the team's less (needs lanes from the live roster).
  const ownLane=Number(state.ownLane)||null;
@@ -482,6 +516,7 @@ function recommend(state,catalog,options={}){
   const credit=Math.min(cost,validComponents.reduce((best,c)=>Math.max(best,Number(c.cost)||0),0));
   const upgradeFrom=validComponents.sort((a,b)=>b.cost-a.cost)[0]?.name||'';
   const effectiveCost=Math.max(0,cost-credit);
+  const invest=investmentGain(item,validComponents[0]||null);
   const fitTags=OWN_AFFINITY[item.id]||[];
   const ownMatch=fitTags.some(t=>ownTags.includes(t));
   const fit=item.synergy?(ownTags.includes(item.synergy)?1.12:0.78):(fitTags.length?(ownMatch?1.08:0.92):1);
@@ -491,7 +526,7 @@ function recommend(state,catalog,options={}){
   // Covering more enemies helps; while laning, covering your lane opponents counts most.
   const coverage=[...coveredEnemies].reduce((sum,i)=>sum+(laneFocus?(Number(enemies[i].lane)===ownLane?LANE_WEIGHT.lane:LANE_WEIGHT.other):1),0);
   const backing=backingOf(item);
-  const score=(contributes.reduce((sum,x)=>sum+x.raw,0)*fit*tierFit*(.9+.2*align)*tune.counter + Math.min(1.0,coverage*.12)+matchupBonus)*backing.boost;
+  const score=(contributes.reduce((sum,x)=>sum+x.raw,0)*fit*tierFit*(.9+.2*align)*tune.counter + Math.min(1.0,coverage*.12)+matchupBonus)*backing.boost*(invest?.factor||1);
   const leads=contributes.slice(0,3);
   const reasons=leads.map(x=>TAG_LABELS[x.tag]);
   const sources=Array.from(new Set(leads.flatMap(x=>x.source.map(y=>y.name)))).slice(0,5);
@@ -507,7 +542,7 @@ function recommend(state,catalog,options={}){
   const affordable=soulCount>=effectiveCost;
   return {id:item.id,name:item.name,cost,effectiveCost,upgradeFrom,category:item.category||'vitality',icon:item.icon||'',
    score:Math.round(score*100)/100,affordable,missing:Math.max(0,effectiveCost-soulCount),
-   tags:leads.map(x=>x.tag),reasons,sources,vsItems,backing,coverage:coveredEnemies.size,kind:profile.shares&&align>=.75?'both':'counter',
+   tags:leads.map(x=>x.tag),reasons,sources,vsItems,backing,investment:invest,coverage:coveredEnemies.size,kind:profile.shares&&align>=.75?'both':'counter',
    // The heroes this item answers, in lineup order (shown as portraits on the pick cards).
    counters:[...coveredEnemies].sort((x,y)=>x-y).map(i=>String(enemies[i].hero)),
    why:item.why||`Can help against ${reasons.join(', ').toLowerCase()}. Verify its current in-game tooltip and activation conditions.`,
@@ -531,6 +566,7 @@ function recommend(state,catalog,options={}){
   const credit=Math.min(cost,validComponents.reduce((best,c)=>Math.max(best,Number(c.cost)||0),0));
   const upgradeFrom=validComponents.sort((a,b)=>b.cost-a.cost)[0]?.name||'';
   const effectiveCost=Math.max(0,cost-credit);
+  const invest=investmentGain(item,validComponents[0]||null);
   const gap=durabilityGap&&category==='vitality'&&DURABILITY_GROUPS.has(item.group);
   const laneHelp=laneFocus&&(item.group==='EBulletProtection'&&(laneTags.get('bullet')||0)>=1||item.group==='ESpiritProtection'&&(laneTags.get('spirit')||0)>=1||['ERevitalization','EHealing','ELifesteal'].includes(item.group)&&[...laneTags.values()].reduce((a,b)=>a+b,0)>=2.5);
   const align=alignment(category);
@@ -538,14 +574,14 @@ function recommend(state,catalog,options={}){
   // With a real sample of popular builds (5+), what they take at this stage
   // outweighs the categories you have bought into so far.
   const pathFit=buildCount>=5?.5*align+.9*backing.share:align;
-  const score=backing.boost*(1+.5*backing.share)*2*pathFit*(BUILD_GROUPS[item.group]||.85)*tune.tier[tierOf(item)]*(category===profile.heroType?1.1:1)*(gap?1.4:1)*(laneHelp?1.35:1)*(upgradeFrom?1.15:1)*tune.build;
+  const score=(invest?.factor||1)*backing.boost*(1+.5*backing.share)*2*pathFit*(BUILD_GROUPS[item.group]||.85)*tune.tier[tierOf(item)]*(category===profile.heroType?1.1:1)*(gap?1.4:1)*(laneHelp?1.35:1)*(upgradeFrom?1.15:1)*tune.build;
   const reason=gap?'Fills a durability gap':laneHelp?`Helps your lane vs ${laneOpponents.join(' and ')}`:profile.shares&&(profile.shares[category]||0)>=.4?`Builds on your ${category} investment`:!profile.shares&&category===profile.heroType?`Fits ${ownHero.name}'s ${category} damage`:upgradeFrom?`Upgrades your ${upgradeFrom}`:backing.share>=.35?`Popular in ${ownHero?.name||'your hero'}'s builds`:'Rounds out your build';
   const affordable=soulCount>=effectiveCost;
   return {id:item.id,name:item.name,cost,effectiveCost,upgradeFrom,category,icon:item.icon||'',
    score:Math.round(score*100)/100,affordable,missing:Math.max(0,effectiveCost-soulCount),
-   tags:[],reasons:[reason],sources:[],vsItems:[],backing,coverage:0,kind:'build',counters:[],gap,
+   tags:[],reasons:[reason],sources:[],vsItems:[],backing,investment:invest,coverage:0,kind:'build',counters:[],gap,
    why:`${reason}. ${item.groupLabel?item.groupLabel+' item':'Shop item'} for the ${PHASE_LABELS[phase.key].toLowerCase()} stage.`,
-   caution:'A build-fit heuristic from the item\'s shop category and group, your purchases and the match phase. It does not model exact stat values or investment thresholds.',
+   caution:'A build-fit heuristic from the item\'s shop category and group, your purchases, the match phase and the investment bonus steps. It does not model exact stat values.',
    confidence:'build fit',heroNotes:[],evidence:['Your build'],ownFit:reason};
  }).map(r=>withTeam(r,{build:true})).sort((a,b)=>b.score-a.score||a.effectiveCost-b.effectiveCost||a.name.localeCompare(b.name));
  // Three picks: the strongest counter and the strongest build item (even if
@@ -574,9 +610,10 @@ function recommend(state,catalog,options={}){
  phase:{key:phase.key,label:PHASE_LABELS[phase.key],source:phase.source,minutes:phase.minutes},
  build:{shares:profile.shares,spent:profile.total,heroType:profile.heroType,durabilityGap},
  lane:{focus:laneFocus,opponents:laneOpponents},
+ investment:{...investment,source:catalog.investment?'game data':'built-in'},
  team:{allies:allies.map(a=>a.name),weaponShare:team.weaponShare===null?null:Math.round(team.weaponShare*100)/100,lean:team.lean,signals:team.signals},
  buildData:{builds:buildCount,stats:Object.keys(statSource).length,matchup:useMatchup},
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
+root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,DEFAULT_INVESTMENT,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
 })(typeof window!=='undefined'?window:globalThis);

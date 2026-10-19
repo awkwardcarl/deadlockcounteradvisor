@@ -24,6 +24,8 @@ const updates=createUpdateManager({
   loadUpdater:()=>require('electron-updater').autoUpdater
 });
 let saveTimer;
+// Set once a hero list without investment tables has been refreshed this launch.
+let investmentRefreshTried=false;
 let monitorActive=false, monitorTimer=null, monitorBusy=false;
 let gameStatus={supported:process.platform==='win32',running:false};
 let feedStatus={active:false,name:'',error:''};
@@ -254,7 +256,15 @@ app.whenReady().then(() => {
   });
   // The catalog carries fallback hero names from the match service's hero list.
   const withHeroNames = snapshot => dataService.addFallbackHeroNames(snapshot, matchService.readAssets(app.getPath('userData')));
-  ipcMain.handle('catalog:get', event => event.sender===mainWindow?.webContents ? withHeroNames(dataService.readCache(app.getPath('userData'))) : null);
+  ipcMain.handle('catalog:get', async event => {
+    if(event.sender!==mainWindow?.webContents)return null;
+    // A hero list saved before investment tables were kept (no investment key)
+    // is refreshed once per launch, in the background: the engine's built-in
+    // table covers this launch, the game's table the next.
+    const assets = matchService.readAssets(app.getPath('userData'));
+    if(assets && !('investment' in assets) && !investmentRefreshTried){ investmentRefreshTried = true; matchService.refreshAssets(app.getPath('userData')).catch(() => {}); }
+    return withHeroNames(dataService.readCache(app.getPath('userData')));
+  });
   ipcMain.handle('catalog:sync', async event => {
     if(event.sender!==mainWindow?.webContents)throw new Error('Untrusted catalog caller');
     const snapshot = await dataService.refresh(app.getPath('userData'));
