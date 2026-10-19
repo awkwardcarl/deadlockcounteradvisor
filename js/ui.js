@@ -443,6 +443,7 @@ function renderLiveStrip(){
  const src=portrait(state.hero),img=$('liveHeroPortrait');
  img.hidden=!src;if(src&&img.getAttribute('src')!==src)img.src=src;
  $('liveSouls').textContent=fmt.format(state.souls);
+ $('liveNetWorth').textContent=Number.isFinite(m.netWorth)?`${fmt.format(m.netWorth)} net worth`:'';
  const owned=engine.cleanList(state.owned).length;
  $('liveOwned').textContent=`${owned} ${owned===1?'item':'items'}`;
  const lane=lastAdvice?.lane;
@@ -559,8 +560,12 @@ function onLiveStatus(status){
  }
  updateSetupStatus();
 }
+// An item's catalog price, by class name when the feed gives one.
+function itemCost(name,id){const item=(id&&catalog.items.find(i=>i.id===id))||catalog.items.find(i=>engine.norm(i.name)===engine.norm(name));return Number(item?.cost)||0;}
 function onLiveMatch(match){
  if(!match||!Array.isArray(match.enemies))return;
+ // The feed's souls are net worth; picks need what you can spend now.
+ match=liveMerge.withSpendableSouls(match,itemCost);
  // Only compare with the previous snapshot from the same source.
  const prev=lastFeedSnapshot&&lastFeedSnapshot.source===match.source?lastFeedSnapshot:null;lastFeedSnapshot=match;
  liveSnapshotAt=Date.now();

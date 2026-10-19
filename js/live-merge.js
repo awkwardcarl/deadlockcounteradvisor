@@ -64,5 +64,17 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  else if(typeof match.ownItems==='string'&&(!last||last.ownItems!==match.ownItems)){state.owned=resolveItems(match.ownItems,match.ownItemIds);changed=true;}
  return {changed};
 }
-root.DeadlockLiveMerge={mergeFeedSnapshot};
+// Overwolf reports each player's souls as net worth: everything earned,
+// including what is already spent. What you can spend is that minus the value
+// of the items you hold (costOf(name, classId) gives an item's price). Until
+// your items are reported there is nothing to subtract, so the value stays.
+function withSpendableSouls(match,costOf){
+ if(!match||!Number.isFinite(match.souls))return match;
+ if(typeof match.ownItems!=='string')return {...match,netWorth:match.souls};
+ const names=match.ownItems.split(',').map(n=>n.trim()).filter(Boolean);
+ const ids=Array.isArray(match.ownItemIds)&&match.ownItemIds.length===names.length?match.ownItemIds:[];
+ const itemValue=names.reduce((sum,name,i)=>sum+Math.max(0,Number(costOf(name,ids[i]))||0),0);
+ return {...match,netWorth:match.souls,itemValue,souls:Math.max(0,Math.round(match.souls-itemValue))};
+}
+root.DeadlockLiveMerge={mergeFeedSnapshot,withSpendableSouls};
 })(typeof window!=='undefined'?window:globalThis);

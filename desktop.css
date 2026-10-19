@@ -628,3 +628,5 @@ body.liveMatch .phaseSummary{display:none}
 body.liveMatch .recommendationHeading>div:first-child,body.liveMatch .quickHeading>div:first-child{display:none}
 body.liveMatch .recommendationHeading{justify-content:flex-start;margin-bottom:6px}
 body.liveMatch .recommendationHeading .rightActions{flex-direction:row;align-items:center}
+.liveNet{color:#8fa9b3}
+.liveNet:empty{display:none}
