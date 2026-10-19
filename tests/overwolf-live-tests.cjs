@@ -115,6 +115,19 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   post.owned='Planned item';pr=merge(post,base({phase:'postgame',enemies:[]}),base({phase:'postgame',enemies:[],clock:'0:02'}));
   test(!pr.changed&&post.owned==='Planned item','items typed between matches stick');
 
+  // Souls: Overwolf reports net worth; picks use what you can spend.
+  const spend=ctx.DeadlockLiveMerge.withSpendableSouls;
+  const prices={upgrade_clip_size:800,'Headshot Booster':800,upgrade_vampire:1600};
+  const costOf=(name,id)=>prices[id]??prices[name]??0;
+  const sp=spend({souls:10000,ownItems:'Extended Magazine, Headshot Booster, Bullet Lifesteal',ownItemIds:['upgrade_clip_size','',''],enemies:[]},costOf);
+  test(sp.souls===10000-800-800&&sp.netWorth===10000&&sp.itemValue===1600,'items are priced by class name, or by name when the feed gives none (an unknown item counts as 0)');
+  const sp2=spend({souls:10000,ownItems:'Extended Magazine, Headshot Booster, Bullet Lifesteal',ownItemIds:['upgrade_clip_size','x','upgrade_vampire'],enemies:[]},(n,id)=>prices[id]??prices[n]??0);
+  test(sp2.souls===10000-800-800-1600&&sp2.itemValue===3200,'spendable souls = net worth minus the price of the items you hold');
+  test(spend({souls:2000,ownItems:null,enemies:[]},costOf).souls===2000&&spend({souls:2000,ownItems:null,enemies:[]},costOf).netWorth===2000,'before your items are reported nothing is subtracted');
+  test(spend({souls:500,ownItems:'Bullet Lifesteal',ownItemIds:['upgrade_vampire'],enemies:[]},costOf).souls===0&&spend({souls:null,ownItems:'',enemies:[]},costOf).souls===null,'never negative; unknown souls stay unknown');
+  const uiSrc=fs.readFileSync(path.join(root,'js/ui.js'),'utf8');
+  test(uiSrc.includes('match=liveMerge.withSpendableSouls(match,itemCost);')&&uiSrc.indexOf('match=liveMerge.withSpendableSouls(match,itemCost);')<uiSrc.indexOf('lastFeedSnapshot=match;')&&uiSrc.includes('net worth`'),'live snapshots are converted before merging; the strip shows net worth too');
+
   // Hero names: Overwolf sent "VIPER" for Vyper in a real match. Resolve by name, game ID, then known renames.
   const ids=new EventState({withholdEnemyItems:true});
   ids.apply(info('roster_0',{player_name:'Me',hero_name:'Kelvin',hero_id:12,team_name:'Amber',is_local:true}));

@@ -6,6 +6,7 @@
 // reports something new. A new match or roster replaces the lineup outright.
 const ended=phase=>phase==='ended'||phase==='postgame';
 const rosterKey=snap=>`${snap.matchId||''}\n`+snap.enemies.map(e=>e.name).join('\n');
+const allyKey=list=>JSON.stringify((list||[]).map(a=>[a.hero,a.heroId??null,a.lane??null,a.items||'',a.inventoryKnown===true]));
 function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  if(ended(match.phase)){
   // Once per match end (also when the app starts after a match, and when you
@@ -13,6 +14,7 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
   // items belong to the finished game. Edits made between matches stick.
   if(prev&&ended(prev.phase))return {changed:false};
   state.enemies=[];
+  state.allies=[];
   state.owned='';
   state.souls=0;
   return {changed:true,ended:true};
@@ -37,6 +39,13 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
    if((e.items||'')!==(old.items||'')){row.items=resolveItems(e.items||'',e.itemIds);changed=true;}
   }
  }
+ // Your teammates (hero, lane, items; no player names) for team-aware picks.
+ // They can't be edited by hand: the feed's list replaces them, and returns after Clear.
+ const allies=Array.isArray(match.allies)?match.allies.slice(0,5):[];
+ if(!last||allyKey(last.allies)!==allyKey(allies)||(allies.length&&!state.allies?.length)){
+  state.allies=allies.map(a=>({hero:resolveHero(a.hero,a.heroId),items:resolveItems(a.items||'',a.itemIds),lane:a.lane??null,inventoryKnown:a.inventoryKnown===true}));
+  changed=true;
+ }
  if((match.ownLane??null)!==(last?.ownLane??null)||(!last&&match.ownLane!=null)){state.ownLane=match.ownLane??null;changed=true;}
  if(match.ownHero&&(!last||last.ownHero!==match.ownHero)){state.hero=resolveHero(match.ownHero,match.ownHeroId);changed=true;}
  if(Number.isFinite(match.souls)&&(!last||last.souls!==match.souls)){state.souls=match.souls;changed=true;}
@@ -55,5 +64,17 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  else if(typeof match.ownItems==='string'&&(!last||last.ownItems!==match.ownItems)){state.owned=resolveItems(match.ownItems,match.ownItemIds);changed=true;}
  return {changed};
 }
-root.DeadlockLiveMerge={mergeFeedSnapshot};
+// Overwolf reports each player's souls as net worth: everything earned,
+// including what is already spent. What you can spend is that minus the value
+// of the items you hold (costOf(name, classId) gives an item's price). Until
+// your items are reported there is nothing to subtract, so the value stays.
+function withSpendableSouls(match,costOf){
+ if(!match||!Number.isFinite(match.souls))return match;
+ if(typeof match.ownItems!=='string')return {...match,netWorth:match.souls};
+ const names=match.ownItems.split(',').map(n=>n.trim()).filter(Boolean);
+ const ids=Array.isArray(match.ownItemIds)&&match.ownItemIds.length===names.length?match.ownItemIds:[];
+ const itemValue=names.reduce((sum,name,i)=>sum+Math.max(0,Number(costOf(name,ids[i]))||0),0);
+ return {...match,netWorth:match.souls,itemValue,souls:Math.max(0,Math.round(match.souls-itemValue))};
+}
+root.DeadlockLiveMerge={mergeFeedSnapshot,withSpendableSouls};
 })(typeof window!=='undefined'?window:globalThis);

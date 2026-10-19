@@ -96,7 +96,7 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   const main=read('desktop/main.cjs'),preload=read('desktop/preload.cjs'),ui=read('js/ui.js'),html=read('index.html');
   test(/ipcMain\.handle\('builddata:get', \(event, heroId, laneIds\) => \{\n    if\(!trusted\(event\)\)throw/.test(main)&&preload.includes("getBuildData: (heroId, laneIds) => ipcRenderer.invoke('builddata:get'"),'build data only answers the app window');
   test(html.includes('id="useBuildData" checked')&&ui.includes("localStorage.getItem(STORE_BUILD_DATA)!=='0'")&&ui.includes("buildData:buildDataEnabled()?buildData:null"),'Settings → Privacy switch (on by default) turns build data off');
-  test(ui.includes('`In ${Math.round(b.share*b.builds)} of ${b.builds} popular builds`')&&ui.includes("(avg ${Math.round(b.base*100)}%)")&&html.includes('id="buildDataStatus"'),'cards and Settings show what backs the picks');
+  test(ui.includes('`${Math.round(b.share*b.builds)} of ${b.builds} builds`')&&ui.includes("(avg ${Math.round(b.base*100)}%)")&&html.includes('id="buildDataStatus"'),'cards and Settings show what backs the picks');
   const privacy=read('docs/privacy.html'),terms=read('docs/terms.html'),license=read('installer/license.txt');
   test(privacy.includes('<strong>Build data</strong>')&&privacy.includes('Only hero IDs are sent')&&privacy.includes('Use community builds and match stats')&&privacy.includes('Build names, descriptions and authors are not kept'),'the Privacy Policy describes build data, what is sent and how to turn it off');
   test(terms.includes('community builds and match statistics')&&license.includes('community builds')&&license.includes('hero IDs only'),'the Terms and installer page mention it too');

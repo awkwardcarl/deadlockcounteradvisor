@@ -46,7 +46,7 @@ let lastHeroLine='';
 function logOverwolfHeroes(snapshot){
   if(!snapshot.enemies.length)return;
   const pair=(hero,id,lane)=>(hero||'?')+'='+(id??'?')+(lane?' lane '+lane:'');
-  const line='you '+pair(snapshot.ownHero,snapshot.ownHeroId,snapshot.ownLane)+' | enemies '+snapshot.enemies.map(e=>pair(e.hero,e.heroId,e.lane)).join(', ');
+  const line='you '+pair(snapshot.ownHero,snapshot.ownHeroId,snapshot.ownLane)+' | allies '+(snapshot.allies||[]).map(a=>pair(a.hero,a.heroId,a.lane)).join(', ')+' | enemies '+snapshot.enemies.map(e=>pair(e.hero,e.heroId,e.lane)).join(', ');
   if(line===lastHeroLine)return;
   lastHeroLine=line;
   console.log('[Counter Advisor] Overwolf heroes (match '+(snapshot.matchId||'?')+'):',line);
