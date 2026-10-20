@@ -6,9 +6,9 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { registerOfflineRestrictions } = require('./security.cjs');
 const { createUpdateManager } = require('./updater.cjs');
-const dataService = require('./data-service.cjs');
 const matchService = require('./match-service.cjs');
 const { createBuildData } = require('./build-data.cjs');
+const { createGameData } = require('./game-data.cjs');
 const replayService = require('../live/overwolf-normalizer.cjs');
 const {checkGame}=require('../live/process-detection.cjs');
 const {LocalFeed}=require('../live/local-feed.cjs');
@@ -24,8 +24,6 @@ const updates=createUpdateManager({
   loadUpdater:()=>require('electron-updater').autoUpdater
 });
 let saveTimer;
-// Set once a hero list without investment tables has been refreshed this launch.
-let investmentRefreshTried=false;
 let monitorActive=false, monitorTimer=null, monitorBusy=false;
 let gameStatus={supported:process.platform==='win32',running:false};
 let feedStatus={active:false,name:'',error:''};
@@ -36,8 +34,15 @@ let hotkeyLabel='';
 function liveStatus(){return {monitorActive,gameStatus,feedStatus,overwolf:overwolfStatus};}
 function broadcast(channel,value){if(mainWindow&&!mainWindow.isDestroyed()&&!mainWindow.webContents.isDestroyed())mainWindow.webContents.send(channel,value);}
 function publishStatus(){broadcast('live:status',liveStatus());}
+// Catalog and hero list: refreshed in the background at launch when a day old,
+// and when a live match shows a hero or item they don't know (a game update).
+const gameData=createGameData({
+  userData:app.getPath('userData'),
+  onCatalog:snapshot=>broadcast('catalog:updated',snapshot),
+  log:message=>console.log('[Counter Advisor]',message)
+});
 const localFeed=new LocalFeed({
-  onState:state=>broadcast('live:match',{...state,source:'file'}),
+  onState:state=>{broadcast('live:match',{...state,source:'file'});gameData.check(state);},
   onError:error=>{feedStatus={active:false,name:'',error};publishStatus();}
 });
 // Overwolf live data (only active under the Overwolf runtime). Registered at
@@ -55,7 +60,7 @@ function logOverwolfHeroes(snapshot){
 }
 const overwolfLive=createOverwolfLive({
   app,
-  onMatch:snapshot=>{overwolfStatus={...overwolfStatus,lastUpdate:Date.now()};logOverwolfHeroes(snapshot);broadcast('live:match',{...snapshot,source:'overwolf'});},
+  onMatch:snapshot=>{overwolfStatus={...overwolfStatus,lastUpdate:Date.now()};logOverwolfHeroes(snapshot);broadcast('live:match',{...snapshot,source:'overwolf'});gameData.check(snapshot);},
   onDebug:message=>console.log('[Counter Advisor] Overwolf event:',message),
   onStatus:status=>{
     overwolfStatus={...overwolfStatus,...status};publishStatus();
@@ -255,22 +260,16 @@ app.whenReady().then(() => {
     return buildData.get(Number(heroId), ids);
   });
   // The catalog carries fallback hero names from the match service's hero list.
-  const withHeroNames = snapshot => dataService.addFallbackHeroNames(snapshot, matchService.readAssets(app.getPath('userData')));
+  // Loading never waits on the network: the launch sync (game-data.cjs) also
+  // refreshes a hero list saved before investment tables were kept.
   ipcMain.handle('catalog:get', async event => {
     if(event.sender!==mainWindow?.webContents)return null;
-    // A hero list saved before investment tables were kept (no investment key)
-    // is refreshed once per launch, in the background: the engine's built-in
-    // table covers this launch, the game's table the next.
-    const assets = matchService.readAssets(app.getPath('userData'));
-    if(assets && !('investment' in assets) && !investmentRefreshTried){ investmentRefreshTried = true; matchService.refreshAssets(app.getPath('userData')).catch(() => {}); }
-    return withHeroNames(dataService.readCache(app.getPath('userData')));
+    return gameData.current();
   });
+  // Sync refreshes the hero list too, so heroes newer than the public roster get names.
   ipcMain.handle('catalog:sync', async event => {
     if(event.sender!==mainWindow?.webContents)throw new Error('Untrusted catalog caller');
-    const snapshot = await dataService.refresh(app.getPath('userData'));
-    // Refresh the hero list too, so heroes newer than the public roster get names.
-    try { await matchService.refreshAssets(app.getPath('userData')); } catch (_) {}
-    return withHeroNames(snapshot);
+    return gameData.syncNow();
   });
   // Post-match debrief: a numeric match ID only; the main process strips
   // account IDs before anything is returned.
@@ -333,6 +332,8 @@ app.whenReady().then(() => {
   updates.start();
   // Check once after startup; do not download or install without a user click.
   if(updates.getState().phase==='idle') setTimeout(()=>void updates.check(),8000);
+  // Game data a day old is refreshed in the background once the window is up.
+  setTimeout(()=>void gameData.start(),3000);
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 }).catch(err => {
   console.error('[Counter Advisor] Startup error:', err);

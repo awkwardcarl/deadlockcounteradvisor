@@ -155,6 +155,22 @@ function resolveHeroName(catalog,name,id){
  if(HERO_PLACEHOLDERS.has(norm(name)))return byId||byFallback||'';
  return byName(name)||byId||byFallback||byName(HERO_ALIASES[norm(name)])||titleCase(String(name||''));
 }
+// A hero named only by the hero list (a game update newer than the catalog and
+// the curated profiles) is shown as "<Name> · new hero"; its threat comes
+// from its purchases alone.
+const NEW_HERO={label:' · new hero',tip:'No reviewed profile yet; counters use their purchases'};
+const listedHeroes=catalog=>Object.entries(catalog.extraHeroNames||{});
+function isNewHero(catalog,name){
+ const key=norm(name);
+ return !!key&&!catalog.heroes.some(h=>norm(h.name)===key)&&listedHeroes(catalog).some(([,n])=>norm(n)===key);
+}
+// The game's hero ID for a name (build data is fetched by ID), new heroes included.
+function heroGameId(catalog,name){
+ const key=norm(name),id=catalog.heroes.find(h=>norm(h.name)===key)?.id;
+ if(Number.isInteger(id))return id;
+ const listed=key?listedHeroes(catalog).find(([,n])=>norm(n)===key):null;
+ return listed?Number(listed[0]):null;
+}
 function createCatalog(base,snapshot){
  if(!snapshot||!Array.isArray(snapshot.items)||!Array.isArray(snapshot.heroes)){
   return {heroes:Object.keys(base.heroes).map(name=>({name,id:name,tags:base.heroes[name],portrait:'',unverified:base.unverifiedHeroes.includes(name)})),
@@ -367,12 +383,12 @@ function teamSignals({allies,you,enemies,itemMap,byTag,damageThreat,phaseKey}){
 }
 function recommend(state,catalog,options={}){
  const enemies=(Array.isArray(state.enemies)?state.enemies:[]).filter(e=>e&&String(e.hero||'').trim()).slice(0,6);
- if(!enemies.length)return {results:[],quickBuys:[],threats:[],patterns:[],abilityTips:[],team:{allies:[],weaponShare:null,lean:null,signals:[]},unknown:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
+ if(!enemies.length)return {results:[],quickBuys:[],threats:[],patterns:[],abilityTips:[],team:{allies:[],weaponShare:null,lean:null,signals:[]},unknown:[],newHeroes:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
  const heroMap=new Map(catalog.heroes.map(h=>[norm(h.name),h]));
  const itemMap=new Map(catalog.items.map(i=>[norm(i.name),i]));
  const idMap=new Map(catalog.items.map(i=>[String(i.id),i]));
  const fallbackItemMap=new Map(Object.entries(catalog.enemyItems||{}).map(([key,tags])=>[norm(key),tags]));
- const unknown=[],byTag=new Map(),matchedHeroes=[],patterns=[],abilityTips=[],tippedHeroes=new Set();
+ const unknown=[],byTag=new Map(),matchedHeroes=[],patterns=[],abilityTips=[],tippedHeroes=new Set(),newHeroes=[];
  let knownItems=0,listedItems=0,profiledHeroes=0,observedInventories=0;
  const buildsFrom=(a,b)=>(a?.components||[]).includes(String(b?.id));
  const soulCount=Math.max(0,Math.min(1000000,Number(state.souls)||0));
@@ -436,7 +452,8 @@ function recommend(state,catalog,options={}){
    if(hero.tags?.length&&!hero.unverified){profiledHeroes++;hero.tags.forEach(tag=>pressure(tag,0.9,heroName,'hero'));}
    else unknown.push(`No reviewed combat profile for ${heroName}`);
    if(MATCHUPS[hero.name]){matchedHeroes.push(hero.name);matchupWeight.set(hero.name,laneWeight);}
-  }else unknown.push(`Unknown enemy hero: ${heroName}`);
+  }else if(isNewHero(catalog,heroName)){newHeroes.push(heroName);unknown.push(heroName+NEW_HERO.label);}
+  else unknown.push(`Unknown enemy hero: ${heroName}`);
   if(enemy.inventoryKnown===true)observedInventories++;
   // Duplicate names in copied feeds should not create fictitious stacked purchases.
   // Blank inventories do not mean the enemy has none.
@@ -651,7 +668,7 @@ function recommend(state,catalog,options={}){
  investment:{...investment,source:catalog.investment?'game data':'built-in'},
  team:{allies:allies.map(a=>a.name),weaponShare:team.weaponShare===null?null:Math.round(team.weaponShare*100)/100,lean:team.lean,signals:team.signals},
  buildData:{builds:buildCount,stats:Object.keys(statSource).length,matchup:useMatchup},
- unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
+ unknown,newHeroes,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,DEFAULT_INVESTMENT,OPENING_SPENT,OPENING_TIER,LANING_SAVE_CAP,OPENING_SAVE_CAP,HARD_COUNTER,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
+root.DeadlockEngine={createCatalog,resolveHeroName,NEW_HERO,isNewHero,heroGameId,resolveFeedItems,recommend,DEFAULT_INVESTMENT,OPENING_SPENT,OPENING_TIER,LANING_SAVE_CAP,OPENING_SAVE_CAP,HARD_COUNTER,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
 })(typeof window!=='undefined'?window:globalThis);

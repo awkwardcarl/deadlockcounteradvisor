@@ -64,6 +64,26 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  else if(typeof match.ownItems==='string'&&(!last||last.ownItems!==match.ownItems)){state.owned=resolveItems(match.ownItems,match.ownItemIds);changed=true;}
  return {changed};
 }
+// After a catalog update (a new hero or item from a game update), the last
+// snapshot's heroes and items are resolved again with the new catalog. A field
+// that no longer reads as the old catalog resolved it was edited by hand and
+// stays. before/after: {hero(name,id), items(names,ids)} for each catalog.
+function reresolveFeed(state,match,before,after){
+ if(!match||ended(match.phase)||match.warning||!Array.isArray(match.enemies))return false;
+ let changed=false;
+ const redo=(value,kind,...args)=>{const old=before[kind](...args),next=after[kind](...args);if(value!==old||next===old)return value;changed=true;return next;};
+ for(const e of match.enemies){
+  const row=state.enemies.find(r=>r.feedName===e.name);
+  if(!row)continue;
+  row.hero=redo(row.hero,'hero',e.hero,e.heroId);
+  row.items=redo(row.items,'items',e.items||'',e.itemIds);
+ }
+ const allies=Array.isArray(match.allies)?match.allies.slice(0,5):[];
+ if(state.allies?.length===allies.length)allies.forEach((a,i)=>{state.allies[i].hero=redo(state.allies[i].hero,'hero',a.hero,a.heroId);state.allies[i].items=redo(state.allies[i].items,'items',a.items||'',a.itemIds);});
+ if(match.ownHero)state.hero=redo(state.hero,'hero',match.ownHero,match.ownHeroId);
+ if(typeof match.ownItems==='string')state.owned=redo(state.owned,'items',match.ownItems,match.ownItemIds);
+ return changed;
+}
 // Overwolf reports each player's souls as net worth: everything earned,
 // including what is already spent. What you can spend is that minus the value
 // of the items you hold (costOf(name, classId) gives an item's price). Until
@@ -76,5 +96,5 @@ function withSpendableSouls(match,costOf){
  const itemValue=names.reduce((sum,name,i)=>sum+Math.max(0,Number(costOf(name,ids[i]))||0),0);
  return {...match,netWorth:match.souls,itemValue,souls:Math.max(0,Math.round(match.souls-itemValue))};
 }
-root.DeadlockLiveMerge={mergeFeedSnapshot,withSpendableSouls};
+root.DeadlockLiveMerge={mergeFeedSnapshot,withSpendableSouls,reresolveFeed};
 })(typeof window!=='undefined'?window:globalThis);

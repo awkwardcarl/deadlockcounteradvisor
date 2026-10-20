@@ -1,5 +1,7 @@
 'use strict';
-/** Public, user-triggered catalog sync. Never contacts Deadlock, Steam, or a local process. */
+/** Public catalog sync: on Sync, and in the background when the cache is a day
+ * old or a live match shows something it lacks (desktop/game-data.cjs). Never
+ * contacts Deadlock, Steam, or a local process. */
 const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -11,7 +13,7 @@ function getJSON(route) {
   return new Promise((resolve,reject) => {
     let completed = false;
     const finish = (err, result) => { if(completed) return;completed=true;err?reject(err):resolve(result); };
-    const req=https.get(ORIGIN+route,{timeout:24000,headers:{'Accept':'application/json','User-Agent':'DeadlockCounterAdvisor/0.4 (manual catalog sync)'}},res=>{
+    const req=https.get(ORIGIN+route,{timeout:24000,headers:{'Accept':'application/json','User-Agent':'DeadlockCounterAdvisor/0.4 (catalog sync)'}},res=>{
       if (res.statusCode !== 200) { res.resume();return finish(new Error(`Catalog source returned HTTP ${res.statusCode}`)); }
       if (!String(res.headers['content-type']||'').includes('json')) {res.resume();return finish(new Error('Unexpected catalog response type'));}
       let length=0;const chunks=[];
@@ -25,8 +27,8 @@ function getJSON(route) {
 }
 function catalogFile(userData){return path.join(userData,'item-catalog-v0.4.json');}
 function readCache(userData){try {const v=JSON.parse(fs.readFileSync(catalogFile(userData),'utf8'));return v?.version===1 && Array.isArray(v.items) && Array.isArray(v.heroes)?v:null;}catch(_){return null;}}
-async function refresh(userData){
-  const [items, heroes]=await Promise.all([getJSON(ROUTES[0]),getJSON(ROUTES[1])]);
+async function refresh(userData,fetchJSON=getJSON){
+  const [items, heroes]=await Promise.all([fetchJSON(ROUTES[0]),fetchJSON(ROUTES[1])]);
   const snapshot=compactSnapshot(items,heroes);
   const filename=catalogFile(userData),tmp=filename+'.tmp';
   fs.writeFileSync(tmp,JSON.stringify(snapshot),{encoding:'utf8',mode:0o600});

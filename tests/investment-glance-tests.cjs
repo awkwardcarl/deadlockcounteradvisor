@@ -38,8 +38,10 @@ const {addFallbackHeroNames}=require('../desktop/data-service.cjs');
 const snapshot=require('./fixtures/catalog-snapshot.json');
 test(addFallbackHeroNames(snapshot,assets).investment===assets.investment&&addFallbackHeroNames(snapshot,none).investment===null&&addFallbackHeroNames(snapshot,null).investment===null,'the catalog carries the tables when the hero list has them');
 const main=read('desktop/main.cjs');
-test(main.includes("if(assets && !('investment' in assets) && !investmentRefreshTried){ investmentRefreshTried = true; matchService.refreshAssets(app.getPath('userData')).catch(() => {}); }"),'a hero list saved before this version is refreshed once per launch, in the background');
-test(/let investmentRefreshTried=false;/.test(main)&&!/catalog:get[^]{0,400}await matchService\.refreshAssets/.test(main),'catalog loading never waits on the network');
+const {isStale}=require('../desktop/game-data.cjs');
+const fresh={syncedAt:new Date().toISOString()},{investment:_,...oldList}={...assets,fetchedAt:Date.now()};
+test(isStale(fresh,oldList)&&!isStale(fresh,{...assets,fetchedAt:Date.now()})&&main.includes('setTimeout(()=>void gameData.start(),3000);'),'a hero list saved before this version is refreshed by the launch sync, in the background');
+test(/catalog:get[^]{0,300}return gameData\.current\(\);/.test(main)&&!/catalog:get[^]{0,300}await/.test(main),'catalog loading never waits on the network');
 
 // Engine.
 const ctx=vm.createContext({});
@@ -115,7 +117,7 @@ test(/function setGlance\(on\)\{\n document\.body\.classList\.toggle\('glanceMod
 const fn=ui.slice(ui.indexOf('function renderGlanceTeam(){'),ui.indexOf('function setGlance(on){'));
 const el={innerHTML:'',querySelectorAll:()=>[]};
 const gCtx=vm.createContext({
- $:id=>id==='glanceTeam'?el:null,Date,Set,
+ $:id=>id==='glanceTeam'?el:null,Date,Set,newHeroTag:()=>'',
  state:{ownLane:4,enemies:[{hero:'Haze',lane:4,feedName:'p1',items:'Rapid Rounds, Mystery Mod'},{hero:'Abrams',lane:1,items:''},{hero:'',items:''},{hero:'<b>X</b>',items:''}]},
  portrait:name=>name==='Haze'?'heroes/haze.png':'',
  recentBuys:new Map([['p1',{items:new Set([E.norm('Rapid Rounds')]),until:Date.now()+20000}],['1',{items:new Set(['x']),until:Date.now()-1}]]),

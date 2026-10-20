@@ -1,0 +1,28 @@
+# Daily check of the public game data against the curated tables. Opens or
+# updates one issue, "Game data needs review", when a game update adds heroes
+# or items without reviewed data (or curated entries stop matching the game).
+# No differences: nothing happens. Scheduled runs use the default branch.
+name: Game data review
+on:
+  schedule:
+    - cron: '23 7 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: game-data-review
+  cancel-in-progress: false
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      # Node built-ins only, so there are no dependencies to install.
+      - run: node tests/game-data-review.cjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
