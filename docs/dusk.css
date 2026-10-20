@@ -1,0 +1,56 @@
+/* Deadlock Counter Advisor: Dusk theme tokens
+   Use: <link rel="stylesheet" href="css/dusk.css"> then reference var(--dca-...) anywhere.
+   (Site copy for the GitHub Pages in docs/: loaded before style.css; fonts live in docs/fonts.) */
+
+/* Fonts: bundled .woff2 files (SIL Open Font License, see fonts/OFL-*.txt), served with the site. */
+@font-face { font-family: "Outfit"; font-weight: 600; font-style: normal; font-display: swap; src: local("Outfit SemiBold"), url("fonts/outfit-600.woff2") format("woff2"); }
+@font-face { font-family: "Outfit"; font-weight: 700; font-style: normal; font-display: swap; src: local("Outfit Bold"), url("fonts/outfit-700.woff2") format("woff2"); }
+@font-face { font-family: "Atkinson Hyperlegible"; font-weight: 400; font-style: normal; font-display: swap; src: local("Atkinson Hyperlegible"), url("fonts/atkinson-hyperlegible-400.woff2") format("woff2"); }
+@font-face { font-family: "Atkinson Hyperlegible"; font-weight: 700; font-style: normal; font-display: swap; src: local("Atkinson Hyperlegible Bold"), url("fonts/atkinson-hyperlegible-700.woff2") format("woff2"); }
+
+:root {
+  /* Surfaces */
+  --dca-bg:          #15141C;
+  --dca-surface:     #1E1D28;
+  --dca-surface-2:   #282735;
+  --dca-line:        #34334A;
+  --dca-avatar-line: #45445E;
+
+  /* Text */
+  --dca-text:        #F0EFF8;
+  --dca-muted:       #B0AEC6;
+
+  /* Accent (lilac) and icon gold */
+  --dca-accent:      #B9A6FF;
+  --dca-gold:        #F2C879;
+  --dca-live:        #F2C879;                      /* live-status dot */
+  --dca-live-glow:   rgba(242, 200, 121, 0.25);    /* ring around the live dot */
+
+  /* Matchup states: always pair color with a shape and a label (see README) */
+  --dca-favorable:   #66C7F4;  /* blue,   use with the up triangle */
+  --dca-even:        #A3A1BA;  /* gray,   use with the circle      */
+  --dca-unfavorable: #FF8A5C;  /* orange, use with the down triangle */
+
+  /* Icon tile colors */
+  --dca-tile-top:    #3B3191;
+  --dca-tile-bottom: #1B1745;
+
+  /* Type */
+  --dca-font-heading: "Outfit", system-ui, sans-serif;
+  --dca-font-body:    "Atkinson Hyperlegible", system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: var(--dca-bg);
+  background-image: radial-gradient(rgba(185, 166, 255, 0.12) 1.2px, transparent 1.7px);
+  background-size: 20px 20px;
+  color: var(--dca-text);
+  font-family: var(--dca-font-body);
+  font-size: 16px;
+  line-height: 1.4;
+}
+h1, h2, h3, .dca-heading { font-family: var(--dca-font-heading); font-weight: 700; }
+.dca-panel { background: var(--dca-surface); border: 1px solid var(--dca-line); border-radius: 12px; }
+.dca-muted { color: var(--dca-muted); }
+.dca-live-dot { width: 10px; height: 10px; border-radius: 5px; background: var(--dca-live); box-shadow: 0 0 0 3px var(--dca-live-glow); }
