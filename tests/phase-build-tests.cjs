@@ -46,6 +46,17 @@ test(weaponBuild.buildPicks.every(r=>E.BUILD_GROUPS[itemByName.get(r.name)?.grou
 const starterOut=E.recommend({hero:'Kelvin',souls:1600,owned:'',enemies},starter);
 test(starterOut.buildPicks.length===0&&starterOut.quickBuys.every(r=>r.kind==='counter'),'starter catalog (no shop groups): counters only, as before');
 test(rec({owned:'Healbane'},{clock:'12:00'}).quickBuys.every(r=>r.name!=='Healbane')&&rec({owned:'Extended Magazine'},{clock:'12:00'}).buildPicks.every(r=>r.name!=='Extended Magazine'),'items you own are never suggested');
+// An upgrade consumes its components: once you own Opening Rounds, High-Velocity
+// Rounds (inside it) is never suggested again, down every level of the chain.
+const compEnemies=[{hero:'Haze',items:'Headshot Booster'},{hero:'Abrams',items:''},{hero:'Seven',items:''}];
+const compRec=(owned,souls=1200)=>E.recommend({hero:'Vindicta',souls,owned,enemies:compEnemies},catalog,{clock:'8:00'});
+const pickNames=o=>[...o.results,...o.buildPicks,...o.quickBuys].map(r=>r.name);
+test(pickNames(compRec('')).includes('High-Velocity Rounds')&&!pickNames(compRec('Opening Rounds')).includes('High-Velocity Rounds'),'after upgrading High-Velocity Rounds into Opening Rounds, it is not suggested again');
+const deep=pickNames(E.recommend({hero:'Seven',souls:9000,owned:'Boundless Spirit',enemies:compEnemies},catalog,{clock:'20:00'}));
+test(!deep.includes('Improved Spirit')&&!deep.includes('Extra Spirit'),'two levels down: Boundless Spirit covers Improved Spirit and Extra Spirit');
+const sharp=[...compRec('Opening Rounds',9000).results,...E.recommend({hero:'Vindicta',souls:9000,owned:'Opening Rounds',enemies:compEnemies},catalog,{clock:'14:00'}).buildPicks].find(r=>r.name==='Sharpshooter');
+test(sharp&&sharp.effectiveCost===sharp.cost&&!sharp.upgradeFrom,'a consumed component gives no credit toward its other upgrades (Sharpshooter costs full price)');
+test(E.recommend({hero:'Vindicta',souls:3000,owned:'Opening Rounds',enemies:compEnemies},catalog,{clock:'7:00'}).build.spent===1600,'souls spent count the upgrade once, not its components again');
 
 // Lane opponents matter most while laning.
 const {EventState}=require('../live/event-state.cjs');

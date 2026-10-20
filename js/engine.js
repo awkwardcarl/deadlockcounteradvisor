@@ -393,6 +393,13 @@ function recommend(state,catalog,options={}){
  const buildsFrom=(a,b)=>(a?.components||[]).includes(String(b?.id));
  const soulCount=Math.max(0,Math.min(1000000,Number(state.souls)||0));
  const owned=new Set(cleanList(state.owned).map(norm));
+ // An upgrade consumes its components (and theirs), so they are never
+ // suggested again: owning Opening Rounds covers High-Velocity Rounds. Upgrade
+ // credit still comes only from items you actually hold.
+ const included=new Set();
+ const addParts=item=>{for(const c of item?.components||[]){const part=idMap.get(String(c)),key=part&&norm(part.name);if(key&&!included.has(key)){included.add(key);addParts(part);}}};
+ for(const key of owned)addParts(itemMap.get(key));
+ const covered=key=>owned.has(key)||included.has(key);
  const ownHero=heroMap.get(norm(state.hero));
  const ownTags=ownHero?.tags||[];
  const profile=buildProfile(cleanList(state.owned),itemMap,ownHero);
@@ -543,7 +550,7 @@ function recommend(state,catalog,options={}){
   if(t){r.score=Math.round(r.score*t.factor*100)/100;r.team=t.notes;r.evidence=[...r.evidence,'Your team'];}
   return r;
  };
- const all=catalog.items.filter(i=>!owned.has(norm(i.name))).map(item=>{
+ const all=catalog.items.filter(i=>!covered(norm(i.name))).map(item=>{
   const weights=item.weights||COUNTERS[item.id];
   if(!weights)return null; // never manufacture effects for unreviewed shop items
   const contributes=Object.entries(weights).filter(([tag,weight])=>byTag.has(tag)&&Number(weight)>0).map(([tag,weight])=>{
@@ -606,7 +613,7 @@ function recommend(state,catalog,options={}){
  // Build picks: power for your build from the full shop (by category and shop
  // group), excluding items already ranked as counters.
  const counterIds=new Set(all.map(r=>r.id));
- const build=catalog.items.filter(i=>!owned.has(norm(i.name))&&!counterIds.has(i.id)&&(BUILD_GROUPS[i.group]||(Number(stageShares[i.id])||0)>=.35)).map(item=>{
+ const build=catalog.items.filter(i=>!covered(norm(i.name))&&!counterIds.has(i.id)&&(BUILD_GROUPS[i.group]||(Number(stageShares[i.id])||0)>=.35)).map(item=>{
   const category=item.category||'vitality';
   const cost=Math.max(0,Number(item.cost)||0);
   const validComponents=(item.components||[]).map(c=>idMap.get(String(c))).filter(c=>c&&owned.has(norm(c.name)));
