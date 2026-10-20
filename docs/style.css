@@ -1,14 +1,51 @@
-/* Shared style for the public policy pages (GitHub Pages from /docs). */
-:root{color-scheme:light dark;--bg:#ffffff;--text:#1d2733;--muted:#5b6b7b;--link:#16795c;--rule:#dfe6ec}
-@media (prefers-color-scheme:dark){:root{--bg:#0c1420;--text:#e3eaf0;--muted:#98abbc;--link:#7fd8b8;--rule:#24384a}}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 'Segoe UI',system-ui,-apple-system,sans-serif}
-main{max-width:720px;margin:0 auto;padding:40px 20px 64px}
-h1{font-size:2rem;line-height:1.2;margin:0 0 6px}
-h2{font-size:1.15rem;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--rule)}
-a{color:var(--link)}
-code{font-size:.95em}
-ul{padding-left:22px}
-li{margin:6px 0}
-.meta,.crumb{color:var(--muted);font-size:.9rem}
-.crumb{margin:0 0 18px}
-.links li{margin:10px 0}
+/* Shared style for the public policy pages (GitHub Pages from /docs), in the app's Dusk theme.
+   dusk.css loads first: it sets the --dca-* tokens, the fonts and the dotted page background. */
+:root{color-scheme:dark}
+body{padding:40px 16px 64px;font-size:17px;line-height:1.65;overflow-wrap:break-word;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.site,main{max-width:46rem;margin:0 auto}
+
+/* Site title with the open-tome icon, linking home. */
+.site{margin-bottom:18px}
+.brand{display:inline-flex;align-items:center;gap:12px;color:var(--dca-text);font-family:var(--dca-font-heading);font-weight:600;font-size:1.05rem;letter-spacing:.02em;text-decoration:none}
+.brand img{display:block;width:36px;height:36px;flex:none}
+.brand:hover{color:var(--dca-accent)}
+
+main{box-sizing:border-box;padding:40px 48px 44px;background:var(--dca-surface);border:1px solid var(--dca-line);border-radius:16px;box-shadow:0 18px 48px rgba(11,9,32,.45)}
+h1{margin:0 0 6px;font-size:clamp(1.9rem,1.5rem + 1.6vw,2.4rem);line-height:1.15;letter-spacing:-.01em}
+h2{margin:2.1em 0 .55em;padding-top:1.3em;border-top:1px solid var(--dca-line);font-size:1.3rem;line-height:1.3}
+p{margin:0 0 1em}
+ul{margin:0 0 1em;padding-left:1.3em}
+li{margin:.5em 0}
+li::marker{color:var(--dca-accent)}
+strong{font-weight:700}
+a{color:var(--dca-accent);text-decoration:underline;text-decoration-color:rgba(185,166,255,.45);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{text-decoration-color:currentColor}
+a:focus-visible{outline:2px solid var(--dca-accent);outline-offset:3px;border-radius:4px}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.88em;padding:.1em .4em;background:var(--dca-surface-2);border:1px solid var(--dca-line);border-radius:6px}
+.meta{color:var(--dca-muted);font-size:.92rem}
+h1+.meta{margin-bottom:1.6em}
+main>.meta:last-child{margin:2.4em 0 0;padding-top:1.2em;border-top:1px solid var(--dca-line)}
+
+/* Home page: the icon beside the title, and the links as rows. */
+.intro{display:flex;align-items:center;gap:18px;margin-bottom:20px}
+.intro img{display:block;width:72px;height:72px;flex:none}
+.intro h1{margin:0}
+.links{display:grid;gap:10px;margin:28px 0 0;padding:0;list-style:none}
+.links li{margin:0}
+.links a{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:var(--dca-surface-2);border:1px solid var(--dca-line);border-radius:12px;color:var(--dca-text);font-weight:700;text-decoration:none}
+.links a::after{content:"→";color:var(--dca-accent)}
+.links a:hover{border-color:var(--dca-accent)}
+
+@media (max-width:600px){
+body{padding-top:20px;font-size:16px}
+main{padding:26px 20px 28px;border-radius:12px}
+.intro{gap:14px}
+.intro img{width:56px;height:56px}
+}
+@media print{
+body{padding:0;background:none;color:#000}
+.site{display:none}
+main{max-width:none;padding:0;border:0;box-shadow:none;background:none}
+a{color:inherit}
+.meta,li::marker{color:inherit}
+}
