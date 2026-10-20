@@ -99,6 +99,7 @@ test(withNames.heroes.some(h=>h.name==='Violet'&&h.unverified)&&withNames.heroes
 const violetOut=E.recommend({hero:'Shiv',souls:3000,owned:'',enemies:[{hero:'Violet',items:'Rapid Rounds'}]},withNames,{clock:'08:00'});
 test(violetOut.unknown.includes('No reviewed combat profile for Violet')&&violetOut.quickBuys.length>0,'an unprofiled new hero still counts through her items');
 const main=read('desktop/main.cjs');
-test(main.includes("dataService.addFallbackHeroNames(snapshot, matchService.readAssets(app.getPath('userData')))")&&main.includes("try { await matchService.refreshAssets(app.getPath('userData')); } catch (_) {}")&&main.includes('return withHeroNames(snapshot);'),'catalog carries fallback hero names; Sync refreshes the hero list too');
+const gameData=read('desktop/game-data.cjs');
+test(gameData.includes('catalog.addFallbackHeroNames(catalog.readCache(userData),assets.readAssets(userData))')&&gameData.includes('Promise.allSettled([catalog.refresh(userData),assets.refreshAssets(userData)])')&&main.includes('return gameData.current();')&&main.includes('return gameData.syncNow();'),'catalog carries fallback hero names; Sync refreshes the hero list too');
 
 console.log(`PASS: ${total} phase, build, enemy-item and new-hero checks`);

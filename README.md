@@ -75,13 +75,13 @@ See `OVERWOLF-NEXT-STEPS.md` for precise technical and approval steps.
 2. Double-click **`Build-EXE-Folder.cmd`** (the build method that succeeded on your Windows PC). An internet connection is needed for the *first* Node/Electron dependency install; Node.js must be installed to **build**, not to **run** the resulting app.
 3. Once the build reports success, open `release\Deadlock Counter Advisor-win32-x64\`.
 4. Launch **`Deadlock Counter Advisor.exe`**. Keep the adjacent files and folders with the EXE. A shortcut to the EXE can be placed on your desktop.
-5. Click **Sync items & heroes** for the latest public metadata, then use **Load example match** to try the quick-buy cards and priorities. Sync is opt-in and cached.
+5. The app fetches the latest public metadata on its own (at launch when the cache is a day old, and when a live match shows a hero or item it doesn't know); **Sync items & heroes** fetches it now. Then use **Load example match** to try the quick-buy cards and priorities.
 
 The single-file `Build-Portable-EXE.cmd` is included for completeness but **is not recommended** on your PC because previous attempts failed. The existing EXE-folder builder is unchanged.
 
 ## Data and safety boundaries
 
-- The only permitted public metadata sync uses fixed `https://deadlock.io/api/v1/items.json` and `.../heroes.json` endpoints; image requests are allowlisted by host and path. Actual catalog data is not bundled because it is fetched on demand. No arbitrary network requests are accepted from the UI.
+- The only permitted public metadata sync uses fixed `https://deadlock.io/api/v1/items.json` and `.../heroes.json` endpoints, plus deadlock-api's `/v1/assets/items` and `/v1/assets/heroes` lists (names for heroes newer than deadlock.io's roster); image requests are allowlisted by host and path. The main process runs it in the background at launch when a cache is more than a day old, and when a live match shows a hero ID or shop item neither cache knows (at most once per 10 minutes), keeping the saved copy if it fails. **Settings → Privacy → Update game data automatically** turns the automatic part off (the setting is saved in the app's data folder); Sync still works. Actual catalog data is not bundled because it is fetched on demand. No arbitrary network requests are accepted from the UI.
 - The optional game detector checks the names reported by Windows `tasklist.exe`; that can establish only whether the game *process* is running, not whether a match is active.
 - The optional JSON Lines feed is **development/offline replay only** unless an approved provider is available. `live/EXAMPLE-LIVE-FEED.jsonl` contains simulated game data.
 - No read/process memory, drivers, injection, overlays, hidden information access, input automation or automatic purchases.
@@ -94,6 +94,8 @@ Requires Node.js, but not Electron to execute the tests:
 ```
 npm test
 ```
+
+A daily GitHub Actions job (`.github/workflows/game-data-review.yml`, also runnable by hand) compares the public hero and item lists with the curated tables and opens or updates one issue, **Game data needs review**, when a patch adds heroes or items without reviewed data. Locally: `node tests/game-data-review.cjs --dry-run`.
 
 Tests cover legacy logic, source and icon checks, upgrade and threat-scoring behavior, mocked Overwolf events, and monitor geometry for six display sizes and 36 display transfers. Browser layout checked at 3440×1440, 1920×1080, 1366×768, and compact 800px viewports; **the native Windows executable build and actual GEP SDK have not been run in this environment**.
 

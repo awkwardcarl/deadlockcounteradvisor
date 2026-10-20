@@ -53,13 +53,21 @@ function persist(){try{localStorage.setItem(STORE,JSON.stringify({enemies:state.
 function resolveHeroName(name,id){return engine.resolveHeroName(catalog,name,id);}
 // Feed item lists to catalog names, by the game's class names where reported.
 function resolveFeedItems(names,ids){return engine.resolveFeedItems(catalog,names,ids);}
+// Heroes known only from the hero list (a game update newer than the
+// catalog): "<Name> · new hero", with a tooltip.
+const newHero=name=>engine.isNewHero(catalog,name);
+const newHeroTag=name=>newHero(name)?`<span class="newHero" title="${escapeHTML(engine.NEW_HERO.tip)}">${escapeHTML(engine.NEW_HERO.label)}</span>`:'';
+const newHeroTitle=name=>newHero(name)?` title="${escapeHTML(engine.NEW_HERO.tip)}"`:'';
 function heroOptions(selected,blank){
  let names=heroes();
+ // Only a name outside the catalog's list can be a new hero.
+ const fresh=!!selected&&!names.includes(selected)&&newHero(selected);
  if(selected&&!names.includes(selected))names=[selected,...names];
- return (blank?['',...names]:names).map(h=>`<option value="${escapeHTML(h)}" ${h===selected?'selected':''}>${escapeHTML(h||'Select enemy hero')}</option>`).join('');
+ return (blank?['',...names]:names).map(h=>`<option value="${escapeHTML(h)}" ${h===selected?'selected':''}>${escapeHTML(h?h+(fresh&&h===selected?engine.NEW_HERO.label:''):'Select enemy hero')}</option>`).join('');
 }
 function portrait(name){return catalog.heroes.find(h=>h.name===name)?.portrait||'';}
 function updatePortrait(){
+ $('hero').title=newHero(state.hero)?engine.NEW_HERO.tip:'';
  const img=$('heroPortrait'),src=portrait(state.hero);
  img.hidden=!src;
  if(src)img.src=src;else img.removeAttribute('src');
@@ -81,8 +89,23 @@ function updateCatalogUI(){
  refreshItemIndex();
  $('itemNames').innerHTML=engine.itemSuggestions(catalog).map(name=>`<option value="${escapeHTML(name)}"></option>`).join('');
  updateSetupStatus();applySetupDefault();
- $('syncStatus').textContent=catalog.complete?`Cached ${catalog.build||'game data'} · ${catalog.generatedAt.slice(0,10)}. Manual mode. ${catalog.items.length} shop items with game-data prices and icons.`:'Offline starter list. Click Sync items & heroes to retrieve current public game data.';
+ $('syncStatus').textContent=syncStatusText();
  updatePortrait();renderOwned();renderEnemies();renderAdvice();
+}
+// Settings → Privacy "Update game data automatically". The main process keeps
+// the setting (its launch check runs before this page asks); Sync always works.
+let autoSync=true;
+function syncStatusText(){
+ const auto=autoSync?"Refreshes on its own once a day, and when a match shows a hero or item it doesn't know.":'Automatic updates are off (Settings → Privacy): click Sync items & heroes after a game update.';
+ if(catalog.complete)return `Cached ${catalog.build||'game data'} · ${catalog.generatedAt.slice(0,10)}. ${catalog.items.length} shop items with game-data prices and icons. ${auto}`;
+ return autoSync?'Offline starter list. The app fetches current public game data on its own when online, or click Sync items & heroes.':'Offline starter list. Automatic updates are off: click Sync items & heroes to retrieve current public game data.';
+}
+function setupAutoSync(){
+ const box=$('autoCatalogSync'),api=window.desktopAPI;
+ if(!api?.getAutoCatalogSync){box.disabled=true;return;}
+ const show=on=>{autoSync=on!==false;box.checked=autoSync;$('syncStatus').textContent=syncStatusText();};
+ api.getAutoCatalogSync().then(show).catch(()=>{});
+ box.addEventListener('change',()=>api.setAutoCatalogSync(box.checked).then(show).catch(()=>show(!box.checked)));
 }
 function setSouls(value){
  state.souls=Math.max(0,Math.min(999999,Math.round(Number(value)||0)));
@@ -97,7 +120,7 @@ function enemyRow(e,i){
  return [
   `<div class="enemy" data-row="${i}"><div class="enemyTop">`,
   `<img class="enemyPortrait" src="${escapeHTML(src)}" alt="" ${src?'':'hidden'}>`,
-  `<select class="enemyHero" data-index="${i}" aria-label="Enemy ${i+1} hero">${heroOptions(e.hero,true)}</select>`,
+  `<select class="enemyHero" data-index="${i}" aria-label="Enemy ${i+1} hero"${newHeroTitle(e.hero)}>${heroOptions(e.hero,true)}</select>`,
   `<button class="pickHero" type="button" data-target="enemy:${i}" aria-label="Choose enemy ${i+1} from portraits" title="Choose from portraits">⊞</button>`,
   `<button class="remove" data-index="${i}" type="button" aria-label="Remove enemy ${i+1}">×</button></div>`,
   `<div class="chipBox">${chipList(e.items,`enemy:${i}`)}`,
@@ -157,7 +180,7 @@ function renderGlanceTeam(){
    const key=engine.norm(name),icon=itemIndex.icons.get(key),cls=isNew.has(key)?' gNew':'';
    return icon?`<img class="gItem${cls}" src="${escapeHTML(icon)}" alt="${escapeHTML(name)}" title="${escapeHTML(name)}">`:`<span class="gChip${cls}">${escapeHTML(name)}</span>`;
   }).join('');
-  return `<div class="glanceRow${isNew.size?' gRowNew':''}">${src?`<img class="gPortrait" src="${escapeHTML(src)}" alt="">`:''}<span class="gName">${escapeHTML(e.hero||'Unknown')}${state.ownLane&&e.lane===state.ownLane?'<span class="laneTag">Your lane</span>':''}</span><div class="glanceItems">${items||'<span class="emptyText">No items yet</span>'}</div></div>`;
+  return `<div class="glanceRow${isNew.size?' gRowNew':''}">${src?`<img class="gPortrait" src="${escapeHTML(src)}" alt="">`:''}<span class="gName">${escapeHTML(e.hero||'Unknown')}${newHeroTag(e.hero)}${state.ownLane&&e.lane===state.ownLane?'<span class="laneTag">Your lane</span>':''}</span><div class="glanceItems">${items||'<span class="emptyText">No items yet</span>'}</div></div>`;
  }).join('');
  el.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
 }
@@ -375,7 +398,8 @@ function backingText(r){
 // opponents while laning. Fetched by the main process; can be switched off.
 let buildData=null,buildDataKey='',buildDataTimer=null;
 function buildDataEnabled(){try{return localStorage.getItem(STORE_BUILD_DATA)!=='0';}catch(_){return true;}}
-function heroIdOf(name){const id=catalog.heroes.find(h=>h.name===name)?.id;return Number.isInteger(id)?id:null;}
+// A new hero's ID comes from the hero list, so its builds load too.
+function heroIdOf(name){return engine.heroGameId(catalog,name);}
 function requestBuildData(){
  clearTimeout(buildDataTimer);
  buildDataTimer=setTimeout(async()=>{
@@ -474,7 +498,7 @@ function renderLiveTeam(){
   return [
    `<div class="liveRow${isNew.size?' liveRowNew':''}">`,
    src?`<img class="livePortrait" src="${escapeHTML(src)}" alt="">`:'<span class="livePortrait"></span>',
-   `<div class="liveRowBody"><strong>${escapeHTML(e.hero||'Hero not reported yet')}${state.ownLane&&e.lane===state.ownLane?' <span class="laneTag">Your lane</span>':''}</strong>`,
+   `<div class="liveRowBody"><strong>${escapeHTML(e.hero||'Hero not reported yet')}${newHeroTag(e.hero)}${state.ownLane&&e.lane===state.ownLane?' <span class="laneTag">Your lane</span>':''}</strong>`,
    `<div class="liveItems">${items||'<span class="emptyText">No items yet</span>'}</div></div></div>`
   ].join('');
  }).join('');
@@ -483,7 +507,8 @@ function renderLiveTeam(){
 function renderLiveStrip(){
  const m=lastFeedSnapshot||{};
  $('liveClock').textContent=m.clock?`Live ${m.clock}`:'Live';
- $('liveHeroName').textContent=state.hero||'Your hero';
+ $('liveHeroName').textContent=(state.hero||'Your hero')+(newHero(state.hero)?engine.NEW_HERO.label:'');
+ $('liveHeroName').title=newHero(state.hero)?engine.NEW_HERO.tip:'';
  const src=portrait(state.hero),img=$('liveHeroPortrait');
  img.hidden=!src;if(src&&img.getAttribute('src')!==src)img.src=src;
  $('liveSouls').textContent=fmt.format(state.souls);
@@ -579,7 +604,8 @@ function renderAdvice(){
  $('results').innerHTML=visible.length?visible.map(resultCard).join(''):`<div class="empty">${emptyMessage}</div>`;
  document.querySelectorAll('.itemIcon img, .quickArt img').forEach(img=>img.addEventListener('error',()=>{img.replaceWith(document.createTextNode('◆'));}));
  $('shopSummary').textContent=catalog.complete?`${catalog.items.length} public shop items; ${out.totalCandidates||0} reviewed counter candidates; ${out.knownItems||0} recognized entered enemy purchases. No win-rate predictions.`:'Starter counter list only — sync the catalog to show current items and component upgrade prices.';
- const unknown=$('unknown');unknown.hidden=out.unknown.length===0;unknown.textContent=out.unknown.length?out.unknown.slice(0,6).join(' • '):'';
+ const unknown=$('unknown');unknown.hidden=out.unknown.length===0;
+ unknown.innerHTML=out.unknown.slice(0,6).map(t=>t.endsWith(engine.NEW_HERO.label)?`<span title="${escapeHTML(engine.NEW_HERO.tip)}">${escapeHTML(t)}</span>`:escapeHTML(t)).join(' • ');
 }
 const OVERWOLF_LABELS={connected:'Overwolf: connected',ready:'Overwolf: waiting for a match',waiting:'Overwolf: loading',error:'Overwolf: needs attention',stopped:'Overwolf: stopped'};
 let liveWasOn=false,lastOverwolfMessage='';
@@ -712,12 +738,21 @@ function setupDesktopWindow(){
  api.getDisplays().then(showDisplays).catch(()=>{$('displayInfo').textContent='Display controls unavailable';});
  api.onDisplaysChanged(showDisplays);
  $('nextDisplay').addEventListener('click',()=>api.moveToNextDisplay().then(showDisplays).catch(()=>{}));
- api.getCachedCatalog().then(snapshot=>{if(snapshot){catalog=engine.createCatalog(base,snapshot);updateCatalogUI();}}).catch(()=>{});
+ api.getCachedCatalog().then(applyCatalog).catch(()=>{});
+ // The main process syncs in the background (a day old, or a game update seen live).
+ api.onCatalogUpdated?.(applyCatalog);
 }
-async function syncCatalogNow(){
- const snapshot=await window.desktopAPI.syncCatalog();
- catalog=engine.createCatalog(base,snapshot);updateCatalogUI();
+// A newer catalog: heroes and items the live feed reported are resolved again
+// (a new hero gets its name, a new item its price); manual edits stay.
+function applyCatalog(snapshot){
+ if(!snapshot)return;
+ const before=catalog;
+ catalog=engine.createCatalog(base,snapshot);
+ const old={hero:(n,id)=>engine.resolveHeroName(before,n,id),items:(n,ids)=>engine.resolveFeedItems(before,n,ids)};
+ if(lastFeedSnapshot&&liveMerge.reresolveFeed(state,lastFeedSnapshot,old,{hero:resolveHeroName,items:resolveFeedItems}))persist();
+ updateCatalogUI();
 }
+async function syncCatalogNow(){applyCatalog(await window.desktopAPI.syncCatalog());}
 function setup(){
  configureUpdates();
  let rememberedUISize='auto';try{rememberedUISize=localStorage.getItem(STORE_UI_SIZE)||'auto';}catch(_){}
@@ -740,6 +775,7 @@ function setup(){
  setupMatchView();
  $('useBuildData').checked=buildDataEnabled();
  $('useBuildData').addEventListener('change',e=>{try{localStorage.setItem(STORE_BUILD_DATA,e.target.checked?'1':'0');}catch(_){}buildDataKey='';requestBuildData();renderAdvice();});
+ setupAutoSync();
  $('addEnemy').addEventListener('click',()=>{
    if(state.enemies.length>=6)return;
    state.enemies.push({hero:'',items:''});

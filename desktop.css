@@ -731,6 +731,8 @@ input::placeholder{color:var(--dca-dim)}
 .kindTag.kind-hard{background:rgba(var(--dca-gold-rgb),.16);color:var(--dca-gold)}
 .quickSpike{background:transparent;border:1px solid rgba(var(--dca-accent-rgb),.45);color:var(--dca-accent)}
 .laneTag{background:rgba(var(--dca-accent-rgb),.16);color:var(--dca-accent)}
+/* A hero only the hero list knows (newer than the catalog): " · new hero". */
+.newHero{color:var(--dca-gold);font-weight:400;cursor:help}
 .teamTag{background:rgba(var(--dca-accent-rgb),.14);color:var(--dca-accent)}
 .quickTeam.teamDown .teamTag{background:var(--dca-surface-3);color:var(--dca-muted)}
 /* Matchup states. */

@@ -16,6 +16,10 @@ contextBridge.exposeInMainWorld('desktopAPI', Object.freeze({
   onUpdateStatus: listener => {if(typeof listener==='function')ipcRenderer.on('updates:state',(_event,value)=>listener(value));},
   getCachedCatalog: () => ipcRenderer.invoke('catalog:get'),
   syncCatalog: () => ipcRenderer.invoke('catalog:sync'),
+  getAutoCatalogSync: () => ipcRenderer.invoke('catalog:auto:get'),
+  setAutoCatalogSync: enabled => ipcRenderer.invoke('catalog:auto:set', enabled === true),
+  // A newer catalog from the background sync (a day old, or a game update seen live).
+  onCatalogUpdated: listener => {if(typeof listener==='function')ipcRenderer.on('catalog:updated',(_event,value)=>listener(value));},
   importReplay: () => ipcRenderer.invoke('replay:import'),
   loadMatch: (matchId, ownAccountId) => ipcRenderer.invoke('debrief:load', String(matchId ?? ''), String(ownAccountId ?? '')),
   getBuildData: (heroId, laneIds) => ipcRenderer.invoke('builddata:get', Number(heroId), Array.isArray(laneIds) ? laneIds.map(Number) : []),
