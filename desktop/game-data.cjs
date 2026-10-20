@@ -5,12 +5,20 @@
  * match shows a hero ID or shop item neither cache knows (a game update). Only
  * the two services' fixed asset routes are used, never a match endpoint, and
  * nothing from the match (player names, account IDs) is sent or stored. A
- * failed sync (offline, say) keeps the saved copies. */
+ * failed sync (offline, say) keeps the saved copies. Settings → Privacy can
+ * switch the automatic part off; Sync (and the debrief) still work. */
+const fs=require('node:fs');
+const path=require('node:path');
 const dataService=require('./data-service.cjs');
 const matchService=require('./match-service.cjs');
 const MAX_AGE_MS=24*60*60*1000;   // launch sync when a cache is older than this
 const UNKNOWN_GAP_MS=10*60*1000;  // syncs for unknown content at least this far apart
 const RETRY_MS=60*60*1000;        // content a completed sync couldn't resolve waits this long
+// "Update game data automatically": kept in userData so the main process
+// knows it before the launch check. On unless switched off.
+const settingsFile=userData=>path.join(userData,'game-data-settings.json');
+function readAutoSync(userData){try{return JSON.parse(fs.readFileSync(settingsFile(userData),'utf8'))?.autoSync!==false;}catch(_){return true;}}
+function writeAutoSync(userData,on){const file=settingsFile(userData),tmp=file+'.tmp';fs.writeFileSync(tmp,JSON.stringify({version:1,autoSync:on===true}),{encoding:'utf8',mode:0o600});fs.renameSync(tmp,file);}
 // Missing, older than a day, or a hero list saved before investment tables were kept.
 function isStale(catalog,assets,now=Date.now()){
   const synced=Date.parse(catalog?.syncedAt||'');
@@ -27,7 +35,7 @@ function unknownContent(snapshot,known){
   return [...new Set([...heroIds.map(id=>'hero:'+id),...items.map(id=>'item:'+id)])];
 }
 function createGameData({userData,onCatalog=()=>{},log=()=>{},now=Date.now,catalog=dataService,assets=matchService}={}){
-  let known=null,running=null,lastRun=-Infinity;
+  let known=null,running=null,lastRun=-Infinity,auto=readAutoSync(userData),launchSkipped=false;
   const waiting=new Map(); // unknown content -> when a completed sync last failed to resolve it
   const load=()=>{const c=catalog.readCache(userData),a=assets.readAssets(userData);known=knownContent(c,a);return {c,a};};
   // The cached catalog plus the hero list's names for heroes it lacks.
@@ -50,9 +58,14 @@ function createGameData({userData,onCatalog=()=>{},log=()=>{},now=Date.now,catal
     })().finally(()=>{running=null;});
     return running;
   }
-  function start(){const {c,a}=load();return isStale(c,a,now())?sync('launch'):null;}
+  function start(){
+    const {c,a}=load();
+    if(!auto){launchSkipped=true;return null;}
+    return isStale(c,a,now())?sync('launch'):null;
+  }
   // Per live snapshot: content neither cache knows starts one background sync.
   function check(snapshot){
+    if(!auto)return null;
     if(!known)load();
     const t=now(),found=unknownContent(snapshot,known).filter(k=>!(t-(waiting.get(k)??-Infinity)<RETRY_MS));
     if(!found.length||running||t-lastRun<UNKNOWN_GAP_MS)return null;
@@ -63,6 +76,13 @@ function createGameData({userData,onCatalog=()=>{},log=()=>{},now=Date.now,catal
   }
   // Settings "Sync items & heroes": fails when the catalog could not be fetched.
   async function syncNow(){const result=await sync('manual');if(result.catalogError)throw result.catalogError;return result.snapshot;}
-  return {start,check,sync,syncNow,current,busy:()=>!!running};
+  // Switched back on: the launch check it skipped runs once; nothing else is replayed.
+  function setAutoSync(on){
+    auto=on===true;
+    try{writeAutoSync(userData,auto);}catch(_){}
+    if(auto&&launchSkipped){launchSkipped=false;start();}
+    return auto;
+  }
+  return {start,check,sync,syncNow,current,setAutoSync,autoSync:()=>auto,busy:()=>!!running};
 }
-module.exports={createGameData,isStale,knownContent,unknownContent,MAX_AGE_MS,UNKNOWN_GAP_MS,RETRY_MS};
+module.exports={createGameData,isStale,knownContent,unknownContent,readAutoSync,MAX_AGE_MS,UNKNOWN_GAP_MS,RETRY_MS};

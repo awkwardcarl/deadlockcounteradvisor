@@ -89,8 +89,23 @@ function updateCatalogUI(){
  refreshItemIndex();
  $('itemNames').innerHTML=engine.itemSuggestions(catalog).map(name=>`<option value="${escapeHTML(name)}"></option>`).join('');
  updateSetupStatus();applySetupDefault();
- $('syncStatus').textContent=catalog.complete?`Cached ${catalog.build||'game data'} · ${catalog.generatedAt.slice(0,10)}. ${catalog.items.length} shop items with game-data prices and icons. Refreshes on its own once a day, and when a match shows a hero or item it doesn't know.`:'Offline starter list. The app fetches current public game data on its own when online, or click Sync items & heroes.';
+ $('syncStatus').textContent=syncStatusText();
  updatePortrait();renderOwned();renderEnemies();renderAdvice();
+}
+// Settings → Privacy "Update game data automatically". The main process keeps
+// the setting (its launch check runs before this page asks); Sync always works.
+let autoSync=true;
+function syncStatusText(){
+ const auto=autoSync?"Refreshes on its own once a day, and when a match shows a hero or item it doesn't know.":'Automatic updates are off (Settings → Privacy): click Sync items & heroes after a game update.';
+ if(catalog.complete)return `Cached ${catalog.build||'game data'} · ${catalog.generatedAt.slice(0,10)}. ${catalog.items.length} shop items with game-data prices and icons. ${auto}`;
+ return autoSync?'Offline starter list. The app fetches current public game data on its own when online, or click Sync items & heroes.':'Offline starter list. Automatic updates are off: click Sync items & heroes to retrieve current public game data.';
+}
+function setupAutoSync(){
+ const box=$('autoCatalogSync'),api=window.desktopAPI;
+ if(!api?.getAutoCatalogSync){box.disabled=true;return;}
+ const show=on=>{autoSync=on!==false;box.checked=autoSync;$('syncStatus').textContent=syncStatusText();};
+ api.getAutoCatalogSync().then(show).catch(()=>{});
+ box.addEventListener('change',()=>api.setAutoCatalogSync(box.checked).then(show).catch(()=>show(!box.checked)));
 }
 function setSouls(value){
  state.souls=Math.max(0,Math.min(999999,Math.round(Number(value)||0)));
@@ -760,6 +775,7 @@ function setup(){
  setupMatchView();
  $('useBuildData').checked=buildDataEnabled();
  $('useBuildData').addEventListener('change',e=>{try{localStorage.setItem(STORE_BUILD_DATA,e.target.checked?'1':'0');}catch(_){}buildDataKey='';requestBuildData();renderAdvice();});
+ setupAutoSync();
  $('addEnemy').addEventListener('click',()=>{
    if(state.enemies.length>=6)return;
    state.enemies.push({hero:'',items:''});

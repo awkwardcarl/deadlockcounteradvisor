@@ -271,6 +271,9 @@ app.whenReady().then(() => {
     if(event.sender!==mainWindow?.webContents)throw new Error('Untrusted catalog caller');
     return gameData.syncNow();
   });
+  // Settings → Privacy "Update game data automatically" (saved in userData).
+  ipcMain.handle('catalog:auto:get', event=>{if(!trusted(event))throw new Error('Unauthorized caller');return gameData.autoSync();});
+  ipcMain.handle('catalog:auto:set', (event,enabled)=>{if(!trusted(event))throw new Error('Unauthorized caller');return gameData.setAutoSync(enabled===true);});
   // Post-match debrief: a numeric match ID only; the main process strips
   // account IDs before anything is returned.
   ipcMain.handle('debrief:load', async (event, matchId, ownAccountId) => {

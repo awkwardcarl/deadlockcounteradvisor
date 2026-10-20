@@ -158,6 +158,38 @@ function network(){
     test(!/require\('node:https?'\)|fetch\(|\/matches\//.test(gdSource),'game-data.cjs makes no requests of its own; it uses the two services\' fixed routes');
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 
+  // Settings → Privacy "Update game data automatically": kept by the main process.
+  const autoDir=fs.mkdtempSync(path.join(os.tmpdir(),'dca-auto-sync-'));
+  try{
+    const net=network(),pushed=[];let clock=Date.now();
+    const make=()=>gd.createGameData({userData:autoDir,onCatalog:s=>pushed.push(s),now:()=>clock,catalog:net.catalog,assets:net.assets});
+    const idle=async game=>{while(game.busy())await new Promise(r=>setTimeout(r,5));};
+    test(gd.readAutoSync(autoDir)===true&&make().autoSync()===true,'on by default (nothing saved yet)');
+    fs.writeFileSync(path.join(autoDir,'game-data-settings.json'),'not json');
+    test(gd.readAutoSync(autoDir)===true,'an unreadable setting counts as on');
+    let game=make();
+    test(game.setAutoSync(false)===false&&JSON.parse(fs.readFileSync(path.join(autoDir,'game-data-settings.json'),'utf8')).autoSync===false,'switching it off is saved in userData');
+    game=make();
+    test(game.autoSync()===false&&game.start()===null&&net.calls.length===0,'off, next launch: the setting is read before the launch check, and nothing syncs (even with no saved catalog)');
+    const unknown={ownHeroId:999,enemies:[{name:'PlayerOne',heroId:998,itemIds:['upgrade_brand_new']}],allies:[{heroId:997}]};
+    test(game.check(unknown)===null&&net.calls.length===0,'off: unknown live content starts no sync');
+    const manual=await game.syncNow();
+    test(manual&&manual.items.length===fixture.items.length&&net.calls.length===4&&pushed.length===1,'off: Sync (which the debrief also uses) still works');
+    // Back on, a day later: the launch check it skipped runs once.
+    clock+=25*HOUR;
+    test(game.setAutoSync(true)===true&&game.busy()&&net.calls.length===8&&gd.readAutoSync(autoDir)===true,'back on: the skipped launch check runs once (caches a day old: one sync)');
+    await idle(game);
+    test(game.setAutoSync(false)===false&&game.setAutoSync(true)===true&&!game.busy()&&net.calls.length===8,'toggling again starts nothing: no burst of syncs');
+    test(game.check(unknown)===null&&net.calls.length===8,'unknown content waits the usual ten minutes after that sync');
+    clock+=11*MIN;
+    const again=game.check(unknown);
+    test(again&&net.calls.length===12&&game.check(unknown)===null,'then it syncs once, as before');
+    await again;
+    // Switched on before the launch timer fires: just the normal launch check.
+    game.setAutoSync(false);clock=Date.now();game=make();game.setAutoSync(true);
+    test(!game.busy()&&net.calls.length===12&&game.start()===null&&net.calls.length===12,'switched on before launch: no extra sync; the normal check finds fresh caches');
+  }finally{fs.rmSync(autoDir,{recursive:true,force:true});}
+
   // Engine: a hero only the hero list knows.
   const ctx=vm.createContext({});
   for(const file of ['js/catalog.js','js/engine.js','js/live-merge.js'])vm.runInContext(read(file),ctx);
@@ -216,7 +248,14 @@ function network(){
   test(/ipcMain\.handle\('catalog:sync', async event => \{\n    if\(event\.sender!==mainWindow\?\.webContents\)throw new Error\('Untrusted catalog caller'\);\n    return gameData\.syncNow\(\);/.test(main),'Sync goes through the same module, for the app window only');
   test(read('index.html').includes("connect-src 'none'"),'the page still makes no requests of its own');
   const privacy=read('docs/privacy.html');
-  test(privacy.includes('at launch when the saved copy is more than a day old, when a live match shows a hero or item the app doesn’t know yet, when you click Sync')&&privacy.includes('Nothing about you or your match is sent.')&&privacy.includes('except the automatic catalog sync, which only downloads public game data'),'the Privacy Policy says when the catalog syncs on its own');
+  test(privacy.includes('at launch when the saved copy is more than a day old, when a live match shows a hero or item the app doesn’t know yet, when you click Sync')&&privacy.includes('Nothing about you or your match is sent. The automatic updates can be turned off under <strong>Settings → Privacy</strong>.'),'the Privacy Policy says when the catalog syncs on its own, and that it can be turned off');
+  test(privacy.includes('<li>Every feature that uses the internet is optional except the Overwolf platform connection in the Overwolf edition. Recommendations work offline.</li>')&&privacy.includes('<li>To stop automatic catalog updates, turn off <strong>Update game data automatically</strong> under <strong>Settings → Privacy</strong>. Sync still works when you click it.</li>'),'"every internet feature is optional except the Overwolf connection" is restored');
+  // The toggle: Settings → Privacy, saved by the main process through two trusted handlers.
+  const html=read('index.html'),privacyCard=html.slice(html.indexOf('id="privacyCard"'),html.indexOf('id="shortcutsCard"'));
+  test(privacyCard.includes('<label class="toggleRow"><input type="checkbox" id="autoCatalogSync" checked> Update game data automatically</label>'),'a checkbox in Settings → Privacy, styled like the build data one, on by default');
+  test(main.includes("ipcMain.handle('catalog:auto:get', event=>{if(!trusted(event))throw new Error('Unauthorized caller');return gameData.autoSync();});")&&main.includes("ipcMain.handle('catalog:auto:set', (event,enabled)=>{if(!trusted(event))throw new Error('Unauthorized caller');return gameData.setAutoSync(enabled===true);});"),'main: read and set the setting, for the app window only');
+  test(preload.includes("getAutoCatalogSync: () => ipcRenderer.invoke('catalog:auto:get'),")&&preload.includes("setAutoCatalogSync: enabled => ipcRenderer.invoke('catalog:auto:set', enabled === true),"),'preload: a getter and a boolean-only setter');
+  test(ui.includes(" setupAutoSync();\n")&&ui.includes("if(!api?.getAutoCatalogSync){box.disabled=true;return;}")&&ui.includes("box.addEventListener('change',()=>api.setAutoCatalogSync(box.checked).then(show).catch(()=>show(!box.checked)));")&&ui.includes("'Automatic updates are off (Settings → Privacy): click Sync items & heroes after a game update.'"),'the window shows the saved state, sends changes and says when updates are off');
 
   // Daily review: the diff.
   const curated=review.loadCurated();
