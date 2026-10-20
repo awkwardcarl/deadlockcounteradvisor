@@ -40,6 +40,8 @@ function addFallbackHeroNames(snapshot,assets){
   const known=new Set(snapshot.heroes.map(h=>String(h.id)));
   const names=assets&&typeof assets.heroes==='object'&&assets.heroes?assets.heroes:{};
   const extraHeroNames=Object.fromEntries(Object.entries(names).filter(([id,name])=>/^\d{1,5}$/.test(id)&&!known.has(id)&&typeof name==='string'&&name.trim()&&name.length<=40).map(([id,name])=>[id,name.trim()]));
-  return {...snapshot,extraHeroNames};
+  // Investment bonus tables from the game's hero data (see match-normalizer).
+  const investment=assets&&assets.investment&&assets.investment.default?assets.investment:null;
+  return {...snapshot,extraHeroNames,investment};
 }
 module.exports={getJSON,refresh,readCache,addFallbackHeroNames,ROUTES};

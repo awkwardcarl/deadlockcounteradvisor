@@ -46,6 +46,17 @@ test(weaponBuild.buildPicks.every(r=>E.BUILD_GROUPS[itemByName.get(r.name)?.grou
 const starterOut=E.recommend({hero:'Kelvin',souls:1600,owned:'',enemies},starter);
 test(starterOut.buildPicks.length===0&&starterOut.quickBuys.every(r=>r.kind==='counter'),'starter catalog (no shop groups): counters only, as before');
 test(rec({owned:'Healbane'},{clock:'12:00'}).quickBuys.every(r=>r.name!=='Healbane')&&rec({owned:'Extended Magazine'},{clock:'12:00'}).buildPicks.every(r=>r.name!=='Extended Magazine'),'items you own are never suggested');
+// An upgrade consumes its components: once you own Opening Rounds, High-Velocity
+// Rounds (inside it) is never suggested again, down every level of the chain.
+const compEnemies=[{hero:'Haze',items:'Headshot Booster'},{hero:'Abrams',items:''},{hero:'Seven',items:''}];
+const compRec=(owned,souls=1200)=>E.recommend({hero:'Vindicta',souls,owned,enemies:compEnemies},catalog,{clock:'8:00'});
+const pickNames=o=>[...o.results,...o.buildPicks,...o.quickBuys].map(r=>r.name);
+test(pickNames(compRec('')).includes('High-Velocity Rounds')&&!pickNames(compRec('Opening Rounds')).includes('High-Velocity Rounds'),'after upgrading High-Velocity Rounds into Opening Rounds, it is not suggested again');
+const deep=pickNames(E.recommend({hero:'Seven',souls:9000,owned:'Boundless Spirit',enemies:compEnemies},catalog,{clock:'20:00'}));
+test(!deep.includes('Improved Spirit')&&!deep.includes('Extra Spirit'),'two levels down: Boundless Spirit covers Improved Spirit and Extra Spirit');
+const sharp=[...compRec('Opening Rounds',9000).results,...E.recommend({hero:'Vindicta',souls:9000,owned:'Opening Rounds',enemies:compEnemies},catalog,{clock:'14:00'}).buildPicks].find(r=>r.name==='Sharpshooter');
+test(sharp&&sharp.effectiveCost===sharp.cost&&!sharp.upgradeFrom,'a consumed component gives no credit toward its other upgrades (Sharpshooter costs full price)');
+test(E.recommend({hero:'Vindicta',souls:3000,owned:'Opening Rounds',enemies:compEnemies},catalog,{clock:'7:00'}).build.spent===1600,'souls spent count the upgrade once, not its components again');
 
 // Lane opponents matter most while laning.
 const {EventState}=require('../live/event-state.cjs');
@@ -63,7 +74,7 @@ const laneEnemies=[{hero:'Infernus',items:'Extra Spirit, Mystic Burst',lane:4},{
 const laneRec=(ownLane,clock='05:00')=>E.recommend({hero:'Shiv',souls:1400,owned:'',enemies:laneEnemies,ownLane},catalog,{clock});
 const mid=laneRec(4),left=laneRec(1),noLane=laneRec(null),later=laneRec(4,'14:00');
 test(mid.lane.focus&&mid.lane.opponents.join()==='Infernus'&&mid.threats[0].name==='spirit','laning in the middle against Infernus: spirit becomes the top threat');
-test(mid.quickBuys[0].tags.includes('spirit')&&mid.quickBuys[0].vsItems.every(n=>['Extra Spirit','Mystic Burst'].includes(n)),'the top counter answers your lane opponent and cites only their items');
+test(mid.results[0].tags.includes('spirit')&&mid.results[0].vsItems.every(n=>['Extra Spirit','Mystic Burst'].includes(n)),'the top counter answers your lane opponent and cites only their items');
 test(left.quickBuys[0].tags.includes('bullet')&&left.lane.opponents.join()==='Haze,Vindicta','laning on the left against Haze and Vindicta: a weapon counter leads');
 test(mid.quickBuys.some(r=>r.kind==='build'&&r.reasons[0]==='Helps your lane vs Infernus'),'build picks help your lane while laning');
 test(!noLane.lane.focus&&!later.lane.focus&&later.threats[0].name==='bullet','without lane data, or after laning, the whole team counts equally');

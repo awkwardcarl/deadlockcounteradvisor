@@ -146,8 +146,24 @@ function renderOwned(){
  $('ownedChips').innerHTML=chipList(state.owned,'owned')+'<input class="chipInput" id="owned" data-target="owned" type="text" maxlength="100" list="itemNames" placeholder="Add an item you own…" aria-label="Add an owned item">';
 }
 // Glance mode: only a summary bar and the three picks, in large type.
+// Glance view keeps the enemy team's purchases in sight: portrait, name and
+// item icons, with new purchases ringed as on the main page.
+function renderGlanceTeam(){
+ const el=$('glanceTeam');if(!el)return;
+ const now=Date.now();
+ el.innerHTML=state.enemies.filter(e=>e.hero||e.items).map((e,i)=>{
+  const src=portrait(e.hero),fresh=recentBuys.get(e.feedName||String(i)),isNew=fresh&&fresh.until>now?fresh.items:new Set();
+  const items=engine.cleanList(e.items).map(name=>{
+   const key=engine.norm(name),icon=itemIndex.icons.get(key),cls=isNew.has(key)?' gNew':'';
+   return icon?`<img class="gItem${cls}" src="${escapeHTML(icon)}" alt="${escapeHTML(name)}" title="${escapeHTML(name)}">`:`<span class="gChip${cls}">${escapeHTML(name)}</span>`;
+  }).join('');
+  return `<div class="glanceRow${isNew.size?' gRowNew':''}">${src?`<img class="gPortrait" src="${escapeHTML(src)}" alt="">`:''}<span class="gName">${escapeHTML(e.hero||'Unknown')}${state.ownLane&&e.lane===state.ownLane?'<span class="laneTag">Your lane</span>':''}</span><div class="glanceItems">${items||'<span class="emptyText">No items yet</span>'}</div></div>`;
+ }).join('');
+ el.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
+}
 function setGlance(on){
  document.body.classList.toggle('glanceMode',on);
+ renderGlanceTeam();
  $('glance').textContent=on?'Exit glance':'Glance mode';
  $('glance').setAttribute('aria-pressed',String(on));
  try{localStorage.setItem(STORE_GLANCE,on?'1':'0');}catch(_){}
@@ -316,6 +332,20 @@ function buildSplit(build){
  if(!build?.shares)return 'No items yet';
  return 'Build: '+Object.entries(build.shares).filter(([,v])=>v>=.05).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${Math.round(v*100)}% ${k}`).join(' · ');
 }
+// "Spirit +75 power · Vitality +42% health · Weapon +18% damage", most
+// invested first, from the engine's investment summary.
+const INVEST_SHORT={weapon:'% damage',vitality:'% health',spirit:' power'};
+function investmentText(inv){
+ if(!inv)return '';
+ const cats=['weapon','vitality','spirit'].filter(c=>inv[c]?.spent>0).sort((a,b)=>inv[b].spent-inv[a].spent);
+ if(!cats.length)return 'No investment yet';
+ return cats.map(c=>`${c[0].toUpperCase()+c.slice(1)} +${inv[c].bonus}${INVEST_SHORT[c]}`).join(' · ');
+}
+// Tooltip: souls spent per category and the next step.
+function investmentTip(inv){
+ if(!inv)return '';
+ return ['weapon','vitality','spirit'].map(c=>{const x=inv[c];if(!x)return '';const next=x.next?`; next +${x.next.bonus}${x.unit} at ${fmt.format(x.next.at)} (${fmt.format(x.next.at-x.spent)} more)`:'; maximum reached';return `${c[0].toUpperCase()+c.slice(1)}: ${fmt.format(x.spent)} souls → +${x.bonus}${x.unit}${next}`;}).filter(Boolean).join('\n')+(inv.source==='built-in'?'\n(Built-in bonus table: sync the catalog for the game\'s current values.)':'');
+}
 let lastAdvice=null;
 // "In 13 of 20 popular builds · wins 46% vs Infernus" from the engine's backing.
 function backingText(r){
@@ -369,9 +399,9 @@ function quickCard(r,i){
   `<span class="quickCost">${fmt.format(r.effectiveCost)}<small> souls</small></span></div>`,
   `<p class="quickReason">${escapeHTML(reason)}${teamLine(r)}</p>`,
   backingText(r)?`<p class="quickData">${escapeHTML(backingText(r))}</p>`:'',
-  `<p class="quickVs"><span class="kindTag kind-${r.kind||'counter'}">${KIND_LABELS[r.kind]||KIND_LABELS.counter}</span>${r.vsItems?.length?` vs ${escapeHTML(r.vsItems.join(', '))}`:''}</p>`,
+  `<p class="quickVs"><span class="kindTag kind-${r.kind||'counter'}">${KIND_LABELS[r.kind]||KIND_LABELS.counter}</span>${r.hardCounter?'<span class="kindTag kind-hard" title="A strong answer to what your lane opponent is built around: worth buying early">Hard counter</span>':''}${r.vsItems?.length?` vs ${escapeHTML(r.vsItems.join(', '))}`:''}</p>`,
   counterFaces(r),
-  `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`}</span>${r.upgradeFrom?`<span class="quickUpgrade">uses your ${escapeHTML(r.upgradeFrom)}</span>`:''}</div>`,
+  `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`}</span>${r.upgradeFrom?`<span class="quickUpgrade">uses your ${escapeHTML(r.upgradeFrom)}</span>`:''}${r.investment?.notable?`<span class="quickSpike" title="Investment bonus from this purchase">${r.investment.at?fmt.format(r.investment.at)+': ':''}+${r.investment.gain}${INVEST_SHORT[r.investment.category]}</span>`:''}</div>`,
   `</article>`
  ].join('');
 }
@@ -448,9 +478,9 @@ function renderLiveStrip(){
  $('liveOwned').textContent=`${owned} ${owned===1?'item':'items'}`;
  const lane=lastAdvice?.lane;
  $('livePhase').textContent=lane?.focus&&lane.opponents.length?`Laning vs ${lane.opponents.join(' and ')}`:lastAdvice?.phase?.label||'';
- $('liveBuild').textContent=lastAdvice?.build?buildSplit(lastAdvice.build):'';
+ $('liveBuild').textContent=lastAdvice?.investment?investmentText(lastAdvice.investment):lastAdvice?.build?buildSplit(lastAdvice.build):'';
  $('liveBuild').classList.toggle('liveGap',!!lastAdvice?.build?.durabilityGap);
- $('liveBuild').title=lastAdvice?.build?.durabilityGap?'Little vitality against a damage-heavy team: one pick covers durability.':'';
+ $('liveBuild').title=[investmentTip(lastAdvice?.investment),lastAdvice?.build?.durabilityGap?'Little vitality against a damage-heavy team: one pick covers durability.':''].filter(Boolean).join('\n');
  renderFreshness();
 }
 // "Updated 3s ago"; turns amber when live data stops arriving.
@@ -488,12 +518,13 @@ function setupMatchView(){
   const now=Date.now();
   let expired=false;
   for(const [key,value] of recentBuys)if(value.until<=now){recentBuys.delete(key);expired=true;}
-  if(expired)renderLiveTeam();
+  if(expired){renderLiveTeam();renderGlanceTeam();}
   document.querySelectorAll('#quickBuys .quickChanged').forEach((el,i)=>{if((pickHighlights.get(lastPickNames[i])||0)<=now)el.classList.remove('quickChanged');});
  },5000);
 }
 function renderEnemies(){
  $('enemies').innerHTML=state.enemies.map(enemyRow).join('');
+ renderGlanceTeam();
  if(document.body.classList.contains('liveMatch'))renderLiveTeam();
  document.querySelectorAll('.enemyPortrait').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
  document.querySelectorAll('.enemyHero').forEach(el=>el.addEventListener('change',()=>{state.enemies[Number(el.dataset.index)].hero=el.value;renderEnemies();renderAdvice();persist();}));
@@ -503,7 +534,8 @@ function renderAdvice(){
  // The live clock sets the match phase; without one the engine estimates it from your souls.
  const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode,clock:liveWasOn?lastFeedSnapshot?.clock||'':'',buildData:buildDataEnabled()?buildData:null});
  lastAdvice=out;
- $('phaseSummary').textContent=out.phase?`${out.phase.label}${out.phase.source==='souls'?' (estimated)':''} · ${buildSplit(out.build)} · `:'';
+ $('phaseSummary').textContent=out.phase?`${out.phase.label}${out.phase.source==='souls'?' (estimated)':''} · ${out.investment?investmentText(out.investment):buildSplit(out.build)} · `:'';
+ $('phaseSummary').title=investmentTip(out.investment);
  $('matchLabel').textContent=out.count?`${out.count}/6 enemies`:'No lineup';
  const opponents=state.enemies.map(e=>e.hero).filter(Boolean);
  $('glanceSummary').textContent=`${state.hero||'No hero'}${opponents.length?' vs '+opponents.join(', '):' · no enemies entered'}`;

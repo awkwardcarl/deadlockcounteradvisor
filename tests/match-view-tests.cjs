@@ -15,7 +15,8 @@ const ctx=vm.createContext({});
 for(const file of ['js/catalog.js','js/engine.js'])vm.runInContext(read(file),ctx);
 const E=ctx.DeadlockEngine,catalog=E.createCatalog(ctx.DeadlockCatalog,require('./fixtures/catalog-snapshot.json'));
 const lineup=[{hero:'Vindicta',items:'Headshot Booster, Rapid Rounds'},{hero:'Abrams',items:'Bullet Lifesteal'},{hero:'Paige',items:'Healbane'}];
-const out=E.recommend({hero:'Shiv',souls:4850,owned:'',enemies:lineup},catalog);
+// Mid game: past the opening buys, which favor 800-soul items.
+const out=E.recommend({hero:'Shiv',souls:4850,owned:'',enemies:lineup},catalog,{clock:'14:00'});
 const names=lineup.map(e=>e.hero);
 test(out.quickBuys.length===3&&out.results.every(r=>Array.isArray(r.counters)&&r.counters.length===r.coverage&&r.counters.every(h=>names.includes(h))),'every pick lists the heroes it counters (count matches coverage)');
 test(out.results.every(r=>r.counters.join()===names.filter(h=>r.counters.includes(h)).join()),'countered heroes keep lineup order');

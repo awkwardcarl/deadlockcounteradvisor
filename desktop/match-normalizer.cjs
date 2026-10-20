@@ -24,16 +24,33 @@ function damageCategory(source){
 }
 
 // Compact asset indexes from /v1/assets/items and /v1/assets/heroes.
+// A hero's investment bonuses (cost_bonuses): for each category, the souls
+// spent in it and the total bonus from that point on, e.g. weapon 4,800 -> 46.
+function compactInvestment(raw){
+  const out={};
+  for(const cat of ['weapon','vitality','spirit']){
+    const steps=(Array.isArray(raw?.[cat])?raw[cat]:[]).slice(0,24).map(s=>[num(s?.gold_threshold),num(s?.bonus)]).filter(([t,b])=>t>0&&t<=100000&&b>=0&&b<=1000).sort((a,b)=>a[0]-b[0]);
+    if(steps.length)out[cat]=steps;
+  }
+  return Object.keys(out).length===3?out:null;
+}
 function compactAssets(itemsRaw,heroesRaw){
-  const items={},heroes={};
+  const items={},heroes={},tables={};
   for(const item of Array.isArray(itemsRaw)?itemsRaw:[]){
     if(!Number.isFinite(Number(item?.id))||item.type!=='upgrade')continue;
     items[String(item.id)]={c:clean(item.class_name,80),n:clean(item.name,80),cost:num(item.cost),tier:num(item.item_tier),slot:clean(item.item_slot_type,20)};
   }
   for(const hero of Array.isArray(heroesRaw)?heroesRaw:[]){
     if(Number.isFinite(Number(hero?.id))&&hero.name)heroes[String(hero.id)]=clean(hero.name,60);
+    const table=compactInvestment(hero?.cost_bonuses);
+    if(table&&Number.isFinite(Number(hero?.id)))tables[String(hero.id)]=table;
   }
-  return {items,heroes};
+  // Most heroes share one table; keep it once, plus any hero that differs.
+  const counts={};
+  for(const t of Object.values(tables)){const k=JSON.stringify(t);counts[k]=(counts[k]||0)+1;}
+  const common=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const investment=common?{default:JSON.parse(common),heroes:Object.fromEntries(Object.entries(tables).filter(([,t])=>JSON.stringify(t)!==common))}:null;
+  return {items,heroes,investment};
 }
 
 function normalizeMatch(raw,assets,ownAccountId=''){
@@ -91,4 +108,4 @@ function normalizeMatch(raw,assets,ownAccountId=''){
     youSlot,players,damageTaken:damage};
 }
 
-module.exports={normalizeMatch,compactAssets,damageCategory};
+module.exports={normalizeMatch,compactAssets,compactInvestment,damageCategory};
