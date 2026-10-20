@@ -63,7 +63,7 @@ const laneEnemies=[{hero:'Infernus',items:'Extra Spirit, Mystic Burst',lane:4},{
 const laneRec=(ownLane,clock='05:00')=>E.recommend({hero:'Shiv',souls:1400,owned:'',enemies:laneEnemies,ownLane},catalog,{clock});
 const mid=laneRec(4),left=laneRec(1),noLane=laneRec(null),later=laneRec(4,'14:00');
 test(mid.lane.focus&&mid.lane.opponents.join()==='Infernus'&&mid.threats[0].name==='spirit','laning in the middle against Infernus: spirit becomes the top threat');
-test(mid.quickBuys[0].tags.includes('spirit')&&mid.quickBuys[0].vsItems.every(n=>['Extra Spirit','Mystic Burst'].includes(n)),'the top counter answers your lane opponent and cites only their items');
+test(mid.results[0].tags.includes('spirit')&&mid.results[0].vsItems.every(n=>['Extra Spirit','Mystic Burst'].includes(n)),'the top counter answers your lane opponent and cites only their items');
 test(left.quickBuys[0].tags.includes('bullet')&&left.lane.opponents.join()==='Haze,Vindicta','laning on the left against Haze and Vindicta: a weapon counter leads');
 test(mid.quickBuys.some(r=>r.kind==='build'&&r.reasons[0]==='Helps your lane vs Infernus'),'build picks help your lane while laning');
 test(!noLane.lane.focus&&!later.lane.focus&&later.threats[0].name==='bullet','without lane data, or after laning, the whole team counts equally');

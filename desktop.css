@@ -648,3 +648,5 @@ body.glanceMode #quickBuys .quickItem{gap:8px}
 .gItem{width:calc(28px * var(--ui-text-multiplier));height:calc(28px * var(--ui-text-multiplier));padding:2px;border-radius:6px;background:#1a2a3a;object-fit:contain}
 .gChip{padding:2px 7px;border-radius:6px;background:#1a2a3a;color:#c4d4de;font-size:calc(11px * var(--ui-text-multiplier))}
 .gNew{outline:2px solid #f0cf8a;outline-offset:1px}
+/* Hard counter tag on pick cards (laning). */
+.kindTag.kind-hard{margin-left:6px;background:#4a2a24;color:#ffc9b8}

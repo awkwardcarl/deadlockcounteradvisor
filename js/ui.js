@@ -399,7 +399,7 @@ function quickCard(r,i){
   `<span class="quickCost">${fmt.format(r.effectiveCost)}<small> souls</small></span></div>`,
   `<p class="quickReason">${escapeHTML(reason)}${teamLine(r)}</p>`,
   backingText(r)?`<p class="quickData">${escapeHTML(backingText(r))}</p>`:'',
-  `<p class="quickVs"><span class="kindTag kind-${r.kind||'counter'}">${KIND_LABELS[r.kind]||KIND_LABELS.counter}</span>${r.vsItems?.length?` vs ${escapeHTML(r.vsItems.join(', '))}`:''}</p>`,
+  `<p class="quickVs"><span class="kindTag kind-${r.kind||'counter'}">${KIND_LABELS[r.kind]||KIND_LABELS.counter}</span>${r.hardCounter?'<span class="kindTag kind-hard" title="A strong answer to what your lane opponent is built around: worth buying early">Hard counter</span>':''}${r.vsItems?.length?` vs ${escapeHTML(r.vsItems.join(', '))}`:''}</p>`,
   counterFaces(r),
   `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`}</span>${r.upgradeFrom?`<span class="quickUpgrade">uses your ${escapeHTML(r.upgradeFrom)}</span>`:''}${r.investment?.notable?`<span class="quickSpike" title="Investment bonus from this purchase">${r.investment.at?fmt.format(r.investment.at)+': ':''}+${r.investment.gain}${INVEST_SHORT[r.investment.category]}</span>`:''}</div>`,
   `</article>`

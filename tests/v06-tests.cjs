@@ -15,7 +15,7 @@ let out=E.recommend(baseState,catalog);
 test(out.quickBuys.length>0,'top quick purchases returned');
 test(out.quickBuys.every(x=>x.name&&x.effectiveCost>=0),'all quick picks have explainable cost');
 test(out.quickBuys.some(x=>x.affordable),'shop-now appears for affordable items');
-test(out.quickBuys.some(x=>!x.affordable),'save-for appears if better longer-term option exists');
+test(E.recommend(baseState,catalog,{clock:'14:00'}).quickBuys.some(x=>!x.affordable),'save-for appears if better longer-term option exists (past the opening buys)');
 test(out.quality==='Starter catalog','honest incomplete catalog notice');
 test(out.threats.every(x=>x.coverage<=2),'pressure coverage never exceeds enemy count');
 test(out.results.every(x=>x.missing===Math.max(0,x.effectiveCost-1600)),'remaining souls based on payable price');

@@ -235,10 +235,29 @@ function matchPhase(clock,netWorth){
 // What each phase favors: item tiers (800 / 1,600 / 3,200 / 6,400), which
 // threats matter more, and how counters and build picks are balanced.
 const PHASE_TUNING={
- laning:{tier:{1:1.15,2:1,3:.6,4:.3},threat:{range:1.2,sustain:1.15,slow:1.05,burst:.9,area:.85,control:.9},counter:.85,build:1.15},
+ laning:{tier:{1:1.1,2:1.05,3:.45,4:.15},threat:{range:1.2,sustain:1.15,slow:1.05,burst:.9,area:.85,control:.9},counter:.85,build:1.15},
  mid:{tier:{1:.7,2:1,3:1.05,4:.75},threat:{},counter:1,build:.95},
  late:{tier:{1:.35,2:.65,3:1,4:1.15},threat:{burst:1.15,control:1.2,area:1.15,range:.9,sustain:1.05},counter:1.1,build:.8}
 };
+// The opening buys: most players buy two or three 800-soul items before their
+// first 1,600 (deadlock-api purchase data, all ranks: about 70% of purchases
+// before 10:00 cost 800 and under 2% cost 3,200 or more). Until 2,400 souls
+// are in items, 800-soul items lead and bigger ones wait.
+const OPENING_SPENT=2400;
+const OPENING_TIER={1:1.3,2:.7,3:.25,4:.1};
+// While laning, a save target stays within reach: at most 1,600 (800 during
+// the opening buys) beyond what you can pay now.
+const LANING_SAVE_CAP=1600,OPENING_SAVE_CAP=800;
+// A hard counter: a strong, specific answer (weight 2.5+ on its main threat)
+// to what your lane opponent has bought into (a purchase plus their hero's
+// archetype, or two purchases; without lanes, purchases by two or more
+// enemies), costing 1,600 or less. Hero archetypes alone never qualify, and
+// damage resist needs a stacked lane (two lane opponents buying into it, or
+// one with three such purchases): nearly every laner buys some damage. It
+// skips the opening penalty and may lead the picks while laning.
+const HARD_COUNTER={weight:2.5,cost:1600,
+ specific:{lane:.8,team:1.6,buyers:2},
+ damage:{lane:1.8,team:3,buyers:3},damageTags:new Set(['bullet','spirit','burst'])};
 const tierOf=item=>[1,2,3,4].includes(Number(item.tier))?Number(item.tier):(Number(item.cost)||0)<=800?1:(Number(item.cost)||0)<=1600?2:(Number(item.cost)||0)<=3200?3:4;
 // Shop groups that make an item a build (power) pick, and how central each is.
 // Only items with a known group qualify, so no effect is invented for others.
@@ -363,6 +382,10 @@ function recommend(state,catalog,options={}){
  const profile=buildProfile(cleanList(state.owned),itemMap,ownHero);
  const phase=matchPhase(options.clock,profile.total+soulCount);
  const tune=PHASE_TUNING[phase.key];
+ const opening=phase.key==='laning'&&profile.total<OPENING_SPENT;
+ // While laning, what you pay now sets the tier (an upgrade costs only the
+ // difference); later, the item's own tier does.
+ const tierWeight=(item,effectiveCost,hard)=>phase.key!=='laning'?tune.tier[tierOf(item)]:(opening&&!hard?OPENING_TIER:tune.tier)[tierOf({cost:effectiveCost})];
  const investTable=(Number.isInteger(ownHero?.id)&&catalog.investment?.heroes?.[ownHero.id])||catalog.investment?.default||DEFAULT_INVESTMENT;
  const investment=Object.fromEntries(['weapon','vitality','spirit'].map(c=>{
   const spent=profile.spent[c]||0,table=investTable[c],next=table.find(([at])=>at>spent);
@@ -389,6 +412,8 @@ function recommend(state,catalog,options={}){
  const laneFocus=phase.key==='laning'&&!!ownLane&&enemies.some(e=>Number(e.lane)===ownLane);
  const laneOpponents=laneFocus?enemies.filter(e=>Number(e.lane)===ownLane).map(e=>String(e.hero)):[];
  const laneTags=new Map(),matchupWeight=new Map();
+ // Per threat: lane opponents, and enemies overall, whose purchases show it.
+ const laneBuyers=new Map(),teamBuyers=new Map();
  for(const [idx,enemy] of enemies.entries()){
   const inLane=laneFocus&&Number(enemy.lane)===ownLane;
   // Applied after the per-enemy cap, so your lane opponent can clearly lead.
@@ -452,6 +477,7 @@ function recommend(state,catalog,options={}){
    // weight is squared because item scores take a square root of it.
    const acc=byTag.get(tag);acc.score+=bounded*laneWeight;acc.pick+=bounded*laneWeight*laneWeight;acc.sources.push(...x.sources);acc.enemies.add(idx);
    if(inLane)laneTags.set(tag,(laneTags.get(tag)||0)+bounded);
+   if(x.items>0||x.pairs>0){teamBuyers.set(tag,(teamBuyers.get(tag)||0)+1);if(inLane)laneBuyers.set(tag,(laneBuyers.get(tag)||0)+1);}
   }
  }
  const strategy=STRATEGY[options.strategy]||STRATEGY.balanced;
@@ -520,7 +546,11 @@ function recommend(state,catalog,options={}){
   const fitTags=OWN_AFFINITY[item.id]||[];
   const ownMatch=fitTags.some(t=>ownTags.includes(t));
   const fit=item.synergy?(ownTags.includes(item.synergy)?1.12:0.78):(fitTags.length?(ownMatch?1.08:0.92):1);
-  const tierFit=tune.tier[tierOf(item)]*(upgradeFrom&&phase.key!=='laning'?1.1:1);
+  const lead=contributes[0];
+  const need=HARD_COUNTER.damageTags.has(lead.tag)?HARD_COUNTER.damage:HARD_COUNTER.specific;
+  const bought=laneFocus?(laneBuyers.get(lead.tag)||0)>=1&&(laneTags.get(lead.tag)||0)>=need.lane:(teamBuyers.get(lead.tag)||0)>=need.buyers&&(byTag.get(lead.tag)?.score||0)>=need.team;
+  const hard=phase.key==='laning'&&effectiveCost<=HARD_COUNTER.cost&&Number(weights[lead.tag])>=HARD_COUNTER.weight&&bought;
+  const tierFit=tierWeight(item,effectiveCost,hard)*(upgradeFrom&&phase.key!=='laning'?1.1:1);
   const align=alignment(item.category||'vitality');
   const matchupBonus=matchedHeroes.reduce((sum,h)=>sum+(MATCHUPS[h]?.items[item.id]||0)*(matchupWeight.get(h)??1),0);
   // Covering more enemies helps; while laning, covering your lane opponents counts most.
@@ -542,7 +572,7 @@ function recommend(state,catalog,options={}){
   const affordable=soulCount>=effectiveCost;
   return {id:item.id,name:item.name,cost,effectiveCost,upgradeFrom,category:item.category||'vitality',icon:item.icon||'',
    score:Math.round(score*100)/100,affordable,missing:Math.max(0,effectiveCost-soulCount),
-   tags:leads.map(x=>x.tag),reasons,sources,vsItems,backing,investment:invest,coverage:coveredEnemies.size,kind:profile.shares&&align>=.75?'both':'counter',
+   tags:leads.map(x=>x.tag),reasons,sources,vsItems,backing,investment:invest,hardCounter:hard,coverage:coveredEnemies.size,kind:profile.shares&&align>=.75?'both':'counter',
    // The heroes this item answers, in lineup order (shown as portraits on the pick cards).
    counters:[...coveredEnemies].sort((x,y)=>x-y).map(i=>String(enemies[i].hero)),
    why:item.why||`Can help against ${reasons.join(', ').toLowerCase()}. Verify its current in-game tooltip and activation conditions.`,
@@ -574,12 +604,12 @@ function recommend(state,catalog,options={}){
   // With a real sample of popular builds (5+), what they take at this stage
   // outweighs the categories you have bought into so far.
   const pathFit=buildCount>=5?.5*align+.9*backing.share:align;
-  const score=(invest?.factor||1)*backing.boost*(1+.5*backing.share)*2*pathFit*(BUILD_GROUPS[item.group]||.85)*tune.tier[tierOf(item)]*(category===profile.heroType?1.1:1)*(gap?1.4:1)*(laneHelp?1.35:1)*(upgradeFrom?1.15:1)*tune.build;
+  const score=(invest?.factor||1)*backing.boost*(1+.5*backing.share)*2*pathFit*(BUILD_GROUPS[item.group]||.85)*tierWeight(item,effectiveCost,false)*(category===profile.heroType?1.1:1)*(gap?1.4:1)*(laneHelp?1.35:1)*(upgradeFrom?1.15:1)*tune.build;
   const reason=gap?'Fills a durability gap':laneHelp?`Helps your lane vs ${laneOpponents.join(' and ')}`:profile.shares&&(profile.shares[category]||0)>=.4?`Builds on your ${category} investment`:!profile.shares&&category===profile.heroType?`Fits ${ownHero.name}'s ${category} damage`:upgradeFrom?`Upgrades your ${upgradeFrom}`:backing.share>=.35?`Popular in ${ownHero?.name||'your hero'}'s builds`:'Rounds out your build';
   const affordable=soulCount>=effectiveCost;
   return {id:item.id,name:item.name,cost,effectiveCost,upgradeFrom,category,icon:item.icon||'',
    score:Math.round(score*100)/100,affordable,missing:Math.max(0,effectiveCost-soulCount),
-   tags:[],reasons:[reason],sources:[],vsItems:[],backing,investment:invest,coverage:0,kind:'build',counters:[],gap,
+   tags:[],reasons:[reason],sources:[],vsItems:[],backing,investment:invest,hardCounter:false,coverage:0,kind:'build',counters:[],gap,
    why:`${reason}. ${item.groupLabel?item.groupLabel+' item':'Shop item'} for the ${PHASE_LABELS[phase.key].toLowerCase()} stage.`,
    caution:'A build-fit heuristic from the item\'s shop category and group, your purchases, the match phase and the investment bonus steps. It does not model exact stat values.',
    confidence:'build fit',heroNotes:[],evidence:['Your build'],ownFit:reason};
@@ -588,17 +618,25 @@ function recommend(state,catalog,options={}){
  // you must save for them), a durability pick when there is a gap, then at
  // least one item you can buy now and one worth saving for, taken from the
  // side the phase leans to (build while laning, counters later).
+ // While laning: only the strongest hard counter keeps its flag; save targets
+ // stay within reach; counters must answer someone in your lane; during the
+ // opening buys there is no separate save card (a hard counter is the
+ // exception); and an item you can buy now comes first.
+ if(phase.key==='laning'){const best=all.find(r=>r.hardCounter);for(const r of all)if(r!==best)r.hardCounter=false;}
+ const saveCap=opening?OPENING_SAVE_CAP:LANING_SAVE_CAP;
+ const reachable=r=>phase.key!=='laning'||(r.affordable||r.hardCounter||r.effectiveCost<=saveCap)&&(!laneFocus||r.kind==='build'||r.counters.some(h=>laneOpponents.includes(h)));
  const quickBuys=[],taken=new Set();
  const take=r=>{if(r&&!taken.has(r.name)&&quickBuys.length<3){quickBuys.push(r);taken.add(r.name);}};
- const top=list=>list.find(r=>!taken.has(r.name));
+ const top=list=>list.find(r=>!taken.has(r.name)&&reachable(r));
  take(top(all));
  take(top(build));
  if(durabilityGap&&!quickBuys.some(r=>r.gap))take(top(build.filter(r=>r.gap)));
  const lean=phase.key==='laning'?[build,all]:[all,build];
- const firstOf=test=>{for(const list of lean){const r=list.find(x=>!taken.has(x.name)&&test(x));if(r)return r;}};
+ const firstOf=test=>{for(const list of lean){const r=list.find(x=>!taken.has(x.name)&&reachable(x)&&test(x));if(r)return r;}};
  if(!quickBuys.some(r=>r.affordable))take(firstOf(r=>r.affordable));
- if(!quickBuys.some(r=>!r.affordable))take(firstOf(r=>!r.affordable));
+ if(!opening&&!quickBuys.some(r=>!r.affordable))take(firstOf(r=>!r.affordable));
  for(const list of lean)while(quickBuys.length<3&&top(list))take(top(list));
+ if(phase.key==='laning'){const rank=r=>r.hardCounter?0:r.affordable?1:2;quickBuys.sort((a,b)=>rank(a)-rank(b));}
  const sort=options.sort||'smart';
  if(sort==='affordable')all.sort((a,b)=>Number(b.affordable)-Number(a.affordable)||b.score-a.score);
  else if(sort==='cost')all.sort((a,b)=>a.effectiveCost-b.effectiveCost||b.score-a.score);
@@ -607,7 +645,7 @@ function recommend(state,catalog,options={}){
  return {results:filtered.slice(0,12),quickBuys,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,level:threatLevel(value.score),coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
  patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
  buildPicks:build.slice(0,6),
- phase:{key:phase.key,label:PHASE_LABELS[phase.key],source:phase.source,minutes:phase.minutes},
+ phase:{key:phase.key,label:PHASE_LABELS[phase.key],source:phase.source,minutes:phase.minutes,opening},
  build:{shares:profile.shares,spent:profile.total,heroType:profile.heroType,durabilityGap},
  lane:{focus:laneFocus,opponents:laneOpponents},
  investment:{...investment,source:catalog.investment?'game data':'built-in'},
@@ -615,5 +653,5 @@ function recommend(state,catalog,options={}){
  buildData:{builds:buildCount,stats:Object.keys(statSource).length,matchup:useMatchup},
  unknown,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,DEFAULT_INVESTMENT,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
+root.DeadlockEngine={createCatalog,resolveHeroName,resolveFeedItems,recommend,DEFAULT_INVESTMENT,OPENING_SPENT,OPENING_TIER,LANING_SAVE_CAP,OPENING_SAVE_CAP,HARD_COUNTER,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
 })(typeof window!=='undefined'?window:globalThis);
