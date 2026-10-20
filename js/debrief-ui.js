@@ -107,7 +107,7 @@ function setup({$,getCatalog,ensureCatalog,engine,debrief,base,escapeHTML,fmt}){
     const rows=a.timeline.map(r=>{
       const [label,cls]=VERDICTS[r.verdict];
       const pickText=r.picks.map(p=>p.name).join(' · ')||'no counter needed';
-      const threatText=r.threats.map(t=>`${t.label} ${t.level==='high'?'High':'Medium'}`).join(' · ');
+      const threatText=r.threats.map(t=>`${t.label} ${t.level==='high'?'▼ High':'● Medium'}`).join(' · ');
       const picks=r.verdict==='top'||pickText===lastPicks?'':`<span class="tlPicks">Advisor at this budget: ${escapeHTML(pickText)}</span>`;
       const threats=threatText&&threatText!==lastThreats?`<span class="tlThreats">${escapeHTML(threatText)}</span>`:'';
       lastPicks=pickText;lastThreats=threatText;

@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https://deadlock.io; style-src 'self'; script-src 'self'; object-src 'none'; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
-  <meta name="theme-color" content="#0d1522">
+  <meta name="theme-color" content="#15141C">
   <title>Deadlock Counter Advisor — Desktop</title>
+  <link rel="stylesheet" href="dusk.css">
   <link rel="stylesheet" href="base.css">
   <link rel="stylesheet" href="desktop.css">
 </head>
@@ -13,11 +14,11 @@
   <main class="appWrap">
     <header class="topbar">
       <div class="brandGroup">
-        <span class="logoMark" aria-hidden="true">◆</span>
+        <img class="logoMark" src="assets/icon.svg" alt="" width="44" height="44">
         <div class="titleStack"><strong>COUNTER ADVISOR</strong><small>DEADLOCK · SECOND-SCREEN COMPANION</small></div>
       </div>
       <div class="toolbar">
-        <span class="statusBadge" id="topLiveStatus"><i aria-hidden="true"></i> Live source: disconnected</span>
+        <span class="statusBadge" id="topLiveBadge"><i aria-hidden="true"></i><span id="topLiveStatus">Live source: disconnected</span></span>
         <label class="toolbarScale" for="uiScale">Text size
           <select id="uiScale" aria-label="Interface text size">
             <option value="auto">Auto</option>
@@ -131,7 +132,7 @@
         <details class="aboutPanel" id="aboutPanel"><summary>About &amp; safety</summary>
         <div class="infoRow"><div><strong>Independent second-screen app</strong><p>Manual recommendations always work. The Overwolf edition fills in the enemy lineup and their items, your hero, souls and purchases live from Overwolf's approved game events. The standard edition can watch for the game process. This app does not read Deadlock memory or inject an overlay.</p></div><div><strong>How rankings work</strong><p>Counters are explainable picks based on the enemy lineup, their visible items, your hero and your souls. Enemy heroes and recognized items contribute threat scores, and each counter is ranked by relevant protections and synergy. Suggestions are heuristics, not measured win-rate predictions.</p></div><div><strong>Game-safety boundary</strong><p>Live data comes only from Overwolf's approved game events: information the in-game scoreboard already shows. No memory reading, game injection, overlay or input automation, and the app sends no usage data of its own. The standard edition checks process names and can read an event file you choose, for testing.</p></div></div>
         </details>
-        <footer>v0.12.0 · Unofficial community companion · not affiliated with Valve · no ban-free guarantee · <button class="linkButton" type="button" data-legal="privacy">Privacy Policy</button> · <button class="linkButton" type="button" data-legal="terms">Terms of Use</button></footer>
+        <footer>v0.12.0 · Unofficial community companion · not affiliated with or endorsed by Valve · no ban-free guarantee · <button class="linkButton" type="button" data-legal="privacy">Privacy Policy</button> · <button class="linkButton" type="button" data-legal="terms">Terms of Use</button></footer>
       </section>
     </div>
     <section class="debriefView" id="debriefView" hidden aria-labelledby="debriefTitle">

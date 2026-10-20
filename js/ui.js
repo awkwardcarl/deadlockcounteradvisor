@@ -296,8 +296,12 @@ function setupItemChips(){
  });
 }
 const LEVEL_LABELS={high:'High',medium:'Medium',low:'Low'};
-// The raw score stays available as a tooltip; players see a level.
-const threatChip=t=>`<span class="threat level-${escapeHTML(t.level)}" title="Score ${escapeHTML(t.value)} across ${t.coverage} ${t.coverage===1?'enemy':'enemies'}">${escapeHTML(t.label)} <b>${LEVEL_LABELS[t.level]||''}</b></span>`;
+// Threat levels use the matchup states, always with symbol and word: high
+// pressure is unfavorable for you (orange ▼), medium even (gray ●), low
+// favorable (blue ▲). The raw score stays available as a tooltip.
+const LEVEL_MARKS={high:'▼',medium:'●',low:'▲'};
+const LEVEL_STATES={high:'unfavorable for you',medium:'even',low:'favorable for you'};
+const threatChip=t=>`<span class="threat level-${escapeHTML(t.level)}" title="${LEVEL_LABELS[t.level]||''} threat (${LEVEL_STATES[t.level]||''}) · score ${escapeHTML(t.value)} across ${t.coverage} ${t.coverage===1?'enemy':'enemies'}">${escapeHTML(t.label)} <b><span aria-hidden="true">${LEVEL_MARKS[t.level]||''}</span> ${LEVEL_LABELS[t.level]||''}</b></span>`;
 const itemArt=r=>r.icon?`<img loading="lazy" src="${escapeHTML(r.icon)}" alt="">`:'◆';
 const shortReasons=r=>escapeHTML(r.reasons.slice(0,2).join(' · ')||'General utility');
 const basedOn=r=>r.evidence?.length?`Based on: ${escapeHTML(r.evidence.join(' · '))}`:'';
@@ -348,6 +352,16 @@ function investmentTip(inv){
 }
 let lastAdvice=null;
 // "In 13 of 20 popular builds · wins 46% vs Infernus" from the engine's backing.
+// An item's win rate against the average for items of its tier: favorable
+// (▲), even (●) or unfavorable (▼). Even unless the gap clears both 2 points
+// and the sample's noise (1.96 standard errors).
+function winState(b){
+ if(!b||b.wr===null||b.wr===undefined||!b.base||!(b.matches>=40))return null;
+ const gap=b.wr-b.base,margin=Math.max(.02,1.96*Math.sqrt(.25/b.matches));
+ return gap>=margin?{key:'favorable',mark:'▲',word:'Favorable'}:gap<=-margin?{key:'unfavorable',mark:'▼',word:'Unfavorable'}:{key:'even',mark:'●',word:'Even'};
+}
+const stateTag=s=>s?` <span class="state state-${s.key}"><span aria-hidden="true">${s.mark}</span> ${s.word}</span>`:'';
+const winTip=b=>winState(b)?`Players on your hero win ${Math.round(b.wr*100)}% after buying it, against ${Math.round(b.base*100)}% for other items of its tier (${fmt.format(b.matches)} matches)`:'';
 function backingText(r){
  const b=r.backing;if(!b)return '';
  const parts=[];
@@ -398,7 +412,7 @@ function quickCard(r,i){
   `<div class="quickIdentity"><span class="quickEyebrow">PICK ${i+1} · ${escapeHTML(r.category||'utility')}</span><strong>${escapeHTML(r.name)}</strong></div>`,
   `<span class="quickCost">${fmt.format(r.effectiveCost)}<small> souls</small></span></div>`,
   `<p class="quickReason">${escapeHTML(reason)}${teamLine(r)}</p>`,
-  backingText(r)?`<p class="quickData">${escapeHTML(backingText(r))}</p>`:'',
+  backingText(r)?`<p class="quickData" title="${escapeHTML(winTip(r.backing))}">${escapeHTML(backingText(r))}${stateTag(winState(r.backing))}</p>`:'',
   `<p class="quickVs"><span class="kindTag kind-${r.kind||'counter'}">${KIND_LABELS[r.kind]||KIND_LABELS.counter}</span>${r.hardCounter?'<span class="kindTag kind-hard" title="A strong answer to what your lane opponent is built around: worth buying early">Hard counter</span>':''}${r.vsItems?.length?` vs ${escapeHTML(r.vsItems.join(', '))}`:''}</p>`,
   counterFaces(r),
   `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`}</span>${r.upgradeFrom?`<span class="quickUpgrade">uses your ${escapeHTML(r.upgradeFrom)}</span>`:''}${r.investment?.notable?`<span class="quickSpike" title="Investment bonus from this purchase">${r.investment.at?fmt.format(r.investment.at)+': ':''}+${r.investment.gain}${INVEST_SHORT[r.investment.category]}</span>`:''}</div>`,
@@ -584,6 +598,7 @@ function onLiveStatus(status){
  $('matchTelemetry').textContent=feed?'Watching '+String(status.feedStatus.name||'local file'):OVERWOLF_LABELS[ow.state]||'No live game source';
  $('liveMode').textContent=feed?'Event feed selected':owConnected?'Live (Overwolf)':game?'Game detected':run?'Monitoring':'Disconnected';
  $('stopEventFeed').disabled=!feed;
+ $('topLiveBadge').classList.toggle('isLive',!!liveOn);
  $('topLiveStatus').textContent=feed?'Local feed: active':owConnected?'Live: Overwolf connected':OVERWOLF_LABELS[ow.state]&&ow.state!=='stopped'?OVERWOLF_LABELS[ow.state]:game?'Game running · match unknown':'Live source: disconnected';
  if(status?.feedStatus?.error)$('liveInfo').textContent=status.feedStatus.error;
  else if(ow.message&&ow.state!=='unavailable'&&ow.message!==lastOverwolfMessage){
