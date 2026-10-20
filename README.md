@@ -4,6 +4,8 @@
 
 **Repository:** https://github.com/awkwardcarl/deadlockcounteradvisor
 
+**License:** © 2026 awkwardcarl. All rights reserved. The source is public for transparency only; it is not open source, and no one may use, copy, modify or distribute it without written permission. See [LICENSE](LICENSE).
+
 **Community:** Join the Discord at https://discord.gg/5KDs9hXJDn for help, bug reports, feature requests and release announcements.
 
 **Start here:** Read [`SETUP-GITHUB-UPDATES.md`](SETUP-GITHUB-UPDATES.md) before publishing anything. It walks through pushing the source to your new repository, running a Windows test installer build on GitHub Actions, and publishing a reviewable *draft* release when you're ready.
@@ -105,3 +107,7 @@ Tests cover legacy logic, source and icon checks, upgrade and threat-scoring beh
 - Overwolf Electron GEP introduction: https://dev.overwolf.com/ow-electron/live-game-data-gep/live-game-data-gep-intro/
 - Community item/hero API: https://api.deadlock-api.com/docs
 - Deadlock Wiki item mechanics and component discounts: https://deadlock.wiki/Items
+
+## License
+
+© 2026 awkwardcarl. All rights reserved. The source code is visible on GitHub for transparency only and is not open source: no one may use, copy, modify or distribute it, in source or compiled form, without written permission. The fonts (SIL Open Font License), npm packages and Valve's game names and artwork keep their own terms. See [LICENSE](LICENSE).
