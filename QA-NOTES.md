@@ -53,7 +53,7 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 
 ### Ad box
 
-- One 400×300 container sits at the bottom of the left column in the live and manual views. The left column stays in place beside the picks, and its cards scroll above the box, so the box is always fully visible and never moves.
+- One 400×300 container sits at the bottom of the left column in the live and manual views. The left column narrows to fit the box (the picks get the rest of the width), stays in place beside the picks, and its cards scroll above the box, so the box is always fully visible and never moves.
 - On windows under 900 px tall (1366×680, 1366×728, 1536×824) the left column's box is a 400×60 banner, and enemy rows show item icons on one line (names on hover), so the whole team fits above the box.
 - In glance view the left column is hidden, so that box closes. A second box opens under the enemy rows if the window has room for all of it without scrolling (about 1920×1040 and up); otherwise glance view has no ad.
 - An ad view is created only while its box is fully on screen with no dialog open. **Hide inputs**, the post-match debrief, an open dialog or a window too narrow for the side column close it; it reopens in the same place afterwards.
