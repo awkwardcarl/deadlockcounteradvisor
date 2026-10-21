@@ -2,7 +2,7 @@
   "name": "deadlock-counter-advisor",
   "productName": "Deadlock Counter Advisor",
   "author": "Deadlock Counter Advisor",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "private": true,
   "license": "UNLICENSED",
   "description": "Deadlock second-screen companion that suggests items to counter the enemy team. Manual entry, plus live match data (enemy heroes and their items, your hero, souls and items) in the Overwolf edition.",

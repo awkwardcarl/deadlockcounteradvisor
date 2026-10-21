@@ -168,7 +168,7 @@ function itemsChanged(target){
 function renderOwned(){
  $('ownedChips').innerHTML=chipList(state.owned,'owned')+'<input class="chipInput" id="owned" data-target="owned" type="text" maxlength="100" list="itemNames" placeholder="Add an item you own…" aria-label="Add an owned item">';
 }
-// Glance mode: only a summary bar and the three picks, in large type.
+// Glance mode: a summary bar, the next buy and the next few buys, in large type.
 // Glance view keeps the enemy team's purchases in sight: portrait, name and
 // item icons, with new purchases ringed as on the main page.
 function renderGlanceTeam(){
