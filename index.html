@@ -121,8 +121,8 @@
           <details class="tunePanel" id="tunePanel"><summary>Tune picks</summary>
           <div class="summaryRow"><div class="recommendationFilters"><label>Priority <select id="strategyMode" aria-label="Current purchase priority"><option value="balanced">Balanced counters</option><option value="survive">Survive damage</option><option value="escape">Escape / disables</option><option value="antiheal">Stop sustain</option></select></label><label>Show <select id="sortMode"><option value="smart">Best fit</option><option value="affordable">Affordable first</option><option value="cost">Lowest cost</option></select></label><label>Filter <select id="filterCategory"><option value="all">All categories</option><option value="weapon">Weapon</option><option value="vitality">Vitality</option><option value="spirit">Spirit</option></select></label><label><input type="checkbox" id="affordableOnly"> Affordable only</label></div></div>
           </details>
-          <div class="quickHeading"><div><div class="overline">QUICK PURCHASE PLAN</div><h3>Three next-item options</h3></div><small><span id="phaseSummary" class="phaseSummary"></span><span id="evidenceQuality" class="evidenceQuality" role="status">Waiting for matchup</span></small></div>
-          <div id="quickBuys" class="quickBuys" aria-live="polite"></div>
+          <div class="quickHeading"><div><div class="overline">BUY PLAN</div><h3>What to buy next</h3></div><small><span id="phaseSummary" class="phaseSummary"></span><span id="evidenceQuality" class="evidenceQuality" role="status">Waiting for matchup</span></small></div>
+          <div id="quickBuys" class="advicePlan" aria-live="polite"></div>
           <div id="glanceTeam" class="glanceTeam" aria-label="Enemy purchases"></div>
           <section class="card adCard glanceAd" id="adCardGlance" hidden aria-label="Advertisement"><div class="adSlot" id="adSlotGlance"></div></section>
           <div class="whySection">
@@ -183,6 +183,7 @@
   <script src="js/live-merge.js"></script>
   <script src="js/debrief.js"></script>
   <script src="js/debrief-ui.js"></script>
+  <script src="js/plan.js"></script>
   <script src="js/ui.js"></script>
 </body>
 </html>
