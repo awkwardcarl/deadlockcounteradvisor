@@ -35,4 +35,10 @@ ok(html.includes('id="updateAction"')&&html.includes('id="updateStatus"'),'updat
 ok(js.includes('Install & restart')&&js.includes('window.confirm('),'user restart confirmation');
 ok(read('desktop/updater.cjs').includes('autoDownload=false')&&read('desktop/updater.cjs').includes('autoInstallOnAppQuit=false'),'no forced update behavior');
 ok(read('desktop/security.cjs').includes('permittedImageURL'),'strict renderer network restrictions retained');
+// All rights reserved: the source is public for transparency, not open source.
+const license=read('LICENSE');
+ok(/^Copyright \(c\) 2026 .+\. All rights reserved\./.test(license)&&license.includes('It is not open')&&license.includes('No license is granted to use, copy, modify'),'LICENSE reserves all rights');
+ok(license.includes('SIL\n  Open Font License 1.1')||/SIL\s+Open Font License 1\.1/.test(license),'LICENSE leaves the bundled fonts under their own license');
+ok(pkg.private===true&&pkg.license==='UNLICENSED'&&JSON.parse(read('package-lock.json')).packages[''].license==='UNLICENSED','package marked proprietary (never published to npm)');
+ok(read('README.md').includes('All rights reserved')&&read('README.md').includes('[LICENSE](LICENSE)'),'README states the license');
 console.log(`PASS: ${n} repository, release, updater, and privacy checks`);
