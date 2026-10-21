@@ -768,12 +768,21 @@ input[type=checkbox]{flex:none;width:18px;height:18px;min-height:0;margin:0;padd
    column. On wide layouts the column stays in place beside the picks and its
    cards scroll above the box, so the box is always fully visible and never
    moves. The column narrows to fit the box (in every view, not just live), so
-   the picks get the width instead of empty card around a smaller ad. The tome
-   shows through until an ad is served. */
+   the picks get the width instead of empty card around a smaller ad. */
 .adCard{display:grid;place-items:center;padding:0;overflow:hidden}
 .adCard[hidden]{display:none}
-.adSlot{width:400px;height:300px;min-width:400px;min-height:300px;background:transparent url(assets/icon.svg) center/72px no-repeat}
+.adSlot{width:400px;height:300px;min-width:400px;min-height:300px;background:transparent}
 .adSlot owadview{display:block;width:100%;height:100%}
+/* Behind the ad view (its background is transparent): the tome and a short
+   line, low in the box. Small ads sit above it, a full-size ad covers it, and
+   with no ad the box still says something. The slot itself holds only the ad
+   view; this shares its grid cell, underneath. */
+.adCard>.adSlot,.adCard>.adFallback{grid-area:1/1}
+.adSlot{position:relative;z-index:1}
+.adFallback{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;width:400px;height:300px;padding-bottom:26px;box-sizing:border-box;text-align:center;pointer-events:none}
+.adFallback img{width:44px;height:44px}
+.adFallback strong{font:700 calc(15px * var(--ui-text-multiplier)) var(--dca-font-heading);color:var(--dca-text)}
+.adFallback span{max-width:260px;color:var(--dca-dim);font-size:calc(12px * var(--ui-text-multiplier))}
 @media (min-width:1161px){
  body.adsOn:not(.focusInputs) .leftPanel{display:flex;flex-direction:column;position:sticky;top:var(--left-top,83px);height:calc(100vh - var(--left-top,83px) - 14px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
  body.adsOn:not(.focusInputs) .leftPanel>*{flex-shrink:0}
@@ -789,7 +798,11 @@ body.focusInputs.liveMatch .workspace{grid-template-columns:minmax(0,1fr)}
 .glanceAd{width:fit-content;margin-top:12px}
 body:not(.glanceMode) .glanceAd{display:none!important}
 /* Short windows (under 900px tall): the left column's box is a 400x60 banner. */
-.adSlot.adBanner{height:60px;min-height:60px;background-size:36px}
+.adSlot.adBanner{height:60px;min-height:60px}
+/* The banner's message is one line: the tome and "Counter Advisor is free". */
+.adSlot.adBanner+.adFallback{flex-direction:row;justify-content:center;height:60px;padding:0}
+.adSlot.adBanner+.adFallback img{width:28px;height:28px}
+.adSlot.adBanner+.adFallback span{display:none}
 /* With the ad box on, each enemy is one line (name, then item icons; names
    on hover, new purchases ringed in gold), so a late-game team fits above it. */
 body.adsOn .liveRow{align-items:center;padding:6px 10px}
