@@ -35,7 +35,11 @@ test(/<section class="card adCard" id="adCard" hidden aria-label="Advertisement"
 const css=read('desktop.css');
 test(css.includes('.adSlot{width:400px;height:300px;min-width:400px;min-height:300px;background:transparent url(assets/icon.svg) center/72px no-repeat}'),'the slot is exactly 400x300 with a transparent background over the fallback tome');
 test(css.includes('body.adsOn:not(.focusInputs) .leftPanel{display:flex;flex-direction:column;position:sticky;top:var(--left-top,83px);height:calc(100vh - var(--left-top,83px) - 14px);overflow-y:auto;')&&css.includes('body.adsOn .adCard{margin-top:auto;position:sticky;bottom:0;z-index:1}'),'the left column stays in place and the box is pinned to its bottom (never moves)');
-test(css.includes('body.adsOn.liveMatch .workspace{grid-template-columns:minmax(412px,.6fr) minmax(0,1.4fr)}'),'the live view\'s left column is wide enough for the box');
+test(css.includes('body.adsOn.liveMatch:not(.glanceMode):not(.focusInputs) .workspace{grid-template-columns:minmax(412px,.6fr) minmax(0,1.4fr)}'),'the live view\'s left column is wide enough for the box, except in glance view and with inputs hidden');
+// Glance view and Hide inputs are one full-width column: no rule may give the
+// workspace two columns while the left column is hidden.
+const twoCol=[...css.matchAll(/([^{}]*\.workspace)\s*\{[^}]*grid-template-columns:\s*minmax\(412px/g)].map(m=>m[1]);
+test(twoCol.length===1&&twoCol.every(sel=>sel.includes(':not(.glanceMode)')&&sel.includes(':not(.focusInputs)')),'the ad layout never applies in glance view or with inputs hidden');
 test(css.includes('body.focusInputs .leftPanel{display:none!important}'),'Hide inputs hides the left column (and the box) in every view');
 test(JSON.parse(read('package.json')).scripts['start:overwolf:test-ads']==='ow-electron . --test-ad','a script previews ads with Overwolf\'s --test-ad flag');
 

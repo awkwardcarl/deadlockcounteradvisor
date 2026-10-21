@@ -776,9 +776,9 @@ input[type=checkbox]{flex:none;width:18px;height:18px;min-height:0;margin:0;padd
  body.adsOn:not(.focusInputs) .leftPanel{display:flex;flex-direction:column;position:sticky;top:var(--left-top,83px);height:calc(100vh - var(--left-top,83px) - 14px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
  body.adsOn:not(.focusInputs) .leftPanel>*{flex-shrink:0}
  body.adsOn .adCard{margin-top:auto;position:sticky;bottom:0;z-index:1}
- body.adsOn.liveMatch .workspace{grid-template-columns:minmax(412px,.6fr) minmax(0,1.4fr)}
+ body.adsOn.liveMatch:not(.glanceMode):not(.focusInputs) .workspace{grid-template-columns:minmax(412px,.6fr) minmax(0,1.4fr)}
 }
 /* Hide inputs hides the left column in every view; the live view's own column
    rule used to keep it showing. The ad box closes with it. */
 body.focusInputs .leftPanel{display:none!important}
-body.focusInputs.liveMatch .workspace,body.adsOn.liveMatch.focusInputs .workspace{grid-template-columns:minmax(0,1fr)}
+body.focusInputs.liveMatch .workspace{grid-template-columns:minmax(0,1fr)}
