@@ -34,14 +34,20 @@ function compactInvestment(raw){
   }
   return Object.keys(out).length===3?out:null;
 }
+// Hero card art from deadlock-api's image server, for heroes deadlock.io's
+// catalog doesn't list yet (it lags game patches). Only that folder, .png only.
+const HERO_ART=/^https:\/\/assets-bucket\.deadlock-api\.com\/assets-api-res\/images\/heroes\/[\w.-]+\.png$/;
+const heroArtURL=url=>typeof url==='string'&&HERO_ART.test(url)?url:'';
 function compactAssets(itemsRaw,heroesRaw){
-  const items={},heroes={},tables={};
+  const items={},heroes={},tables={},heroArt={};
   for(const item of Array.isArray(itemsRaw)?itemsRaw:[]){
     if(!Number.isFinite(Number(item?.id))||item.type!=='upgrade')continue;
     items[String(item.id)]={c:clean(item.class_name,80),n:clean(item.name,80),cost:num(item.cost),tier:num(item.item_tier),slot:clean(item.item_slot_type,20)};
   }
   for(const hero of Array.isArray(heroesRaw)?heroesRaw:[]){
     if(Number.isFinite(Number(hero?.id))&&hero.name)heroes[String(hero.id)]=clean(hero.name,60);
+    const art=heroArtURL(hero?.images?.icon_hero_card)||heroArtURL(hero?.images?.icon_image_small);
+    if(art&&Number.isFinite(Number(hero?.id)))heroArt[String(hero.id)]=art;
     const table=compactInvestment(hero?.cost_bonuses);
     if(table&&Number.isFinite(Number(hero?.id)))tables[String(hero.id)]=table;
   }
@@ -50,7 +56,7 @@ function compactAssets(itemsRaw,heroesRaw){
   for(const t of Object.values(tables)){const k=JSON.stringify(t);counts[k]=(counts[k]||0)+1;}
   const common=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0];
   const investment=common?{default:JSON.parse(common),heroes:Object.fromEntries(Object.entries(tables).filter(([,t])=>JSON.stringify(t)!==common))}:null;
-  return {items,heroes,investment};
+  return {items,heroes,investment,heroArt};
 }
 
 function normalizeMatch(raw,assets,ownAccountId=''){
@@ -108,4 +114,4 @@ function normalizeMatch(raw,assets,ownAccountId=''){
     youSlot,players,damageTaken:damage};
 }
 
-module.exports={normalizeMatch,compactAssets,compactInvestment,damageCategory};
+module.exports={normalizeMatch,compactAssets,compactInvestment,damageCategory,heroArtURL};

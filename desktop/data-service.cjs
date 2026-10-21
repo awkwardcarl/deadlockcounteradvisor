@@ -6,6 +6,7 @@ const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
 const {compactSnapshot} = require('../js/snapshot.cjs');
+const {heroArtURL} = require('./match-normalizer.cjs');
 const ORIGIN = 'https://deadlock.io';
 const ROUTES = Object.freeze(['/api/v1/items.json', '/api/v1/heroes.json']);
 function getJSON(route) {
@@ -44,6 +45,10 @@ function addFallbackHeroNames(snapshot,assets){
   const extraHeroNames=Object.fromEntries(Object.entries(names).filter(([id,name])=>/^\d{1,5}$/.test(id)&&!known.has(id)&&typeof name==='string'&&name.trim()&&name.length<=40).map(([id,name])=>[id,name.trim()]));
   // Investment bonus tables from the game's hero data (see match-normalizer).
   const investment=assets&&assets.investment&&assets.investment.default?assets.investment:null;
-  return {...snapshot,extraHeroNames,investment};
+  // Hero card art (see match-normalizer), by name: the catalog uses it for
+  // heroes whose own entry has no portrait.
+  const art=assets&&typeof assets.heroArt==='object'&&assets.heroArt?assets.heroArt:{};
+  const heroArt=Object.fromEntries(Object.entries(art).map(([id,url])=>[names[id],heroArtURL(url)]).filter(([name,url])=>typeof name==='string'&&name.trim()&&name.length<=40&&url).map(([name,url])=>[name.trim(),url]));
+  return {...snapshot,extraHeroNames,investment,heroArt};
 }
 module.exports={getJSON,refresh,readCache,addFallbackHeroNames,ROUTES};
