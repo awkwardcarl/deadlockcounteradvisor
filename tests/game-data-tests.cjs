@@ -57,10 +57,11 @@ function network(){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'dca-game-data-'));
   try{
     // Staleness: missing, a day old, or a hero list saved before investment tables.
-    const now=Date.now(),cat={syncedAt:new Date(now).toISOString()},list={fetchedAt:now,investment:null};
+    const now=Date.now(),cat={syncedAt:new Date(now).toISOString()},list={fetchedAt:now,investment:null,heroArt:{}};
     test(!gd.isStale(cat,list,now)&&gd.isStale(null,list,now)&&gd.isStale(cat,null,now),'missing caches are stale; fresh ones are not');
     test(gd.isStale(cat,list,now+25*HOUR)&&gd.isStale({syncedAt:new Date(now-25*HOUR).toISOString()},list,now)&&gd.isStale(cat,{fetchedAt:now-25*HOUR,investment:null},now)&&!gd.isStale(cat,list,now+23*HOUR),'either cache older than 24 hours is stale');
     test(gd.isStale(cat,{fetchedAt:now},now)&&gd.isStale({syncedAt:'soon'},list,now),'a hero list without the investment key, or an unreadable sync time, is stale');
+    test(gd.isStale(cat,{fetchedAt:now,investment:null},now),'a hero list saved before hero art is stale, so it refreshes once');
 
     // Unknown content in a live snapshot: hero IDs and shop class names only.
     const known=gd.knownContent(fixture,{heroes:{86:'Violet'}});

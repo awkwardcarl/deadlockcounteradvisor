@@ -65,7 +65,7 @@ function heroOptions(selected,blank){
  if(selected&&!names.includes(selected))names=[selected,...names];
  return (blank?['',...names]:names).map(h=>`<option value="${escapeHTML(h)}" ${h===selected?'selected':''}>${escapeHTML(h?h+(fresh&&h===selected?engine.NEW_HERO.label:''):'Select enemy hero')}</option>`).join('');
 }
-function portrait(name){return catalog.heroes.find(h=>h.name===name)?.portrait||'';}
+function portrait(name){return catalog.heroes.find(h=>h.name===name)?.portrait||catalog.heroArt?.[engine.norm(name)]||'';}
 function updatePortrait(){
  $('hero').title=newHero(state.hero)?engine.NEW_HERO.tip:'';
  const img=$('heroPortrait'),src=portrait(state.hero);

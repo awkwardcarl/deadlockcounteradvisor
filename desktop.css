@@ -767,7 +767,9 @@ input[type=checkbox]{flex:none;width:18px;height:18px;min-height:0;margin:0;padd
 /* Overwolf ad box (Overwolf edition): 400x300 at the bottom of the left
    column. On wide layouts the column stays in place beside the picks and its
    cards scroll above the box, so the box is always fully visible and never
-   moves. The tome shows through until an ad is served. */
+   moves. The column narrows to fit the box (in every view, not just live), so
+   the picks get the width instead of empty card around a smaller ad. The tome
+   shows through until an ad is served. */
 .adCard{display:grid;place-items:center;padding:0;overflow:hidden}
 .adCard[hidden]{display:none}
 .adSlot{width:400px;height:300px;min-width:400px;min-height:300px;background:transparent url(assets/icon.svg) center/72px no-repeat}
@@ -776,7 +778,7 @@ input[type=checkbox]{flex:none;width:18px;height:18px;min-height:0;margin:0;padd
  body.adsOn:not(.focusInputs) .leftPanel{display:flex;flex-direction:column;position:sticky;top:var(--left-top,83px);height:calc(100vh - var(--left-top,83px) - 14px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
  body.adsOn:not(.focusInputs) .leftPanel>*{flex-shrink:0}
  body.adsOn .leftPanel>.adCard{margin-top:auto;position:sticky;bottom:0;z-index:1}
- body.adsOn.liveMatch:not(.glanceMode):not(.focusInputs) .workspace{grid-template-columns:minmax(412px,.6fr) minmax(0,1.4fr)}
+ body.adsOn:not(.glanceMode):not(.focusInputs) .workspace{grid-template-columns:minmax(412px,.6fr) minmax(0,1.4fr)}
 }
 /* Hide inputs hides the left column in every view; the live view's own column
    rule used to keep it showing. The ad box closes with it. */

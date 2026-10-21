@@ -134,6 +134,9 @@ const TAG_LABELS={spirit:'Spirit pressure',bullet:'Weapon damage',burst:'Burst d
 const cleanList=x=>Array.isArray(x)?x.map(v=>String(v||'').trim()).filter(Boolean):String(x||'').split(',').map(v=>v.trim()).filter(Boolean);
 const norm=x=>String(x||'').normalize('NFKC').toLocaleLowerCase('en-US').replace(/[^\p{L}\p{N}]+/gu,'');
 const iconPath=x=>typeof x==='string'&&/^\/assets\/game\/panorama\/images\/[\w\/.\-]+\.png$/.test(x)?'https://deadlock.io'+x:'';
+// Hero card art from deadlock-api's image server, for heroes deadlock.io's
+// catalog doesn't list yet (the main process keeps it with the hero list).
+const heroArtPath=x=>typeof x==='string'&&/^https:\/\/assets-bucket\.deadlock-api\.com\/assets-api-res\/images\/heroes\/[\w.-]+\.png$/.test(x)?x:'';
 // Live feeds can use old or internal hero names (Overwolf sends "VIPER" for
 // Vyper). Match the name first, then the game's hero ID (synced catalog only),
 // then a known rename; otherwise keep the name as sent. Overwolf sends
@@ -178,11 +181,12 @@ function createCatalog(base,snapshot){
    enemyItems:base.enemyItems,complete:false,build:'starter',generatedAt:base.rosterDate};
  }
  const synced=new Set(snapshot.heroes.map(h=>norm(h.name)));
+ const heroArt=Object.fromEntries(Object.entries(snapshot.heroArt||{}).map(([n,url])=>[norm(n),heroArtPath(url)]).filter(([n,url])=>n&&url));
  // Curated heroes the public roster doesn't list yet (new or ballot heroes).
- const curatedOnly=Object.keys(base.heroes).filter(name=>!synced.has(norm(name))).map(name=>({name,id:name,tags:base.heroes[name],portrait:'',unverified:base.unverifiedHeroes.includes(name)||!base.heroes[name].length}));
+ const curatedOnly=Object.keys(base.heroes).filter(name=>!synced.has(norm(name))).map(name=>({name,id:name,tags:base.heroes[name],portrait:heroArt[norm(name)]||'',unverified:base.unverifiedHeroes.includes(name)||!base.heroes[name].length}));
  const extraHeroNames=Object.fromEntries(Object.entries(snapshot.extraHeroNames||{}).filter(([id,n])=>/^\d{1,5}$/.test(id)&&typeof n==='string'&&n.trim()&&n.length<=40).map(([id,n])=>[id,n.trim()]));
  const investment=validTable(snapshot.investment?.default)?{default:snapshot.investment.default,heroes:Object.fromEntries(Object.entries(snapshot.investment.heroes||{}).filter(([id,t])=>/^\d{1,5}$/.test(id)&&validTable(t)))}:null;
- return {investment,heroes:[...snapshot.heroes.map(h=>({...h,portrait:iconPath(h.portrait),tags:base.heroes[h.name]||[],unverified:!Object.prototype.hasOwnProperty.call(base.heroes,h.name)})),...curatedOnly],extraHeroNames,
+ return {investment,heroArt,heroes:[...snapshot.heroes.map(h=>({...h,portrait:iconPath(h.portrait)||heroArt[norm(h.name)]||'',tags:base.heroes[h.name]||[],unverified:!Object.prototype.hasOwnProperty.call(base.heroes,h.name)})),...curatedOnly],extraHeroNames,
   items:snapshot.items.map(i=>({...i,icon:iconPath(i.icon)})),
   enemyItems:base.enemyItems,complete:true,build:snapshot.build,generatedAt:snapshot.generatedAt};
 }

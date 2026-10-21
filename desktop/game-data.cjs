@@ -22,7 +22,7 @@ function writeAutoSync(userData,on){const file=settingsFile(userData),tmp=file+'
 // Missing, older than a day, or a hero list saved before investment tables were kept.
 function isStale(catalog,assets,now=Date.now()){
   const synced=Date.parse(catalog?.syncedAt||'');
-  return !catalog||!(now-synced<=MAX_AGE_MS)||!assets||!(now-Number(assets.fetchedAt)<=MAX_AGE_MS)||!('investment' in assets);
+  return !catalog||!(now-synced<=MAX_AGE_MS)||!assets||!(now-Number(assets.fetchedAt)<=MAX_AGE_MS)||!('investment' in assets)||!('heroArt' in assets);
 }
 function knownContent(catalog,assets){
   return {heroes:new Set([...(catalog?.heroes||[]).map(h=>String(h.id)),...Object.keys(assets?.heroes||{})]),items:new Set((catalog?.items||[]).map(i=>i.id))};
