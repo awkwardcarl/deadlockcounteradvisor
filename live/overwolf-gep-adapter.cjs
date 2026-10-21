@@ -15,8 +15,8 @@ const {EventState, decode} = require('./event-state.cjs');
 const DEADLOCK_GEP_ID = 24482;
 const FEATURES = Object.freeze(['game_info', 'match_info']);
 // Keys the advisor already uses; anything else is logged once for diagnostics.
-const HANDLED_KEY = /^(?:roster|items)_\d{1,2}$|^match_clock$/;
-const ROUTINE_EVENTS = new Set(['kill', 'death', 'assist', 'game_paused', 'tower_destroyed']);
+const HANDLED_KEY = /^(?:roster|items)_\d{1,2}$|^match_clock$|^incoming_damage$/;
+const ROUTINE_EVENTS = new Set(['kill', 'assist', 'game_paused', 'tower_destroyed']);
 // Right after detection GEP may not accept features yet; retry for ~30 s.
 const REGISTER_ATTEMPTS = 10;
 const REGISTER_RETRY_MS = 3000;
@@ -30,7 +30,7 @@ function validUpdate(raw) {
   const key=String(raw.key || '');
   if (feature==='game_info' && key==='phase') return {feature,key,data:raw.data ?? raw.value};
   if (feature!=='match_info') return null;
-  if (key==='match_id'||key==='match_clock'||/^roster_(?:[0-9]|1[01])$/.test(key)||/^items_(?:[0-9]|1[01])$/.test(key)) {
+  if (key==='match_id'||key==='match_clock'||key==='incoming_damage'||/^roster_(?:[0-9]|1[01])$/.test(key)||/^items_(?:[0-9]|1[01])$/.test(key)) {
     return {feature,key,data:raw.data ?? raw.value};
   }
   return null;
@@ -82,7 +82,8 @@ class OverwolfGepAdapter {
     bind('new-game-event',(_e,id,data)=>{
       if(id!==DEADLOCK_GEP_ID || !data || typeof data!=='object')return;
       const key=String(data.name||data.key||'');
-      if(key==='match_start'||key==='match_end')this.consume(id,{event:key});
+      // death: you died (no data; your scoreboard deaths count confirms it).
+      if(key==='match_start'||key==='match_end'||key==='death')this.consume(id,{event:key});
       else if(key==='match_clock')this.consume(id,{feature:'match_info',key,value:data.value});
       else if(key&&!ROUTINE_EVENTS.has(key)&&!this.seen.has('event:'+key)){this.seen.set('event:'+key,'');this.onDebug('first event '+key.slice(0,40));}
     });
@@ -138,6 +139,7 @@ class OverwolfGepAdapter {
     const key=String(raw.event||raw.key||'').slice(0,40);
     if(!key)return;
     if(key==='match_start'||key==='match_end'){this.onDebug(key);return;}
+    if(key==='death')return;
     if(key==='phase'||key==='match_id'||key==='match_outcome'){
       const value=decode(raw.data??raw.value);
       const text=(value&&typeof value==='object'?JSON.stringify(value):String(value??'')).slice(0,60)||'(empty)';
@@ -151,7 +153,7 @@ class OverwolfGepAdapter {
     if(!this.active||this.gameId!==id) return;
     this.noteBoundary(raw);
     let update=validUpdate(raw);
-    if(raw?.event==='match_start'||raw?.event==='match_end')update=raw;
+    if(raw?.event==='match_start'||raw?.event==='match_end'||raw?.event==='death')update=raw;
     if(!update)return;
     const next=this.state.apply(update);
     // EventState fails closed when local team cannot be identified.

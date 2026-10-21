@@ -6,7 +6,14 @@
 // reports something new. A new match or roster replaces the lineup outright.
 const ended=phase=>phase==='ended'||phase==='postgame';
 const rosterKey=snap=>`${snap.matchId||''}\n`+snap.enemies.map(e=>e.name).join('\n');
-const allyKey=list=>JSON.stringify((list||[]).map(a=>[a.hero,a.heroId??null,a.lane??null,a.items||'',a.inventoryKnown===true]));
+// Scoreboard lines (kills, deaths, assists, souls) are feed-only: never edited
+// by hand or saved. Souls count in steps of 1,000 so the advice isn't redone
+// for every soul a player earns.
+const statsKey=s=>s&&typeof s==='object'?[s.kills,s.deaths,s.assists,Math.floor((Number(s.souls)||0)/1000)].join('/'):'';
+const scoreStats=s=>s&&typeof s==='object'?{kills:Number(s.kills)||0,deaths:Number(s.deaths)||0,assists:Number(s.assists)||0,souls:Number(s.souls)||0}:null;
+const allyKey=list=>JSON.stringify((list||[]).map(a=>[a.hero,a.heroId??null,a.lane??null,a.items||'',a.inventoryKnown===true,statsKey(a.stats)]));
+// Your deaths and the damage panel's last reading (see live/event-state.cjs).
+const deathKey=m=>JSON.stringify([m?.deathTimes||[],m?.damage?[m.damage.total,m.damage.clock]:null]);
 function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  if(ended(match.phase)){
   // Once per match end (also when the app starts after a match, and when you
@@ -26,7 +33,7 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
  // so fields it carried still need applying.
  const last=prev&&!ended(prev.phase)&&!prev.warning?prev:null;
  if(!last||rosterKey(last)!==rosterKey(match)){
-  state.enemies=match.enemies.map(e=>({hero:resolveHero(e.hero,e.heroId),items:resolveItems(e.items||'',e.itemIds),lane:e.lane??null,feedName:e.name}));
+  state.enemies=match.enemies.map(e=>({hero:resolveHero(e.hero,e.heroId),items:resolveItems(e.items||'',e.itemIds),lane:e.lane??null,feedName:e.name,stats:scoreStats(e.stats)}));
   changed=true;
  }else{
   const before=new Map(last.enemies.map(e=>[e.name,e]));
@@ -37,16 +44,19 @@ function mergeFeedSnapshot(state,prev,match,resolveHero=x=>x,resolveItems=x=>x){
    if(e.hero!==old.hero||(e.heroId??null)!==(old.heroId??null)){row.hero=resolveHero(e.hero,e.heroId);changed=true;}
    if((e.lane??null)!==(old.lane??null)){row.lane=e.lane??null;changed=true;}
    if((e.items||'')!==(old.items||'')){row.items=resolveItems(e.items||'',e.itemIds);changed=true;}
+   if(statsKey(e.stats)!==statsKey(row.stats)){row.stats=scoreStats(e.stats);changed=true;}
   }
  }
  // Your teammates (hero, lane, items; no player names) for team-aware picks.
  // They can't be edited by hand: the feed's list replaces them, and returns after Clear.
  const allies=Array.isArray(match.allies)?match.allies.slice(0,5):[];
  if(!last||allyKey(last.allies)!==allyKey(allies)||(allies.length&&!state.allies?.length)){
-  state.allies=allies.map(a=>({hero:resolveHero(a.hero,a.heroId),items:resolveItems(a.items||'',a.itemIds),lane:a.lane??null,inventoryKnown:a.inventoryKnown===true}));
+  state.allies=allies.map(a=>({hero:resolveHero(a.hero,a.heroId),items:resolveItems(a.items||'',a.itemIds),lane:a.lane??null,inventoryKnown:a.inventoryKnown===true,stats:scoreStats(a.stats)}));
   changed=true;
  }
  if((match.ownLane??null)!==(last?.ownLane??null)||(!last&&match.ownLane!=null)){state.ownLane=match.ownLane??null;changed=true;}
+ // A death or a new damage reading can raise the priority alert: redo the advice.
+ if(last&&deathKey(last)!==deathKey(match))changed=true;
  if(match.ownHero&&(!last||last.ownHero!==match.ownHero)){state.hero=resolveHero(match.ownHero,match.ownHeroId);changed=true;}
  if(Number.isFinite(match.souls)&&(!last||last.souls!==match.souls)){state.souls=match.souls;changed=true;}
  // A new game (new match ID, or play resuming after a match ended) starts with
@@ -96,5 +106,5 @@ function withSpendableSouls(match,costOf){
  const itemValue=names.reduce((sum,name,i)=>sum+Math.max(0,Number(costOf(name,ids[i]))||0),0);
  return {...match,netWorth:match.souls,itemValue,souls:Math.max(0,Math.round(match.souls-itemValue))};
 }
-root.DeadlockLiveMerge={mergeFeedSnapshot,withSpendableSouls,reresolveFeed};
+root.DeadlockLiveMerge={mergeFeedSnapshot,withSpendableSouls,reresolveFeed,statsKey};
 })(typeof window!=='undefined'?window:globalThis);

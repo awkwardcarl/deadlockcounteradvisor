@@ -117,7 +117,7 @@ test(/function setGlance\(on\)\{\n document\.body\.classList\.toggle\('glanceMod
 const fn=ui.slice(ui.indexOf('function renderGlanceTeam(){'),ui.indexOf('function setGlance(on){'));
 const el={innerHTML:'',querySelectorAll:()=>[]};
 const gCtx=vm.createContext({
- $:id=>id==='glanceTeam'?el:null,Date,Set,newHeroTag:()=>'',
+ $:id=>id==='glanceTeam'?el:null,Date,Set,newHeroTag:()=>'',isFed:()=>false,fedTag:()=>'',
  state:{ownLane:4,enemies:[{hero:'Haze',lane:4,feedName:'p1',items:'Rapid Rounds, Mystery Mod'},{hero:'Abrams',lane:1,items:''},{hero:'',items:''},{hero:'<b>X</b>',items:''}]},
  portrait:name=>name==='Haze'?'heroes/haze.png':'',
  recentBuys:new Map([['p1',{items:new Set([E.norm('Rapid Rounds')]),until:Date.now()+20000}],['1',{items:new Set(['x']),until:Date.now()-1}]]),

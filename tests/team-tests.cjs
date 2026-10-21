@@ -45,7 +45,7 @@ const live={...snap,phase:'in-progress'};
 const st={hero:'',souls:0,owned:'',enemies:[]};
 merge(st,null,live,(n)=>n.charAt(0)+n.slice(1).toLowerCase(),x=>x);
 test(st.allies.length===2&&st.allies[0].hero==='Abrams'&&st.allies[0].items==='Healbane'&&st.allies[0].lane===4&&st.allies[0].inventoryKnown===true,'allies merged into state (hero names resolved)');
-test(st.allies.every(a=>Object.keys(a).sort().join()==='hero,inventoryKnown,items,lane'),'state allies: hero, items, lane, inventoryKnown only');
+test(st.allies.every(a=>Object.keys(a).sort().join()==='hero,inventoryKnown,items,lane,stats'),'state allies: hero, items, lane, inventoryKnown and scoreboard line only');
 const bought={...live,allies:live.allies.map((a,i)=>i===1?{...a,items:'Rapid Rounds',itemIds:['upgrade_rapid_rounds']}:a)};
 let r=merge(st,live,bought,x=>x,x=>x);
 test(r.changed&&st.allies[1].items==='Rapid Rounds','an ally purchase updates the allies');
@@ -61,7 +61,7 @@ test(older.allies.length===0,'a source without allies (replay import, older feed
 
 // Never saved: persist() keeps the enemy lineup only; each launch starts without allies.
 const ui=read('js/ui.js');
-test(/function persist\(\)\{try\{localStorage\.setItem\(STORE,JSON\.stringify\(\{enemies:state\.enemies\.map\(\(\{feedName,\.\.\.row\}\)=>row\)\}\)\);\}catch\(_\)\{\}\}/.test(ui),'persist() saves only the enemy lineup');
+test(/function persist\(\)\{try\{localStorage\.setItem\(STORE,JSON\.stringify\(\{enemies:state\.enemies\.map\(\(\{feedName,stats,\.\.\.row\}\)=>row\)\}\)\);\}catch\(_\)\{\}\}/.test(ui),'persist() saves only the enemy lineup');
 test(ui.includes("const defaultState=()=>({hero:'Kelvin',souls:0,owned:'',liveMatchId:'',enemies:[],allies:[]});")&&!/saved\.allies/.test(ui)&&ui.includes("owned:'Extra Spirit, Extra Stamina',allies:[]"),'fresh state and the example match start with no allies; saved data is never read for allies');
 
 // Engine.
