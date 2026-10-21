@@ -13,6 +13,7 @@ const replayService = require('../live/overwolf-normalizer.cjs');
 const {checkGame}=require('../live/process-detection.cjs');
 const {LocalFeed}=require('../live/local-feed.cjs');
 const {createOverwolfLive}=require('./overwolf-live.cjs');
+const {ADS,adViewAllowed,lockDownAdView,originOf}=require('./ads.cjs');
 const {createPrivacy,LEGAL_URLS}=require('./privacy.cjs');
 const {SHOW_HIDE_LABEL,registerShowHideHotkey}=require('./hotkey.cjs');
 const {LAYOUT_REVISION, responsiveBounds, transferredBounds, inArea}=require('./window-layout.cjs');
@@ -24,6 +25,8 @@ const updates=createUpdateManager({
   loadUpdater:()=>require('electron-updater').autoUpdater
 });
 let saveTimer;
+// Overwolf edition only: the ad box (see desktop/ads.cjs).
+const adsOn=()=>!!app.overwolf&&ADS.slot===true;
 let monitorActive=false, monitorTimer=null, monitorBusy=false;
 let gameStatus={supported:process.platform==='win32',running:false};
 let feedStatus={active:false,name:'',error:''};
@@ -173,23 +176,29 @@ function createWindow() {
     alwaysOnTop: false,
     skipTaskbar: false,
     show: false,
-    backgroundColor: '#0d1522',
+    backgroundColor: '#15141C',
     icon: path.join(__dirname, '..', 'assets', 'icon.ico'),
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
-      webviewTag: false,
+      // Only the Overwolf edition's ad box embeds a page (Overwolf's <owadview>).
+      webviewTag: adsOn(),
       webSecurity: true,
       preload: path.join(__dirname, 'preload.cjs'),
       // Read by the preload: which edition this is, and the show/hide hotkey if registered.
-      additionalArguments: ['--counter-advisor-edition='+(app.overwolf?'overwolf':'standard'), '--counter-advisor-hotkey='+(hotkeyLabel||'none')]
+      additionalArguments: ['--counter-advisor-edition='+(app.overwolf?'overwolf':'standard'), '--counter-advisor-hotkey='+(hotkeyLabel||'none'), '--counter-advisor-ads='+(adsOn()?'on':'off')]
     }
   });
   mainWindow.webContents.setWindowOpenHandler(() => ({action:'deny'}));
   mainWindow.webContents.on('will-navigate', event => event.preventDefault());
-  mainWindow.webContents.on('will-attach-webview', event => event.preventDefault());
+  // The ad view is the only embedded page allowed, and it runs without Node.
+  mainWindow.webContents.on('will-attach-webview', (event, webPreferences, params) => {
+    if(!adsOn()||!adViewAllowed(params)){ event.preventDefault(); console.warn('Blocked an embedded page:', originOf(params?.src)); return; }
+    lockDownAdView(webPreferences);
+    console.log('Overwolf ad view attached:', originOf(params?.src));
+  });
   // Do not leave the app invisible forever if Chromium never emits ready-to-show.
   let shown = false;
   const revealWindow = source => {

@@ -752,6 +752,37 @@ function applyCatalog(snapshot){
  if(lastFeedSnapshot&&liveMerge.reresolveFeed(state,lastFeedSnapshot,old,{hero:resolveHeroName,items:resolveFeedItems}))persist();
  updateCatalogUI();
 }
+// Overwolf ad box (Overwolf edition): one 400x300 <owadview> at the bottom of
+// the left column. Overwolf's rules: the box is always fully visible, never
+// moves while an ad plays, and is closed and reopened rather than hidden. So
+// the ad view exists only while the box is fully on screen with no dialog
+// open: glance view, hidden inputs, the debrief, narrow layouts and dialogs
+// close it, and it reopens when the box is back. The left column stays put
+// beside the picks (pinned below the top bar) and its cards scroll above the box.
+const AD_CID='dca_400x300_main_lb',AD_W=400,AD_H=300;
+function setupAds(){
+ const slot=$('adSlot'),card=$('adCard'),api=window.desktopAPI;
+ if(!slot||!card||api?.edition!=='overwolf'||api?.ads!==true)return null;
+ document.body.classList.add('adsOn');card.hidden=false;
+ let view=null,pinned='';
+ const pin=()=>{const ws=document.querySelector('.workspace');if(!ws)return;const top=Math.round(ws.getBoundingClientRect().top+window.scrollY+parseFloat(getComputedStyle(ws).paddingTop)||0)+'px';if(top!==pinned){pinned=top;document.documentElement.style.setProperty('--left-top',top);}};
+ const fullyVisible=()=>{const r=slot.getBoundingClientRect();return r.width>=AD_W&&r.height>=AD_H&&r.top>=0&&r.left>=0&&r.bottom<=window.innerHeight&&r.right<=window.innerWidth&&!document.querySelector('dialog[open]');};
+ const update=()=>{
+  pin();
+  if(fullyVisible()){if(!view){view=document.createElement('owadview');view.setAttribute('cid',AD_CID);slot.append(view);}}
+  else if(view){view.remove();view=null;}
+ };
+ let queued=false;
+ const schedule=()=>{if(queued)return;queued=true;setTimeout(()=>{queued=false;update();},30);};
+ new IntersectionObserver(schedule,{threshold:[0,1]}).observe(slot);
+ new ResizeObserver(schedule).observe(document.body);
+ new MutationObserver(schedule).observe(document.body,{attributes:true,attributeFilter:['class']});
+ document.querySelectorAll('dialog').forEach(d=>new MutationObserver(schedule).observe(d,{attributes:true,attributeFilter:['open']}));
+ window.addEventListener('resize',schedule);
+ window.addEventListener('scroll',schedule,{passive:true});
+ schedule();
+ return {isOpen:()=>!!view,update};
+}
 async function syncCatalogNow(){applyCatalog(await window.desktopAPI.syncCatalog());}
 function setup(){
  configureUpdates();
@@ -773,6 +804,7 @@ function setup(){
  setupShortcuts();
  setupOffline();
  setupMatchView();
+ setupAds();
  $('useBuildData').checked=buildDataEnabled();
  $('useBuildData').addEventListener('change',e=>{try{localStorage.setItem(STORE_BUILD_DATA,e.target.checked?'1':'0');}catch(_){}buildDataKey='';requestBuildData();renderAdvice();});
  setupAutoSync();

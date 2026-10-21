@@ -46,6 +46,12 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 9. **Offline.** Recommendations keep working. A notice explains that sync, the debrief and update checks need a connection.
 10. **Post-match debrief** (optional). Enter a finished match's ID to compare what you bought with what would have countered the enemy team. It needs internet. The community service it uses limits how many new matches can be loaded per hour.
 
+### Ad box
+
+- One 400×300 container sits at the bottom of the left column in the live and manual views. The left column stays in place beside the picks, and its cards scroll above the box, so the box is always fully visible and never moves.
+- The ad view is created only while the box is fully on screen with no dialog open. Glance view, **Hide inputs**, the post-match debrief, an open dialog or a window too narrow for the side column close it; it reopens in the same place afterwards.
+- To preview ad behavior locally, start the app with `--test-ad` (`npm run start:overwolf:test-ads`).
+
 ### Settings → Privacy
 
 - **Manage:** opens Overwolf's privacy settings.
@@ -59,7 +65,8 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 - **Network calls**, all for public data and never with account IDs:
   - [deadlock.io](https://deadlock.io): the item and hero catalog, plus artwork.
   - [deadlock-api.com](https://deadlock-api.com): the hero and item list, community builds and item statistics (requested by hero ID), and the match record for a debrief (by the match ID you enter).
-- **Nothing else.** No accounts, no ads and no analytics of our own.
+- **Ads.** One 400×300 Overwolf ad box (`owadview`, cid `dca_400x300_main_lb`) at the bottom of the left column. Ads are not enabled for our app ID yet, so it shows our background. Nothing we hold is passed to Overwolf or advertisers.
+- **Nothing else.** No accounts and no analytics of our own.
 
 ### Known limitations
 

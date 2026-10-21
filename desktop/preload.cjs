@@ -6,6 +6,8 @@ const hotkey = flag('hotkey');
 contextBridge.exposeInMainWorld('desktopAPI', Object.freeze({
   edition: flag('edition') === 'overwolf' ? 'overwolf' : 'standard',
   hotkey: hotkey && hotkey !== 'none' ? hotkey : '',
+  // Overwolf edition: show the ad box (Overwolf decides whether ads serve).
+  ads: flag('ads') === 'on',
   getPrivacyStatus: () => ipcRenderer.invoke('privacy:status'),
   openPrivacySettings: tab => ipcRenderer.invoke('privacy:open', String(tab ?? '')),
   openLegal: which => ipcRenderer.invoke('legal:open', which === 'terms' ? 'terms' : 'privacy'),
