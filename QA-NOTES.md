@@ -6,11 +6,16 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 
 - [ ] **Merge this PR, then re-run the QA build.** On GitHub, go to **Actions → Overwolf edition build → Run workflow** with mode **qa**. The installer should be named `Deadlock-Counter-Advisor-Overwolf-Setup-0.13.0.exe`.
 - [ ] **Scan the installer at [virustotal.com](https://www.virustotal.com).** Overwolf won't test an installer that VirusTotal flags.
-- [ ] **Do one full run on the installed build, not dev mode.**
-  - Close the app and rename `%APPDATA%\Deadlock Counter Advisor` so the first run is clean.
-  - Install, accept the policies, go through the intro and the consent step, and play one match through to the end.
-  - Check that the fonts, the tome icon and the gold live dot show. They are new files, and packaging is the step dev mode skips.
-  - Close the app and confirm no process is left in Task Manager.
+- [ ] **Check the installed QA build, without live data.** The QA installer is unsigned. Overwolf's game events only load in an installed build that Overwolf has signed, and Overwolf signs this one for its QA testers only. So on your PC the badge reads "Overwolf game events failed to load", and that's expected. Your dev key doesn't help either: dev mode never works in an installed app.
+  - **Clean first run:** close the app and rename `%APPDATA%\Deadlock Counter Advisor`.
+  - **Install and first run:** accept the policies, then go through the intro and the consent step.
+  - **Theme:** the Dusk fonts, the tome icon in the header, and the taskbar icon. These are new files, and packaging is the step dev mode skips.
+  - **Manual mode:** pick enemy heroes and add items, and the picks update.
+  - **Controls:** glance view (**G**), the **Ctrl+Shift+F12** hotkey and **↗ Move display**.
+  - **Closing:** close the app and confirm no process is left in Task Manager.
+- [ ] **Check live data in dev mode from source.** Set your dev key, then run `npm.cmd run start:overwolf`.
+  - Play one match through to the end. Check the gold live dot, enemy purchases, your souls and items, and glance view.
+  - Then run `npm.cmd run start:overwolf:test-ads` and check that a test ad shows in the ad box.
 - [ ] **Regenerate the dev key** in the Developer Console. The old one was pasted into a chat.
 - [ ] **Update the console listing.**
   - Icons: upload the tome icon and the gray icon. Both are in the design kit (`icon/png/`, `icon/icon-gray.ico`); check Overwolf's current icon sizes.
