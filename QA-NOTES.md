@@ -1,28 +1,34 @@
-# Overwolf QA notes: Deadlock Counter Advisor v0.13.0
+# Overwolf QA notes: Deadlock Counter Advisor v0.14.0
 
 Text for the first QA submission in the Overwolf Developer Console. The part under **For the QA team** can be pasted into the submission's notes. The checklist before it is for us.
 
 ## Before submitting (for us)
 
-- [ ] **Merge this PR, then re-run the QA build.** On GitHub, go to **Actions → Overwolf edition build → Run workflow** with mode **qa**. The installer should be named `Deadlock-Counter-Advisor-Overwolf-Setup-0.13.0.exe`.
+- [ ] **Merge this PR, then re-run the QA build.** On GitHub, go to **Actions → Overwolf edition build → Run workflow** with mode **qa**. The installer should be named `Deadlock-Counter-Advisor-Overwolf-Setup-0.14.0.exe`.
 - [ ] **Scan the installer at [virustotal.com](https://www.virustotal.com).** Overwolf won't test an installer that VirusTotal flags.
 - [ ] **Check the installed QA build, without live data.** The QA installer is unsigned. Overwolf's game events only load in an installed build that Overwolf has signed, and Overwolf signs this one for its QA testers only. So on your PC the badge reads "Overwolf game events failed to load", and that's expected. Your dev key doesn't help either: dev mode never works in an installed app.
   - **Clean first run:** close the app and rename `%APPDATA%\Deadlock Counter Advisor`.
   - **Install and first run:** accept the policies, then go through the intro and the consent step.
   - **Theme:** the Dusk fonts, the tome icon in the header, and the taskbar icon. These are new files, and packaging is the step dev mode skips.
-  - **Manual mode:** pick enemy heroes and add items, and the picks update.
+  - **Manual mode:** pick enemy heroes and add items, and the buy plan updates.
   - **Controls:** glance view (**G**), the **Ctrl+Shift+F12** hotkey and **↗ Move display**.
   - **Closing:** close the app and confirm no process is left in Task Manager.
 - [ ] **Check live data in dev mode from source.** Set your dev key, then run `npm.cmd run start:overwolf`.
   - Play one match through to the end. Check the gold live dot, enemy purchases, your souls and items, kills and deaths on the enemy rows, and glance view.
   - Die three times within 8 minutes (a bot match is fine) and check that the **Priority** alert shows, and that **Dismiss** hides it until your next death. Open the in-game damage panel once to see it name who hurt you most.
-  - Then run `npm.cmd run start:overwolf:test-ads` and check that a test ad shows in the ad box.
+  - Then run `npm.cmd run start:overwolf:test-ads` and check that a test ad shows in the ad box, with "Counter Advisor is free" below a small ad.
+  - Overwolf rejects untested builds, so do this in a real match before submitting: the scoreboard signals and the priority alert (#28) and the ad box message (#30) have only been checked with sample data so far.
 - [ ] **Regenerate the dev key** in the Developer Console. The old one was pasted into a chat.
 - [ ] **Update the console listing.**
   - Icons: upload the tome icon and the gray icon. Both are in the design kit (`icon/png/`, `icon/icon-gray.ico`); check Overwolf's current icon sizes.
-  - Screenshots: take them from the Dusk UI, covering the live view, glance view and Settings.
+  - Screenshots: use the set below (or shots from a real match, if you prefer).
   - Description: say "Not affiliated with or endorsed by Valve."
 - [ ] **Decide on game art.** Hero portraits and item icons load from deadlock.io at runtime. The design kit says to check Valve's content rules before publishing.
+- [ ] **Screenshots** for the submission (all 1920×1080) are in `dist/qa-screenshots/` (git-ignored; see **Screenshots** below). They are the app's own page with sample match data, rendered by the screenshot script, so the ad box shows our message instead of an ad.
+- [ ] **Overwolf's submission requirements:**
+  - *Tested and follows the docs:* the checklist above.
+  - *A desktop window shows the app is running:* the main window opens at launch and stays in the taskbar; the show/hide hotkey only minimizes it. There is no background-only mode.
+  - *Explanation, instructions and screenshots of all core features:* paste **For the QA team** below and attach the eight screenshots.
 - [ ] **Policy URLs** for the submission:
   - https://awkwardcarl.github.io/deadlockcounteradvisor/privacy.html
   - https://awkwardcarl.github.io/deadlockcounteradvisor/terms.html
@@ -31,7 +37,7 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 
 ## For the QA team
 
-**What it is.** A second-screen companion for Deadlock that suggests which items to buy next. It reads the enemy team, their item purchases, the scoreboard (kills, deaths, assists, souls), your hero, your souls and the match phase from Overwolf's Deadlock game events. It never touches the game: it doesn't read memory, inject anything, automate input or show an in-game overlay. The window is a normal desktop window, meant for a second monitor.
+**What it is.** A second-screen companion for Deadlock that suggests which items to buy next. It reads the enemy team, their item purchases, the scoreboard (kills, deaths, assists, souls), your hero, your souls, your deaths and the match phase from Overwolf's Deadlock game events. It never touches the game: it doesn't read memory, inject anything, automate input or show an in-game overlay. The window is a normal desktop window, meant for a second monitor.
 
 **What you need.** Deadlock on Windows. A bot match is enough: live data starts once the match loads. A second monitor helps but isn't required.
 
@@ -71,11 +77,11 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 
 ### Data and network
 
-- **Game events.** Overwolf's Deadlock events, features `game_info` and `match_info` only. Player names are used only to match items to players; they are never saved or sent.
+- **Game events.** Overwolf's Deadlock events, features `game_info` and `match_info` only: the roster (heroes, teams, lanes, souls, kills, deaths, assists), item purchases, match ID, clock and phase, the `death` event, and `incoming_damage` (only while the player has the in-game damage panel open). Player names are used only to match items to players; they are never saved or sent. Scoreboard numbers are not saved.
 - **Network calls**, all for public data and never with account IDs:
   - [deadlock.io](https://deadlock.io): the item and hero catalog, plus artwork.
-  - [deadlock-api.com](https://deadlock-api.com): the hero and item list, community builds and item statistics (requested by hero ID), and the match record for a debrief (by the match ID you enter).
-- **Ads.** One 400×300 Overwolf ad box (`owadview`) at a time: at the bottom of the left column (cid `dca_400x300_main_lb`; a 400×60 banner, cid `dca_400x60_main_lb`, on windows under 900 px tall), or in glance view under the enemy rows when the window is tall enough (cid `dca_400x300_glance`). Ads are not enabled for our app ID yet, so it shows our background. Nothing we hold is passed to Overwolf or advertisers.
+  - [deadlock-api.com](https://deadlock-api.com): the hero and item list, community builds and item statistics (requested by hero ID), the match record for a debrief (by the match ID you enter), and hero artwork from its image server for heroes deadlock.io doesn't list yet.
+- **Ads.** One 400×300 Overwolf ad box (`owadview`) at a time: at the bottom of the left column (cid `dca_400x300_main_lb`; a 400×60 banner, cid `dca_400x60_main_lb`, on windows under 900 px tall), or in glance view under the enemy rows when the window is tall enough (cid `dca_400x300_glance`). Overwolf ads already serve in our testing. Behind the ad view the box shows our tome and "Counter Advisor is free", which a full-size ad covers. Nothing we hold is passed to Overwolf or advertisers.
 - **Nothing else.** No accounts and no analytics of our own.
 
 ### Known limitations
@@ -83,6 +89,18 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 - During the match intro, Overwolf reports some heroes as `UNKNOWN`; they fill in as the match loads.
 - Enemy items appear only once an enemy has bought something.
 - After a game patch, a new hero shows as "new hero" until we ship a profile for them. Their purchases still count.
+- The priority alert names who hurt you only if the in-game damage panel was open at some point during those deaths. Otherwise it names fed enemies, or your lane opponents while laning.
 - The picks are heuristics from item categories, enemy purchases and community data. They don't simulate combat.
+
+### Screenshots
+
+1. `01-first-launch-intro.png`: first launch. The intro, with Overwolf's consent step.
+2. `02-manual-mode.png`: without the game. Enemy heroes and items entered by hand, and the buy plan.
+3. `03-live-lane-plan.png`: live, laning. Your lane opponents, the next buy and the lane plan.
+4. `04-live-game-plan-fed-enemy.png`: live, mid game. Kills/deaths/assists and souls per enemy, a **Fed** enemy, and the game plan.
+5. `05-priority-alert.png`: after three deaths. The **Priority** alert and the protection it puts first.
+6. `06-glance-view.png`: glance view (**G**). The next buy, the next few buys and every enemy's items in large type.
+7. `07-settings-privacy.png`: Settings. Privacy (Overwolf consent, the two data toggles) and Shortcuts.
+8. `08-post-match-debrief.png`: post-match debrief. What hurt you, and when counters came.
 
 **Contact:** https://github.com/awkwardcarl/deadlockcounteradvisor/issues
