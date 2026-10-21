@@ -802,3 +802,71 @@ body.adsOn .liveItem.hasIcon .liveItemName{display:none}
 body.adsOn .liveItemNew.hasIcon{outline:2px solid var(--dca-gold);outline-offset:1px}
 /* Narrow windows: two lines of icons per enemy, so slightly smaller icons and rows. */
 @media (max-width:1500px){body.adsOn .liveRow{padding:4px 8px}body.adsOn .liveRowBody strong{flex-basis:80px}body.adsOn .liveItem.hasIcon img{width:20px;height:20px}}
+/* ── Buy plan: the next buy, then a lane plan (first 10 minutes) or a game
+   plan (counter their team, cover your team's gaps). Glance view keeps only
+   the next buy and one strip. */
+.advicePlan{display:flex;flex-direction:column;gap:12px}
+/* Next buy: the pick card laid out in one wide row. */
+.nextBuy .quickItem{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"top foot" "reason foot" "data faces" "vs faces";column-gap:24px;row-gap:6px;min-height:0;padding:16px 20px;border-color:rgba(var(--dca-accent-rgb),.6);box-shadow:inset 0 0 0 1px rgba(var(--dca-accent-rgb),.18)}
+.nextBuy .quickTop{grid-area:top}
+.nextBuy .quickItem .quickReason{grid-area:reason;margin:0}
+.nextBuy .quickData{grid-area:data;margin:0}
+.nextBuy .quickVs{grid-area:vs;margin:0}
+.nextBuy .quickCounters{grid-area:faces;justify-self:end;align-self:end;margin:0}
+.nextBuy .quickFoot{grid-area:foot;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:6px;margin:0;padding:0;border-top:0}
+.nextBuy .quickFoot .buyNow,.nextBuy .quickFoot .saveUp{font-size:calc(16px * var(--ui-text-multiplier))}
+/* Plan cards and their steps. */
+.planCard{padding:16px 18px;border:1px solid var(--dca-line);border-radius:12px;background:var(--dca-surface)}
+.planHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.planHead h3{margin:2px 0 0;font-size:calc(19px * var(--ui-text-multiplier))}
+.planSub{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:6px;color:var(--dca-muted);font-size:calc(12.5px * var(--ui-text-multiplier))}
+.planSub img{width:22px;height:22px;border-radius:50%;object-fit:cover;border:1px solid var(--dca-avatar-line);vertical-align:middle;margin-right:3px}
+.planChip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:var(--dca-surface-2);color:var(--dca-muted);font-size:calc(11.5px * var(--ui-text-multiplier));font-weight:700;white-space:nowrap}
+.planChip b.level-high{color:var(--dca-unfavorable)}.planChip b.level-medium{color:var(--dca-even)}.planChip b.level-low{color:var(--dca-favorable)}
+.planSteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.planStep{display:grid;grid-template-columns:26px 42px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 12px;border:1px solid var(--dca-line);border-radius:10px;background:var(--dca-surface-2)}
+.planStep.step-done{opacity:.55}
+.planStep.step-now{border-color:rgba(var(--dca-accent-rgb),.6);background:rgba(var(--dca-accent-rgb),.08)}
+.stepNum{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--dca-surface-3);color:var(--dca-muted);font:700 12px var(--dca-font-heading)}
+.step-now .stepNum{background:var(--dca-accent);color:var(--dca-bg)}
+.step-done .stepNum{background:transparent;color:var(--dca-accent)}
+.stepArt{display:grid;place-items:center;width:42px;height:42px;border-radius:9px;padding:4px;background:var(--dca-surface-3);border:1px solid var(--dca-avatar-line)}
+.stepArt.weapon{background:#513e2d;border-color:#89633d}
+.stepArt.vitality{background:#274c3b;border-color:#4e906f}
+.stepArt.spirit{background:#3d3459;border-color:#7865aa}
+.stepArt img{width:100%;height:100%;object-fit:contain}
+.stepBody{min-width:0}
+.stepName{font:700 calc(14.5px * var(--ui-text-multiplier)) var(--dca-font-heading);color:var(--dca-text)}
+.stepName .kindTag{font-size:calc(10.5px * var(--ui-text-multiplier));vertical-align:middle}
+.stepWhy{margin-top:2px;color:var(--dca-muted);font-size:calc(12.5px * var(--ui-text-multiplier))}
+.stepWhy .state{margin-left:6px}
+.stepSide{text-align:right;white-space:nowrap}
+.stepCost{font-weight:700;color:var(--dca-text);font-size:calc(12.5px * var(--ui-text-multiplier))}
+.stepStatus{margin-top:2px;font-weight:700;font-size:calc(11.5px * var(--ui-text-multiplier))}
+.stepStatus.now{color:var(--dca-accent)}.stepStatus.save{color:var(--dca-gold)}.stepStatus.owned{color:var(--dca-muted)}
+.planCols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.planColHead{margin:0 0 8px;font:700 calc(13.5px * var(--ui-text-multiplier)) var(--dca-font-heading);color:var(--dca-text)}
+.planFoot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;margin-top:12px;color:var(--dca-dim);font-size:calc(11.5px * var(--ui-text-multiplier))}
+.planChanged{color:var(--dca-muted)}
+.planChanged b{color:var(--dca-gold)}
+.planTeaser{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;border:1px solid var(--dca-line);border-radius:12px;background:var(--dca-surface);color:var(--dca-dim);font-size:calc(12.5px * var(--ui-text-multiplier))}
+.planTeaser strong{margin-right:10px;color:var(--dca-text);font:700 calc(14.5px * var(--ui-text-multiplier)) var(--dca-font-heading)}
+@container (max-width: 760px){
+ .planCols{grid-template-columns:minmax(0,1fr)}
+ .nextBuy .quickItem{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "reason" "data" "vs" "faces" "foot"}
+ .nextBuy .quickFoot{flex-direction:row;align-items:center;justify-content:space-between}
+ .nextBuy .quickCounters{justify-self:start}
+}
+/* Glance view: the next buy in large type, then one strip. */
+.glanceThen{display:none}
+body.glanceMode .planCard,body.glanceMode .planTeaser{display:none}
+body.glanceMode .glanceThen{display:block}
+.glanceThen .overline{margin:0 2px 8px}
+.thenSteps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.thenStep{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--dca-line);border-radius:12px;background:var(--dca-surface)}
+.thenStep .stepArt{width:52px;height:52px}
+.thenStep .stepName{font-size:calc(16px * var(--ui-text-multiplier))}
+.thenStep.step-done{opacity:.5}
+.thenWhy{display:inline-block;margin-top:4px;padding:1px 8px;border-radius:999px;background:var(--dca-surface-2);color:var(--dca-muted);font-size:calc(11.5px * var(--ui-text-multiplier));font-weight:700}
+body.glanceMode .nextBuy .quickItem{padding:20px 24px}
+body.glanceMode .nextBuy .quickFoot .buyNow,body.glanceMode .nextBuy .quickFoot .saveUp{font-size:calc(20px * var(--ui-text-multiplier))}

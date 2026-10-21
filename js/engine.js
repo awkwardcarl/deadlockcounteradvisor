@@ -661,12 +661,24 @@ function recommend(state,catalog,options={}){
  if(!opening&&!quickBuys.some(r=>!r.affordable))take(firstOf(r=>!r.affordable));
  for(const list of lean)while(quickBuys.length<3&&top(list))take(top(list));
  if(phase.key==='laning'){const rank=r=>r.hardCounter?0:r.affordable?1:2;quickBuys.sort((a,b)=>rank(a)-rank(b));}
+ // The buy plan's pool: every candidate the early-game rules allow, ranked by
+ // score alone. Unlike the quick picks above, nothing here depends on the
+ // souls you hold right now, so earning souls never reshuffles the plan;
+ // affordability only shows as status. A hard counter leads while laning.
+ const eligible=r=>phase.key!=='laning'||(r.hardCounter||r.effectiveCost<=saveCap)&&(!laneFocus||r.kind==='build'||r.counters.some(h=>laneOpponents.includes(h)));
+ const byPlan=(a,b)=>(phase.key==='laning'?Number(!!b.hardCounter)-Number(!!a.hardCounter):0)||b.score-a.score||a.effectiveCost-b.effectiveCost||a.name.localeCompare(b.name);
+ const planCounters=all.filter(eligible).sort(byPlan),planBuilds=build.filter(eligible).sort(byPlan);
+ const plan={stage:phase.key==='laning'?'lane':'game',opponents:laneOpponents,
+  pool:[...planCounters,...planBuilds].sort(byPlan).slice(0,30),
+  counters:planCounters.slice(0,12),
+  gaps:[...planCounters,...planBuilds].filter(r=>r.gap||(r.team||[]).some(n=>n.up)).sort(byPlan).slice(0,12),
+  builds:planBuilds.slice(0,12)};
  const sort=options.sort||'smart';
  if(sort==='affordable')all.sort((a,b)=>Number(b.affordable)-Number(a.affordable)||b.score-a.score);
  else if(sort==='cost')all.sort((a,b)=>a.effectiveCost-b.effectiveCost||b.score-a.score);
  const filtered=all.filter(r=>(!options.category||options.category==='all'||r.category===options.category)&&(!options.affordableOnly||r.affordable));
  const quality=!catalog.complete?'Starter catalog':profiledHeroes===0?'Limited profiles':listedItems>0&&knownItems<listedItems?'Partial item recognition':listedItems===0?'Hero profiles only':'Hero + recognized item evidence';
- return {results:filtered.slice(0,12),quickBuys,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,level:threatLevel(value.score),coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
+ return {results:filtered.slice(0,12),quickBuys,plan,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,level:threatLevel(value.score),coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
  patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
  buildPicks:build.slice(0,6),
  phase:{key:phase.key,label:PHASE_LABELS[phase.key],source:phase.source,minutes:phase.minutes,opening},

@@ -83,7 +83,7 @@ function applySetupDefault(){
 }
 function updateCatalogUI(){
  // A new catalog can reshuffle the picks; that is not a live change to highlight.
- lastPickNames=[];
+ lastPickNames=[];resetPlan();
  $('hero').innerHTML=heroOptions(state.hero,false);$('hero').value=state.hero;
  $('catalogCounts').textContent=catalog.complete?`${catalog.heroes.length} heroes · ${catalog.items.length} items`:'Starter catalog';
  refreshItemIndex();
@@ -426,14 +426,14 @@ function requestBuildData(){
 function showBuildDataStatus(text){const el=$('buildDataStatus');if(el)el.textContent=text;}
 const pickHighlights=new Map();
 let lastPickNames=[];
-function quickCard(r,i){
+function quickCard(r,i,eyebrow){
  const counters=r.reasons.length?`Counters ${r.reasons.slice(0,2).join(' and ').toLowerCase()}`:'General utility';
  const reason=r.kind==='build'?r.reasons[0]:counters;
  const changed=(pickHighlights.get(r.name)||0)>Date.now();
  return [
-  `<article class="quickItem ${r.affordable?'quickReady':'quickSaving'}${changed?' quickChanged':''}">`,
+  `<article class="quickItem ${r.affordable?'quickReady':'quickSaving'}${changed?' quickChanged':''}" data-pick="${escapeHTML(r.name)}">`,
   `<div class="quickTop"><span class="quickArt ${escapeHTML(r.category)}">${itemArt(r)}</span>`,
-  `<div class="quickIdentity"><span class="quickEyebrow">PICK ${i+1} · ${escapeHTML(r.category||'utility')}</span><strong>${escapeHTML(r.name)}</strong></div>`,
+  `<div class="quickIdentity"><span class="quickEyebrow">${eyebrow?escapeHTML(eyebrow):`PICK ${i+1} · ${escapeHTML(r.category||'utility')}`}</span><strong>${escapeHTML(r.name)}</strong></div>`,
   `<span class="quickCost">${fmt.format(r.effectiveCost)}<small> souls</small></span></div>`,
   `<p class="quickReason">${escapeHTML(reason)}${teamLine(r)}</p>`,
   backingText(r)?`<p class="quickData" title="${escapeHTML(winTip(r.backing))}">${escapeHTML(backingText(r))}${stateTag(winState(r.backing))}</p>`:'',
@@ -442,6 +442,79 @@ function quickCard(r,i){
   `<div class="quickFoot"><span class="${r.affordable?'buyNow':'saveUp'}">${r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`}</span>${r.upgradeFrom?`<span class="quickUpgrade">uses your ${escapeHTML(r.upgradeFrom)}</span>`:''}${r.investment?.notable?`<span class="quickSpike" title="Investment bonus from this purchase">${r.investment.at?fmt.format(r.investment.at)+': ':''}+${r.investment.gain}${INVEST_SHORT[r.investment.category]}</span>`:''}</div>`,
   `</article>`
  ].join('');
+}
+// The buy plan (see js/plan.js): the next buy, then a lane plan while laning
+// or a game plan afterwards, plus glance view's strip. The previous plan keeps
+// picks steady; planEvent names what last happened in the match (an enemy or
+// you bought something), shown when the plan changes.
+const PLAN=window.DeadlockPlan;
+let lastPlan=null,planEvent='',planChange=null;
+function resetPlan(){lastPlan=null;planChange=null;planEvent='';}
+const itemByName=name=>catalog.items.find(i=>engine.norm(i.name)===engine.norm(name));
+const stepArt=(icon,category)=>`<span class="stepArt ${escapeHTML(category||'')}">${icon?`<img src="${escapeHTML(icon)}" alt="">`:''}</span>`;
+function stepWhy(r,kind){
+ if(kind==='gap')return (r.team||[]).find(n=>n.up)?.text||(r.gap?'Fills a durability gap':r.reasons[0]||'');
+ if(r.kind==='build')return r.reasons[0]||'';
+ return `Counters ${(r.reasons[0]||'their threats').toLowerCase()}${r.vsItems?.length?` · vs ${r.vsItems.slice(0,2).join(', ')}`:''}`;
+}
+function planStep(r,n,role,kind){
+ const status=role==='now'?(r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`):role==='next'?(r.affordable?'Next · ready':`Next · ${fmt.format(r.missing)} more`):r.affordable?'Affordable':role==='later'?'Later':'Then';
+ const changed=(pickHighlights.get(r.name)||0)>Date.now();
+ return `<li class="planStep step-${role}${changed?' quickChanged':''}" data-pick="${escapeHTML(r.name)}"><span class="stepNum">${n}</span>${stepArt(r.icon,r.category)}<div class="stepBody"><div class="stepName">${escapeHTML(r.name)}${r.hardCounter?' <span class="kindTag kind-hard">Hard counter</span>':''}</div><div class="stepWhy">${escapeHTML(stepWhy(r,kind))}${stateTag(winState(r.backing))}</div></div><div class="stepSide"><div class="stepCost">${fmt.format(r.effectiveCost)}</div><div class="stepStatus ${role==='now'?(r.affordable?'now':'save'):r.affordable?'now':'save'}">${status}</div></div></li>`;
+}
+function doneStep(name){
+ const item=itemByName(name);
+ return `<li class="planStep step-done"><span class="stepNum">✓</span>${stepArt(item?.icon,item?.category)}<div class="stepBody"><div class="stepName">${escapeHTML(item?.name||name)}</div><div class="stepWhy">Bought</div></div><div class="stepSide"><div class="stepCost">${item?fmt.format(item.cost):''}</div><div class="stepStatus owned">Owned</div></div></li>`;
+}
+function planFoot(source,rule){
+ const change=planChange&&document.body.classList.contains('liveMatch')?`last change${planChange.clock?' '+escapeHTML(planChange.clock):''}: <b>${escapeHTML(planChange.why)}</b>`:'';
+ return `<div class="planFoot"><span>${escapeHTML(source)}</span><span class="planChanged">${[rule?escapeHTML(rule):'',change].filter(Boolean).join(' · ')}</span></div>`;
+}
+function lanePlanCard(plan,out){
+ const opp=plan.opponents;
+ const faces=opp.map(n=>{const src=portrait(n);return `${src?`<img src="${escapeHTML(src)}" alt="">`:''}${escapeHTML(n)}`;}).join(' + ');
+ const threat=out.threats.slice(0,2).map(t=>t.label.toLowerCase()).join(', ');
+ const sub=opp.length?`${escapeHTML(state.hero||'You')} vs ${faces}${threat?` · ${escapeHTML(threat)}`:''}`:`Your first buys${threat?` against ${escapeHTML(threat)}`:''}`;
+ const steps=plan.steps.map((r,i)=>planStep(r,plan.done.length+i+1,i===0?'now':i===1?'next':'later','lane')).join('');
+ const source=opp.length?(out.buildData?.matchup?'From your lane opponents\' heroes and buys, and win rates in this lane matchup.':'From your lane opponents\' heroes and buys.'):'From the enemy heroes and buys you entered.';
+ return `<section class="planCard lanePlan"><div class="planHead"><div><div class="overline">LANE PLAN · FIRST 10 MINUTES</div><h3>${opp.length?'Win your lane':'Opening buys'}</h3><div class="planSub">${sub}</div></div><span class="planChip">Buy in this order</span></div><ol class="planSteps">${plan.done.map(doneStep).join('')}${steps}</ol>${planFoot(source,'Changes only when their buys shift')}</section>`;
+}
+function planTeaser(out){
+ const top=out.threats[0],signal=out.team?.signals?.[0];
+ const text=[top?`So far their biggest threat is ${top.label.toLowerCase()} (${(LEVEL_LABELS[top.level]||'').toLowerCase()})`:'',signal?signal.label:''].filter(Boolean).join('; ');
+ return `<div class="planTeaser"><div><strong>Game plan</strong><span>${out.phase?.source==='clock'?'Starts at 10:00.':'Starts after laning.'}${text?' '+escapeHTML(text)+'.':''}</span></div><span class="planChip">After laning</span></div>`;
+}
+function gamePlanCard(plan,out){
+ const top=out.threats[0];
+ const chip=top?`<span class="planChip">Biggest threat: ${escapeHTML(top.label)} <b class="level-${escapeHTML(top.level)}">${LEVEL_MARKS[top.level]||''} ${LEVEL_LABELS[top.level]||''}</b></span>`:'';
+ const col=(title,list,kind)=>`<div><h4 class="planColHead">${escapeHTML(title)}</h4>${list.length?`<ol class="planSteps">${list.map((r,i)=>planStep(r,i+1,r===plan.next?'now':'then',kind)).join('')}</ol>`:'<p class="emptyText">Nothing stands out yet.</p>'}</div>`;
+ return `<section class="planCard gamePlan"><div class="planHead"><div><div class="overline">GAME PLAN</div><h3>Counter their team, cover your team's gaps</h3></div>${chip}</div><div class="planCols">${col('Counter their team',plan.counters,'counter')}${col(plan.gapsAreBuilds?'Build on your items':'Cover your team\'s gaps',plan.gaps,plan.gapsAreBuilds?'build':'gap')}</div>${planFoot('Ranked by their biggest threats and what your allies already have.','')}</section>`;
+}
+// Glance view: the plan as one strip under the next buy.
+function glanceThen(plan){
+ const lane=plan.stage==='lane';
+ const tiles=lane?[...plan.done.slice(-1).map(name=>({done:true,name})),...plan.steps.slice(1)]:PLAN.thenList(plan);
+ if(!tiles.length)return '';
+ const tile=t=>{
+  if(t.done){const item=itemByName(t.name);return `<div class="thenStep step-done">${stepArt(item?.icon,item?.category)}<div><div class="stepName">${escapeHTML(item?.name||t.name)}</div><div class="stepStatus owned">✓ Owned</div></div></div>`;}
+  const tag=lane?'':stepWhy(t,plan.gaps.includes(t)&&!plan.gapsAreBuilds?'gap':'counter');
+  return `<div class="thenStep">${stepArt(t.icon,t.category)}<div><div class="stepName">${escapeHTML(t.name)}</div>${tag?`<span class="thenWhy">${escapeHTML(tag)}</span>`:''}<div class="stepStatus ${t.affordable?'now':'save'}">${t.affordable?'Affordable':`${fmt.format(t.missing)} more`} · ${fmt.format(t.effectiveCost)}</div></div></div>`;
+ };
+ return `<div class="glanceThen"><div class="overline">${lane?'LANE PLAN · NEXT':'THEN'}</div><div class="thenSteps">${tiles.map(tile).join('')}</div></div>`;
+}
+function renderPlan(out){
+ const live=document.body.classList.contains('liveMatch');
+ const plan=PLAN.makePlan(out,lastPlan,engine.cleanList(state.owned));
+ if(!plan){lastPlan=null;lastPickNames=[];$('quickBuys').innerHTML='<div class="quickEmpty">Add your opponents to see your buy plan. This is not automated gameplay.</div>';return;}
+ if(live&&lastPickNames.length&&plan.changed){
+  for(const name of plan.added)pickHighlights.set(name,Date.now()+PICK_HIGHLIGHT_MS);
+  planChange={clock:lastFeedSnapshot?.clock||'',why:planEvent||'match updated'};
+ }
+ lastPickNames=[...new Set([plan.next,...plan.steps,...plan.counters,...plan.gaps].map(r=>r.name))];
+ lastPlan=plan;
+ const lane=plan.stage==='lane';
+ $('quickBuys').innerHTML=[`<div class="nextBuy">${quickCard(plan.next,0,lane?`NEXT BUY · STEP ${plan.done.length+1} OF YOUR LANE PLAN`:'NEXT BUY')}</div>`,lane?lanePlanCard(plan,out)+planTeaser(out):gamePlanCard(plan,out),glanceThen(plan)].join('');
+ $('quickBuys').querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
 }
 const SCORING_NOTE='The scoring model caps repeated threat evidence per enemy and considers opponent coverage, item pairs on the same enemy, archetype fit, public catalog prices and component discounts. It does not simulate combat, abilities or item-slot availability.';
 function resultCard(r,i){
@@ -480,6 +553,7 @@ let liveSnapshotAt=0;
 function updateMatchView(){
  const live=liveWasOn&&state.enemies.length>0;
  // Entering the live view starts a fresh comparison: nothing to highlight yet.
+ if(live&&!document.body.classList.contains('liveMatch'))resetPlan();
  if(live&&!document.body.classList.contains('liveMatch'))lastPickNames=[];
  document.body.classList.toggle('liveMatch',live);
  $('liveTeamCard').hidden=!live;
@@ -539,6 +613,8 @@ function noteNewPurchases(before){
   if(!old)return;
   const added=engine.cleanList(e.items).map(engine.norm).filter(n=>!old.has(n));
   if(!added.length)return;
+  const lastName=engine.cleanList(e.items).find(x=>engine.norm(x)===added[added.length-1]);
+  if(lastName)planEvent=`${e.hero||'An enemy'} bought ${lastName}`;
   const current=recentBuys.get(key),items=new Set(current&&current.until>now?current.items:[]);
   added.forEach(n=>items.add(n));
   recentBuys.set(key,{items,until:now+NEW_BUY_MS});
@@ -558,7 +634,7 @@ function setupMatchView(){
   let expired=false;
   for(const [key,value] of recentBuys)if(value.until<=now){recentBuys.delete(key);expired=true;}
   if(expired){renderLiveTeam();renderGlanceTeam();}
-  document.querySelectorAll('#quickBuys .quickChanged').forEach((el,i)=>{if((pickHighlights.get(lastPickNames[i])||0)<=now)el.classList.remove('quickChanged');});
+  document.querySelectorAll('#quickBuys .quickChanged').forEach(el=>{if((pickHighlights.get(el.dataset.pick)||0)<=now)el.classList.remove('quickChanged');});
  },5000);
 }
 function renderEnemies(){
@@ -589,12 +665,7 @@ function renderAdvice(){
  // Only children are replaced, so the open/closed state of the <details> sticks.
  $('abilityTips').hidden=!out.abilityTips.length;
  $('abilityTips').innerHTML=tipPanel(out.abilityTips);
- const pickNames=(out.quickBuys||[]).map(r=>r.name);
- if(document.body.classList.contains('liveMatch')&&lastPickNames.length){
-  for(const name of pickNames)if(!lastPickNames.includes(name))pickHighlights.set(name,Date.now()+PICK_HIGHLIGHT_MS);
- }
- lastPickNames=pickNames;
- $('quickBuys').innerHTML=out.quickBuys?.length?out.quickBuys.map(quickCard).join(''):'<div class="quickEmpty">Add your opponents to see three purchase choices. This is not automated gameplay.</div>';
+ renderPlan(out);
  if(document.body.classList.contains('liveMatch'))renderLiveStrip();
  requestBuildData();
  const visible=showAllResults?out.results:out.results.slice(0,4);
@@ -644,10 +715,13 @@ function onLiveMatch(match){
  liveSnapshotAt=Date.now();
  // A source's first snapshot replaces the lineup; that is not a change to highlight.
  if(!prev)lastPickNames=[];
+ if(!prev||prev.matchId!==match.matchId)resetPlan();
+ const ownedBefore=new Set(engine.cleanList(state.owned).map(engine.norm));
  const before=new Map(state.enemies.map((e,i)=>[e.feedName||String(i),new Set(engine.cleanList(e.items).map(engine.norm))]));
  const result=liveMerge.mergeFeedSnapshot(state,prev,match,resolveHeroName,resolveFeedItems);
  // Not on the first snapshot: every item would look new.
  if(result.changed&&prev&&!result.ended)noteNewPurchases(before);
+ if(result.changed&&prev&&!result.ended){const bought=engine.cleanList(state.owned).filter(x=>!ownedBefore.has(engine.norm(x))).pop();if(bought)planEvent='You bought '+bought;}
  // Skip the redraw when nothing changed, so typing in a field is not interrupted.
  if(result.changed){
    $('hero').innerHTML=heroOptions(state.hero,false);
