@@ -54,7 +54,8 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 ### Ad box
 
 - One 400×300 container sits at the bottom of the left column in the live and manual views. The left column stays in place beside the picks, and its cards scroll above the box, so the box is always fully visible and never moves.
-- The ad view is created only while the box is fully on screen with no dialog open. Glance view, **Hide inputs**, the post-match debrief, an open dialog or a window too narrow for the side column close it; it reopens in the same place afterwards.
+- In glance view the left column is hidden, so that box closes. A second box opens under the enemy rows if the window has room for all of it without scrolling (about 1920×1040 and up); otherwise glance view has no ad.
+- An ad view is created only while its box is fully on screen with no dialog open. **Hide inputs**, the post-match debrief, an open dialog or a window too narrow for the side column close it; it reopens in the same place afterwards.
 - To preview ad behavior locally, start the app with `--test-ad` (`npm run start:overwolf:test-ads`).
 
 ### Settings → Privacy
@@ -70,7 +71,7 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 - **Network calls**, all for public data and never with account IDs:
   - [deadlock.io](https://deadlock.io): the item and hero catalog, plus artwork.
   - [deadlock-api.com](https://deadlock-api.com): the hero and item list, community builds and item statistics (requested by hero ID), and the match record for a debrief (by the match ID you enter).
-- **Ads.** One 400×300 Overwolf ad box (`owadview`, cid `dca_400x300_main_lb`) at the bottom of the left column. Ads are not enabled for our app ID yet, so it shows our background. Nothing we hold is passed to Overwolf or advertisers.
+- **Ads.** One 400×300 Overwolf ad box (`owadview`) at a time: at the bottom of the left column (cid `dca_400x300_main_lb`), or in glance view under the enemy rows when the window is tall enough (cid `dca_400x300_glance`). Ads are not enabled for our app ID yet, so it shows our background. Nothing we hold is passed to Overwolf or advertisers.
 - **Nothing else.** No accounts and no analytics of our own.
 
 ### Known limitations

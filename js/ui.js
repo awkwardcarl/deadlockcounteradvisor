@@ -753,35 +753,49 @@ function applyCatalog(snapshot){
  updateCatalogUI();
 }
 // Overwolf ad box (Overwolf edition): one 400x300 <owadview> at the bottom of
-// the left column. Overwolf's rules: the box is always fully visible, never
-// moves while an ad plays, and is closed and reopened rather than hidden. So
-// the ad view exists only while the box is fully on screen with no dialog
-// open: glance view, hidden inputs, the debrief, narrow layouts and dialogs
-// close it, and it reopens when the box is back. The left column stays put
-// beside the picks (pinned below the top bar) and its cards scroll above the box.
-const AD_CID='dca_400x300_main_lb',AD_W=400,AD_H=300;
+// the left column, or in glance view under the enemy rows when the window has
+// room for it (one box at a time). Overwolf's rules: the box is always fully
+// visible, never moves while an ad plays, and is closed and reopened rather
+// than hidden. So an ad view exists only while its box is fully on screen with
+// no dialog open: hidden inputs, the debrief, narrow layouts and dialogs close
+// it, and it reopens when the box is back. The left column stays put beside
+// the picks (pinned below the top bar) and its cards scroll above the box.
+const AD_CID='dca_400x300_main_lb',AD_GLANCE_CID='dca_400x300_glance',AD_W=400,AD_H=300;
+// Glance box: 12px above it, and the card and page padding below.
+const AD_GLANCE_ROOM=AD_H+12+40;
 function setupAds(){
- const slot=$('adSlot'),card=$('adCard'),api=window.desktopAPI;
- if(!slot||!card||api?.edition!=='overwolf'||api?.ads!==true)return null;
- document.body.classList.add('adsOn');card.hidden=false;
- let view=null,pinned='';
+ const api=window.desktopAPI;
+ const slots=[{el:$('adSlot'),card:$('adCard'),cid:AD_CID},{el:$('adSlotGlance'),card:$('adCardGlance'),cid:AD_GLANCE_CID,glance:true}].filter(s=>s.el&&s.card);
+ if(!slots.some(s=>!s.glance)||api?.edition!=='overwolf'||api?.ads!==true)return null;
+ document.body.classList.add('adsOn');
+ for(const s of slots)if(!s.glance)s.card.hidden=false;
+ let pinned='';
  const pin=()=>{const ws=document.querySelector('.workspace');if(!ws)return;const top=Math.round(ws.getBoundingClientRect().top+window.scrollY+parseFloat(getComputedStyle(ws).paddingTop)||0)+'px';if(top!==pinned){pinned=top;document.documentElement.style.setProperty('--left-top',top);}};
- const fullyVisible=()=>{const r=slot.getBoundingClientRect();return r.width>=AD_W&&r.height>=AD_H&&r.top>=0&&r.left>=0&&r.bottom<=window.innerHeight&&r.right<=window.innerWidth&&!document.querySelector('dialog[open]');};
+ const fullyVisible=el=>{const r=el.getBoundingClientRect();return r.width>=AD_W&&r.height>=AD_H&&r.top>=0&&r.left>=0&&r.bottom<=window.innerHeight&&r.right<=window.innerWidth&&!document.querySelector('dialog[open]');};
+ // Glance view shows the box only when it fits below the rows without scrolling.
+ const glanceRoom=()=>{
+  if(!document.body.classList.contains('glanceMode'))return false;
+  const team=$('glanceTeam'),rows=team&&team.getBoundingClientRect().height?team:$('quickBuys');
+  return !!rows&&window.innerHeight-rows.getBoundingClientRect().bottom>=AD_GLANCE_ROOM;
+ };
  const update=()=>{
   pin();
-  if(fullyVisible()){if(!view){view=document.createElement('owadview');view.setAttribute('cid',AD_CID);slot.append(view);}}
-  else if(view){view.remove();view=null;}
+  for(const s of slots){
+   if(s.glance)s.card.hidden=!glanceRoom();
+   if(fullyVisible(s.el)){if(!s.view){s.view=document.createElement('owadview');s.view.setAttribute('cid',s.cid);s.el.append(s.view);}}
+   else if(s.view){s.view.remove();s.view=null;}
+  }
  };
  let queued=false;
  const schedule=()=>{if(queued)return;queued=true;setTimeout(()=>{queued=false;update();},30);};
- new IntersectionObserver(schedule,{threshold:[0,1]}).observe(slot);
+ for(const s of slots)new IntersectionObserver(schedule,{threshold:[0,1]}).observe(s.el);
  new ResizeObserver(schedule).observe(document.body);
  new MutationObserver(schedule).observe(document.body,{attributes:true,attributeFilter:['class']});
  document.querySelectorAll('dialog').forEach(d=>new MutationObserver(schedule).observe(d,{attributes:true,attributeFilter:['open']}));
  window.addEventListener('resize',schedule);
  window.addEventListener('scroll',schedule,{passive:true});
  schedule();
- return {isOpen:()=>!!view,update};
+ return {isOpen:()=>slots.some(s=>s.view),update};
 }
 async function syncCatalogNow(){applyCatalog(await window.desktopAPI.syncCatalog());}
 function setup(){
