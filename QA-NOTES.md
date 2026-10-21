@@ -14,7 +14,8 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
   - **Controls:** glance view (**G**), the **Ctrl+Shift+F12** hotkey and **↗ Move display**.
   - **Closing:** close the app and confirm no process is left in Task Manager.
 - [ ] **Check live data in dev mode from source.** Set your dev key, then run `npm.cmd run start:overwolf`.
-  - Play one match through to the end. Check the gold live dot, enemy purchases, your souls and items, and glance view.
+  - Play one match through to the end. Check the gold live dot, enemy purchases, your souls and items, kills and deaths on the enemy rows, and glance view.
+  - Die three times within 8 minutes (a bot match is fine) and check that the **Priority** alert shows, and that **Dismiss** hides it until your next death. Open the in-game damage panel once to see it name who hurt you most.
   - Then run `npm.cmd run start:overwolf:test-ads` and check that a test ad shows in the ad box.
 - [ ] **Regenerate the dev key** in the Developer Console. The old one was pasted into a chat.
 - [ ] **Update the console listing.**
@@ -30,7 +31,7 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 
 ## For the QA team
 
-**What it is.** A second-screen companion for Deadlock that suggests which items to buy next. It reads the enemy team, their item purchases, your hero, your souls and the match phase from Overwolf's Deadlock game events. It never touches the game: it doesn't read memory, inject anything, automate input or show an in-game overlay. The window is a normal desktop window, meant for a second monitor.
+**What it is.** A second-screen companion for Deadlock that suggests which items to buy next. It reads the enemy team, their item purchases, the scoreboard (kills, deaths, assists, souls), your hero, your souls and the match phase from Overwolf's Deadlock game events. It never touches the game: it doesn't read memory, inject anything, automate input or show an in-game overlay. The window is a normal desktop window, meant for a second monitor.
 
 **What you need.** Deadlock on Windows. A bot match is enough: live data starts once the match loads. A second monitor helps but isn't required.
 
@@ -38,13 +39,14 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 
 1. **Install.** The installer shows the Terms of Use and Privacy Policy and asks you to accept them.
 2. **First launch.** A short intro explains the app. In regions where Overwolf requires consent, it offers Overwolf's consent step.
-3. **Without the game.** The status reads **Live source: disconnected**. Manual mode works: under **Enemy lineup**, pick enemy heroes and add items, and the three picks update.
+3. **Without the game.** The status reads **Live source: disconnected**. Manual mode works: under **Enemy lineup**, pick enemy heroes and add items, and the buy plan updates.
 4. **In a match.**
    - The top badge turns to **Live: Overwolf connected** with a gold dot.
-   - The left panel shows the enemy team with portraits. The strip above the picks shows the match clock, your hero, souls, net worth and your investment bonuses.
+   - The left panel shows the enemy team with portraits, kills/deaths/assists and souls. An enemy far ahead in souls is tagged **Fed**. The strip above the picks shows the match clock, your hero, souls, net worth and your investment bonuses.
    - Enemy purchases appear as they happen; new ones are ringed in gold for about 20 seconds.
-   - Picks update as you earn souls and buy items. Items built into something you own are not suggested again.
-5. **Glance view.** Press **G**, or click **Glance mode**. You get the three picks in large type plus every enemy's items; press **Esc** to leave.
+   - The buy plan shows the next buy, then a lane plan for the first 10 minutes and a game plan after. Picks hold steady as you earn souls and change when someone buys something. Items built into something you own are not suggested again.
+   - Dying three times within 8 minutes raises a **Priority** alert: who hurt you most, their damage type, and the protection to buy. **Dismiss** hides it until your next death.
+5. **Glance view.** Press **G**, or click **Glance mode**. You get the next buy (and any alert) in large type, the next few buys, and every enemy's items; press **Esc** to leave.
 6. **Show and hide.** **Ctrl+Shift+F12** shows or hides the window from inside the game. The shortcut is listed under **Settings → Shortcuts**.
 7. **Second monitor.** **↗ Move display** moves the window to the next screen, which the app remembers.
 8. **End of match.** Leaving or finishing the match clears the lineup, your items and souls. Closing the window ends every process.

@@ -216,7 +216,7 @@ function network(){
   test(uiCtx.heroOptions('Newguy',true).includes('<option value="Newguy" selected>Newguy · new hero</option>')&&uiCtx.heroOptions('Newguy',true).includes('<option value="Haze" >Haze</option>')&&!uiCtx.heroOptions('Haze',true).includes('new hero'),'hero selects say "Newguy · new hero"');
   test(uiCtx.newHeroTitle('Newguy')===' title="No reviewed profile yet; counters use their purchases"'&&ui.includes('aria-label="Enemy ${i+1} hero"${newHeroTitle(e.hero)}>')&&ui.includes("$('hero').title=newHero(state.hero)?engine.NEW_HERO.tip:'';"),'enemy and own hero selects carry the tooltip');
   const el={innerHTML:'',querySelectorAll:()=>[]};
-  Object.assign(uiCtx,{$:id=>id==='glanceTeam'?el:null,state:{ownLane:null,enemies:[{hero:'Newguy',items:''},{hero:'Haze',items:''}]},portrait:()=>'',recentBuys:new Map(),itemIndex:{icons:new Map()}});
+  Object.assign(uiCtx,{$:id=>id==='glanceTeam'?el:null,state:{ownLane:null,enemies:[{hero:'Newguy',items:''},{hero:'Haze',items:''}]},portrait:()=>'',recentBuys:new Map(),itemIndex:{icons:new Map()},isFed:()=>false,fedTag:()=>''});
   vm.runInContext(ui.slice(ui.indexOf('function renderGlanceTeam(){'),ui.indexOf('function setGlance(on){')),uiCtx);uiCtx.renderGlanceTeam();
   test(el.innerHTML.includes('<span class="gName">Newguy<span class="newHero" title="No reviewed profile yet; counters use their purchases"> · new hero</span></span>')&&el.innerHTML.includes('<span class="gName">Haze</span>'),'glance view labels the new hero');
   test(ui.includes("<strong>${escapeHTML(e.hero||'Hero not reported yet')}${newHeroTag(e.hero)}")&&ui.includes("$('liveHeroName').title=newHero(state.hero)?engine.NEW_HERO.tip:'';"),'live team rows and the status strip label it too');

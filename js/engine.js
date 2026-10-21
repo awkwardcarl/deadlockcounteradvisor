@@ -385,6 +385,35 @@ function teamSignals({allies,you,enemies,itemMap,byTag,damageThreat,phaseKey}){
   return notes.length?{factor,notes}:null;
  }};
 }
+// Scoreboard signals (live roster only; manual entry has none).
+// Fed: an enemy well ahead of the lobby, with FED.souls times the average souls
+// (net worth) of the players on the scoreboard, at least FED.minSouls, and
+// FED.lead more kills than deaths. After laning a fed enemy's threats count up
+// to FED.max times as much, so the game plan leans toward answering them.
+const FED={souls:1.25,minSouls:6000,lead:2,max:1.5,players:4};
+function fedWeights(enemies,allies,phaseKey){
+ const statsOf=x=>x&&x.stats&&typeof x.stats==='object'?x.stats:null;
+ const lobby=[...enemies,...(Array.isArray(allies)?allies:[])].map(statsOf).filter(s=>Number(s?.souls)>0);
+ const avg=lobby.length>=FED.players?lobby.reduce((sum,s)=>sum+Number(s.souls),0)/lobby.length:0;
+ return enemies.map(e=>{
+  const s=statsOf(e),souls=Number(s?.souls)||0;
+  if(!avg||phaseKey==='laning'||souls<FED.minSouls||souls<FED.souls*avg||(Number(s.kills)||0)-(Number(s.deaths)||0)<FED.lead)return 1;
+  // In steps of .05, so a few souls either way don't move the advice.
+  return Math.min(FED.max,Math.round((1+(souls/avg-1)*1.25)*20)/20);
+ });
+}
+// Priority alert: you died ALERT.deaths times within ALERT.minutes of match
+// time. It names who hurt you: the enemies the in-game damage panel shows
+// (ALERT.share or more of the damage each, from a reading taken in that
+// stretch), else the fed enemies, else your lane opponents while laning, else
+// their whole team. It asks for the
+// strongest answer to the damage type they deal (weapon or spirit): an item
+// weighted ALERT.weight or more against it.
+const ALERT={deaths:3,minutes:8,share:.2,weight:2.4,options:3};
+const clockText=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+// The damage panel names heroes its own way (damageby_hero_<name>): match its
+// name to the hero's shown name, an alias, or the internal name in its art.
+const artName=hero=>{const m=/\/heroes\/([a-z0-9_]+?)_(?:card|sm|vertical)/i.exec(String(hero?.portrait||''));return m?norm(m[1]):'';};
 function recommend(state,catalog,options={}){
  const enemies=(Array.isArray(state.enemies)?state.enemies:[]).filter(e=>e&&String(e.hero||'').trim()).slice(0,6);
  if(!enemies.length)return {results:[],quickBuys:[],threats:[],patterns:[],abilityTips:[],team:{allies:[],weaponShare:null,lean:null,signals:[]},unknown:[],newHeroes:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
@@ -439,6 +468,9 @@ function recommend(state,catalog,options={}){
  const laneFocus=phase.key==='laning'&&!!ownLane&&enemies.some(e=>Number(e.lane)===ownLane);
  const laneOpponents=laneFocus?enemies.filter(e=>Number(e.lane)===ownLane).map(e=>String(e.hero)):[];
  const laneTags=new Map(),matchupWeight=new Map();
+ // Fed enemies' weights (1 for everyone else), and each enemy's weapon and
+ // spirit pressure (for the priority alert's damage type).
+ const fed=fedWeights(enemies,state.allies,phase.key),enemyDamage=enemies.map(()=>({bullet:0,spirit:0}));
  // Per threat: lane opponents, and enemies overall, whose purchases show it.
  const laneBuyers=new Map(),teamBuyers=new Map();
  for(const [idx,enemy] of enemies.entries()){
@@ -503,7 +535,9 @@ function recommend(state,catalog,options={}){
    if(!byTag.has(tag))byTag.set(tag,{score:0,pick:0,sources:[],enemies:new Set()});
    // score: shown as the threat level. pick: drives item scores; the lane
    // weight is squared because item scores take a square root of it.
-   const acc=byTag.get(tag);acc.score+=bounded*laneWeight;acc.pick+=bounded*laneWeight*laneWeight;acc.sources.push(...x.sources);acc.enemies.add(idx);
+   const w=laneWeight*fed[idx];
+   const acc=byTag.get(tag);acc.score+=bounded*w;acc.pick+=bounded*w*w;acc.sources.push(...x.sources);acc.enemies.add(idx);
+   if(tag in enemyDamage[idx])enemyDamage[idx][tag]=bounded;
    if(inLane)laneTags.set(tag,(laneTags.get(tag)||0)+bounded);
    if(x.items>0||x.pairs>0){teamBuyers.set(tag,(teamBuyers.get(tag)||0)+1);if(inLane)laneBuyers.set(tag,(laneBuyers.get(tag)||0)+1);}
   }
@@ -603,6 +637,8 @@ function recommend(state,catalog,options={}){
    tags:leads.map(x=>x.tag),reasons,sources,vsItems,backing,investment:invest,hardCounter:hard,coverage:coveredEnemies.size,kind:profile.shares&&align>=.75?'both':'counter',
    // The heroes this item answers, in lineup order (shown as portraits on the pick cards).
    counters:[...coveredEnemies].sort((x,y)=>x-y).map(i=>String(enemies[i].hero)),
+   // Fed enemies among them, most fed first.
+   fed:[...coveredEnemies].filter(i=>fed[i]>1).sort((x,y)=>fed[y]-fed[x]||x-y).map(i=>String(enemies[i].hero)),
    why:item.why||`Can help against ${reasons.join(', ').toLowerCase()}. Verify its current in-game tooltip and activation conditions.`,
    caution:item.caution||'A reviewable category heuristic, not a verified ability-by-ability counter. Item slots, cooldowns, positioning and patch-specific effects are not modeled.',
    confidence:item.id.startsWith('starter:')?'starter':heroNotes.length?'matchup + category':'category rule',heroNotes,evidence,
@@ -637,7 +673,7 @@ function recommend(state,catalog,options={}){
   const affordable=soulCount>=effectiveCost;
   return {id:item.id,name:item.name,cost,effectiveCost,upgradeFrom,category,icon:item.icon||'',
    score:Math.round(score*100)/100,affordable,missing:Math.max(0,effectiveCost-soulCount),
-   tags:[],reasons:[reason],sources:[],vsItems:[],backing,investment:invest,hardCounter:false,coverage:0,kind:'build',counters:[],gap,
+   tags:[],reasons:[reason],sources:[],vsItems:[],backing,investment:invest,hardCounter:false,coverage:0,kind:'build',counters:[],fed:[],gap,
    why:`${reason}. ${item.groupLabel?item.groupLabel+' item':'Shop item'} for the ${PHASE_LABELS[phase.key].toLowerCase()} stage.`,
    caution:'A build-fit heuristic from the item\'s shop category and group, your purchases, the match phase and the investment bonus steps. It does not model exact stat values.',
    confidence:'build fit',heroNotes:[],evidence:['Your build'],ownFit:reason};
@@ -677,12 +713,59 @@ function recommend(state,catalog,options={}){
   counters:planCounters.slice(0,12),
   gaps:[...planCounters,...planBuilds].filter(r=>r.gap||(r.team||[]).some(n=>n.up)).sort(byPlan).slice(0,12),
   builds:planBuilds.slice(0,12)};
+ // Priority alert (see ALERT): options.scoreboard is the live feed's
+ // {deathTimes (match seconds), damage (the damage panel's last reading)}.
+ function priorityAlert(){
+  const sb=options.scoreboard&&typeof options.scoreboard==='object'?options.scoreboard:null;
+  const minutes=clockMinutes(options.clock);
+  if(!sb||minutes===null)return null;
+  const now=minutes*60;
+  const recent=(Array.isArray(sb.deathTimes)?sb.deathTimes:[]).filter(t=>Number.isFinite(t)&&t<=now+5&&now-t<=ALERT.minutes*60).sort((a,b)=>a-b);
+  if(recent.length<ALERT.deaths)return null;
+  const enemyBySource=src=>{
+   const key=norm(src).replace(/^hero(?=.)/,''),alias=norm(resolveHeroName(catalog,key));
+   return enemies.findIndex(e=>{const h=heroMap.get(norm(e.hero));return [norm(e.hero),artName(h)].some(n=>n&&(n===key||n===alias));});
+  };
+  let source='team',blame=[],share=null;
+  const dmg=sb.damage&&typeof sb.damage==='object'?sb.damage:null,read=dmg?clockMinutes(dmg.clock):null;
+  if(dmg&&read!==null&&read*60>=recent[0]-60&&read*60<=now+5&&Array.isArray(dmg.sources)){
+   const per=new Map();
+   for(const s of dmg.sources.slice(0,12)){const i=enemyBySource(s?.source);if(i>=0)per.set(i,(per.get(i)||0)+Math.max(0,Number(s.amount)||0));}
+   const total=Math.max(Number(dmg.total)||0,[...per.values()].reduce((a,b)=>a+b,0));
+   blame=[...per].filter(([,n])=>total>0&&n/total>=ALERT.share).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([i,n])=>({i,share:n/total}));
+   if(blame.length){source='damage';share=blame.reduce((sum,b)=>sum+b.share,0);}
+  }
+  if(!blame.length){blame=fed.map((w,i)=>({i,w})).filter(x=>x.w>1).sort((a,b)=>b.w-a.w).slice(0,2).map(x=>({i:x.i,share:null}));if(blame.length)source='fed';}
+  // While laning, your lane opponents are the likely culprits.
+  if(!blame.length&&laneFocus){blame=enemies.map((e,i)=>i).filter(i=>Number(enemies[i].lane)===ownLane).map(i=>({i,share:null}));source='lane';}
+  if(!blame.length)blame=enemies.map((e,i)=>({i,share:null}));
+  // What they deal, from their heroes and purchases: weapon or spirit damage.
+  const dealt={bullet:0,spirit:0};
+  for(const b of blame)for(const tag in dealt)dealt[tag]+=enemyDamage[b.i][tag]*(b.share||1);
+  if(!dealt.bullet&&!dealt.spirit)return null;
+  const tag=dealt.spirit>dealt.bullet?'spirit':'bullet';
+  // Protection against it first (Bullet Resilience, Spirit Shielding...), then
+  // anything else strongly weighted against it (Rusted Barrel weakens shooters).
+  // Dying this often while laning is worth saving for: up to 1,600 souls, even
+  // during the opening buys (protection starts at 1,600).
+  const weightsOf=r=>idMap.get(String(r.id))?.weights||COUNTERS[r.id]||{};
+  const protects=matcher(RESIST[tag==='bullet'?'weapon':'spirit'].protect);
+  const fits=all.filter(r=>Number(weightsOf(r)[tag])>=ALERT.weight&&(phase.key!=='laning'||r.effectiveCost<=LANING_SAVE_CAP));
+  const answers=[...fits.filter(r=>protects(r)),...fits.filter(r=>!protects(r))].slice(0,ALERT.options);
+  if(!answers.length)return null;
+  return {deaths:recent.length,since:clockText(recent[0]),last:recent[recent.length-1],minutes:ALERT.minutes,source,share:share===null?null:Math.round(share*100)/100,
+   enemies:source==='team'?[]:blame.map(b=>({hero:String(enemies[b.i].hero),share:b.share===null?null:Math.round(b.share*100)/100})),
+   tag,label:tag==='bullet'?'weapon damage':'spirit damage',item:answers[0],options:answers};
+ }
+ const alert=priorityAlert();
  const sort=options.sort||'smart';
  if(sort==='affordable')all.sort((a,b)=>Number(b.affordable)-Number(a.affordable)||b.score-a.score);
  else if(sort==='cost')all.sort((a,b)=>a.effectiveCost-b.effectiveCost||b.score-a.score);
  const filtered=all.filter(r=>(!options.category||options.category==='all'||r.category===options.category)&&(!options.affordableOnly||r.affordable));
  const quality=!catalog.complete?'Starter catalog':profiledHeroes===0?'Limited profiles':listedItems>0&&knownItems<listedItems?'Partial item recognition':listedItems===0?'Hero profiles only':'Hero + recognized item evidence';
- return {results:filtered.slice(0,12),quickBuys,plan,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,level:threatLevel(value.score),coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
+ // Fed enemies with their scoreboard line, most fed first.
+ const fedList=enemies.map((e,i)=>({hero:String(e.hero),weight:fed[i],kills:Number(e.stats?.kills)||0,deaths:Number(e.stats?.deaths)||0,assists:Number(e.stats?.assists)||0,souls:Number(e.stats?.souls)||0})).filter(x=>x.weight>1).sort((a,b)=>b.weight-a.weight||b.souls-a.souls);
+ return {results:filtered.slice(0,12),quickBuys,plan,alert,fed:fedList,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,level:threatLevel(value.score),coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
  patterns:patterns.slice(0,8),abilityTips:abilityTips.slice(0,12),
  buildPicks:build.slice(0,6),
  phase:{key:phase.key,label:PHASE_LABELS[phase.key],source:phase.source,minutes:phase.minutes,opening},
@@ -693,5 +776,5 @@ function recommend(state,catalog,options={}){
  buildData:{builds:buildCount,stats:Object.keys(statSource).length,matchup:useMatchup},
  unknown,newHeroes,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,resolveHeroName,NEW_HERO,isNewHero,heroGameId,resolveFeedItems,recommend,DEFAULT_INVESTMENT,OPENING_SPENT,OPENING_TIER,LANING_SAVE_CAP,OPENING_SAVE_CAP,HARD_COUNTER,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
+root.DeadlockEngine={createCatalog,resolveHeroName,NEW_HERO,isNewHero,heroGameId,resolveFeedItems,recommend,FED,ALERT,fedWeights,DEFAULT_INVESTMENT,OPENING_SPENT,OPENING_TIER,LANING_SAVE_CAP,OPENING_SAVE_CAP,HARD_COUNTER,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
 })(typeof window!=='undefined'?window:globalThis);

@@ -261,10 +261,10 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   const heroLog=main.slice(main.indexOf('function logOverwolfHeroes'),main.indexOf('const overwolfLive'));
   test(main.includes("onDebug:message=>console.log('[Counter Advisor] Overwolf event:',message)")&&fs.readFileSync(path.join(root,'desktop/overwolf-live.cjs'),'utf8').includes('approval,onMatch,onDebug,'),'boundary log reaches the terminal');
   test(main.includes('logOverwolfHeroes(snapshot)')&&heroLog.includes('e.heroId')&&!/\.name\b|player/.test(heroLog),'terminal hero log shows hero names and IDs, never player names');
-  test(ui.includes('({feedName,...row})=>row'),'in-game player names are not saved to local storage');
+  test(ui.includes('({feedName,stats,...row})=>row'),'in-game player names and scoreboard lines are not saved to local storage');
   const loadFn=ui.slice(ui.indexOf('function loadState'),ui.indexOf('const state=loadState()'));
   test(!/saved\.(?:hero|souls|owned|liveMatchId)/.test(loadFn)&&/saved\.enemies/.test(loadFn)&&ui.includes("const defaultState=()=>({hero:'Kelvin',souls:0,owned:''"),'each launch starts your hero, souls and items fresh; the enemy lineup is restored');
-  test(ui.includes('JSON.stringify({enemies:state.enemies.map(({feedName,...row})=>row)})'),'only the enemy lineup is saved');
+  test(ui.includes('JSON.stringify({enemies:state.enemies.map(({feedName,stats,...row})=>row)})'),'only the enemy lineup is saved');
   test(ui.includes('engine.resolveHeroName(catalog,name,id)')&&ui.includes('resolveHeroName(e.hero,e.heroId)'),'the UI resolves feed heroes with their game IDs');
   test(ui.includes('mergeFeedSnapshot(state,prev,match,resolveHeroName,resolveFeedItems)')&&ui.includes('resolveFeedItems(e.items,e.itemIds)'),'the UI resolves feed items with their class names');
   finished=true;

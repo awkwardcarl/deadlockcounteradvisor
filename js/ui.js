@@ -46,9 +46,9 @@ const state=loadState();
 let sortMode='smart',category='all',onlyAffordable=false,strategyMode='balanced',showAllResults=false;
 let currentLiveStatus=null,lastFeedSnapshot=null;
 const heroes=()=>catalog.heroes.map(h=>h.name).sort((a,b)=>a.localeCompare(b));
-// Live feeds tag enemy rows with in-game player names (feedName); those are
-// for matching only and are not saved.
-function persist(){try{localStorage.setItem(STORE,JSON.stringify({enemies:state.enemies.map(({feedName,...row})=>row)}));}catch(_){}}
+// Live feeds tag enemy rows with in-game player names (feedName), for matching
+// only, and scoreboard lines (stats); neither is saved.
+function persist(){try{localStorage.setItem(STORE,JSON.stringify({enemies:state.enemies.map(({feedName,stats,...row})=>row)}));}catch(_){}}
 // Map a typed or feed-supplied hero name ("HAZE", "VIPER") to the catalog's spelling.
 function resolveHeroName(name,id){return engine.resolveHeroName(catalog,name,id);}
 // Feed item lists to catalog names, by the game's class names where reported.
@@ -180,7 +180,7 @@ function renderGlanceTeam(){
    const key=engine.norm(name),icon=itemIndex.icons.get(key),cls=isNew.has(key)?' gNew':'';
    return icon?`<img class="gItem${cls}" src="${escapeHTML(icon)}" alt="${escapeHTML(name)}" title="${escapeHTML(name)}">`:`<span class="gChip${cls}">${escapeHTML(name)}</span>`;
   }).join('');
-  return `<div class="glanceRow${isNew.size?' gRowNew':''}">${src?`<img class="gPortrait" src="${escapeHTML(src)}" alt="">`:''}<span class="gName">${escapeHTML(e.hero||'Unknown')}${newHeroTag(e.hero)}${state.ownLane&&e.lane===state.ownLane?'<span class="laneTag">Your lane</span>':''}</span><div class="glanceItems">${items||'<span class="emptyText">No items yet</span>'}</div></div>`;
+  return `<div class="glanceRow${isNew.size?' gRowNew':''}${isFed(e.hero)?' isFed':''}">${src?`<img class="gPortrait" src="${escapeHTML(src)}" alt="">`:''}<span class="gName">${escapeHTML(e.hero||'Unknown')}${newHeroTag(e.hero)}${state.ownLane&&e.lane===state.ownLane?'<span class="laneTag">Your lane</span>':''}${fedTag(e.hero)}</span><div class="glanceItems">${items||'<span class="emptyText">No items yet</span>'}</div></div>`;
  }).join('');
  el.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
 }
@@ -448,14 +448,14 @@ function quickCard(r,i,eyebrow){
 // picks steady; planEvent names what last happened in the match (an enemy or
 // you bought something), shown when the plan changes.
 const PLAN=window.DeadlockPlan;
-let lastPlan=null,planEvent='',planChange=null;
-function resetPlan(){lastPlan=null;planChange=null;planEvent='';}
+let lastPlan=null,planEvent='',planChange=null,alertDismissed='',lastFedNames='';
+function resetPlan(){lastPlan=null;planChange=null;planEvent='';alertDismissed='';lastFedNames='';}
 const itemByName=name=>catalog.items.find(i=>engine.norm(i.name)===engine.norm(name));
 const stepArt=(icon,category)=>`<span class="stepArt ${escapeHTML(category||'')}">${icon?`<img src="${escapeHTML(icon)}" alt="">`:''}</span>`;
 function stepWhy(r,kind){
  if(kind==='gap')return (r.team||[]).find(n=>n.up)?.text||(r.gap?'Fills a durability gap':r.reasons[0]||'');
  if(r.kind==='build')return r.reasons[0]||'';
- return `Counters ${(r.reasons[0]||'their threats').toLowerCase()}${r.vsItems?.length?` · vs ${r.vsItems.slice(0,2).join(', ')}`:''}`;
+ return `Counters ${(r.reasons[0]||'their threats').toLowerCase()}${r.fed?.length?` · answers fed ${r.fed[0]}`:r.vsItems?.length?` · vs ${r.vsItems.slice(0,2).join(', ')}`:''}`;
 }
 function planStep(r,n,role,kind){
  const status=role==='now'?(r.affordable?'✓ Buy now':`Save ${fmt.format(r.missing)} more`):role==='next'?(r.affordable?'Next · ready':`Next · ${fmt.format(r.missing)} more`):r.affordable?'Affordable':role==='later'?'Later':'Then';
@@ -475,7 +475,9 @@ function lanePlanCard(plan,out){
  const faces=opp.map(n=>{const src=portrait(n);return `${src?`<img src="${escapeHTML(src)}" alt="">`:''}${escapeHTML(n)}`;}).join(' + ');
  const threat=out.threats.slice(0,2).map(t=>t.label.toLowerCase()).join(', ');
  const sub=opp.length?`${escapeHTML(state.hero||'You')} vs ${faces}${threat?` · ${escapeHTML(threat)}`:''}`:`Your first buys${threat?` against ${escapeHTML(threat)}`:''}`;
- const steps=plan.steps.map((r,i)=>planStep(r,plan.done.length+i+1,i===0?'now':i===1?'next':'later','lane')).join('');
+ // With a priority alert, its item is the next buy and these steps wait behind it.
+ const shift=plan.priority?1:0;
+ const steps=plan.steps.map((r,i)=>planStep(r,plan.done.length+shift+i+1,i+shift===0?'now':i+shift===1?'next':'later','lane')).join('');
  const source=opp.length?(out.buildData?.matchup?'From your lane opponents\' heroes and buys, and win rates in this lane matchup.':'From your lane opponents\' heroes and buys.'):'From the enemy heroes and buys you entered.';
  return `<section class="planCard lanePlan"><div class="planHead"><div><div class="overline">LANE PLAN · FIRST 10 MINUTES</div><h3>${opp.length?'Win your lane':'Opening buys'}</h3><div class="planSub">${sub}</div></div><span class="planChip">Buy in this order</span></div><ol class="planSteps">${plan.done.map(doneStep).join('')}${steps}</ol>${planFoot(source,'Changes only when their buys shift')}</section>`;
 }
@@ -485,15 +487,34 @@ function planTeaser(out){
  return `<div class="planTeaser"><div><strong>Game plan</strong><span>${out.phase?.source==='clock'?'Starts at 10:00.':'Starts after laning.'}${text?' '+escapeHTML(text)+'.':''}</span></div><span class="planChip">After laning</span></div>`;
 }
 function gamePlanCard(plan,out){
- const top=out.threats[0];
- const chip=top?`<span class="planChip">Biggest threat: ${escapeHTML(top.label)} <b class="level-${escapeHTML(top.level)}">${LEVEL_MARKS[top.level]||''} ${LEVEL_LABELS[top.level]||''}</b></span>`:'';
+ const top=out.threats[0],fed=out.fed?.[0];
+ const chip=fed?fedChip(out.fed):top?`<span class="planChip">Biggest threat: ${escapeHTML(top.label)} <b class="level-${escapeHTML(top.level)}">${LEVEL_MARKS[top.level]||''} ${LEVEL_LABELS[top.level]||''}</b></span>`:'';
  const col=(title,list,kind)=>`<div><h4 class="planColHead">${escapeHTML(title)}</h4>${list.length?`<ol class="planSteps">${list.map((r,i)=>planStep(r,i+1,r===plan.next?'now':'then',kind)).join('')}</ol>`:'<p class="emptyText">Nothing stands out yet.</p>'}</div>`;
- return `<section class="planCard gamePlan"><div class="planHead"><div><div class="overline">GAME PLAN</div><h3>Counter their team, cover your team's gaps</h3></div>${chip}</div><div class="planCols">${col('Counter their team',plan.counters,'counter')}${col(plan.gapsAreBuilds?'Build on your items':'Cover your team\'s gaps',plan.gaps,plan.gapsAreBuilds?'build':'gap')}</div>${planFoot('Ranked by their biggest threats and what your allies already have.','')}</section>`;
+ return `<section class="planCard gamePlan"><div class="planHead"><div><div class="overline">GAME PLAN</div><h3>Counter their team, cover your team's gaps</h3></div>${chip}</div><div class="planCols">${col('Counter their team',plan.counters,'counter')}${col(plan.gapsAreBuilds?'Build on your items':'Cover your team\'s gaps',plan.gaps,plan.gapsAreBuilds?'build':'gap')}</div>${planFoot(fed?'Ranked by their biggest threats, weighted toward fed enemies, and what your allies already have.':'Ranked by their biggest threats and what your allies already have.','')}</section>`;
+}
+// "Fed: Haze · 9 kills · 31k souls" (and "+1" for a second fed enemy).
+function fedChip(list){
+ const f=list[0];
+ return `<span class="planChip fedChip" title="Far ahead of the lobby in souls, with more kills than deaths. Counters to them count for more.">Fed: <b>${escapeHTML(f.hero)}</b> · ${f.kills} kills · ${shortSouls(f.souls)} souls${list.length>1?` · +${list.length-1}`:''}</span>`;
+}
+// The priority alert, above the next buy: your deaths, who hurt you, what to get.
+const joinNames=list=>list.length>1?`${list.slice(0,-1).join(', ')} and ${list[list.length-1]}`:list[0]||'';
+function alertText(a){
+ const who=joinNames(a.enemies.map(e=>e.hero)),one=a.enemies.length===1;
+ const why=a.source==='damage'?`${Math.round(a.share*100)}% of the damage you took came from ${who}, mostly ${a.label}.`
+  :a.source==='fed'?`${who} ${one?'is':'are'} fed and deal${one?'s':''} mostly ${a.label}.`
+  :a.source==='lane'?`Your lane opponent${one?'':'s'}, ${who}, deal${one?'s':''} mostly ${a.label}.`
+  :`Their team deals mostly ${a.label}.`;
+ return {head:`You've died ${a.deaths} times since ${a.since}.`,why};
+}
+function alertCard(a){
+ const t=alertText(a);
+ return `<section class="priorityAlert" role="status"><div class="alertMark" aria-hidden="true">!</div><div class="alertBody"><div class="overline">PRIORITY</div><p><strong>${escapeHTML(t.head)}</strong> ${escapeHTML(t.why)} Get <b>${escapeHTML(a.item.name)}</b>.</p>${a.source==='damage'?'':'<small>Open the in-game damage panel after a death to show who hurt you most.</small>'}</div><button type="button" class="alertDismiss" data-alert="${escapeHTML(a.key)}">Dismiss</button></section>`;
 }
 // Glance view: the plan as one strip under the next buy.
 function glanceThen(plan){
  const lane=plan.stage==='lane';
- const tiles=lane?[...plan.done.slice(-1).map(name=>({done:true,name})),...plan.steps.slice(1)]:PLAN.thenList(plan);
+ const tiles=lane?[...plan.done.slice(-1).map(name=>({done:true,name})),...plan.steps.slice(plan.priority?0:1)].slice(0,3):PLAN.thenList(plan);
  if(!tiles.length)return '';
  const tile=t=>{
   if(t.done){const item=itemByName(t.name);return `<div class="thenStep step-done">${stepArt(item?.icon,item?.category)}<div><div class="stepName">${escapeHTML(item?.name||t.name)}</div><div class="stepStatus owned">✓ Owned</div></div></div>`;}
@@ -504,8 +525,13 @@ function glanceThen(plan){
 }
 function renderPlan(out){
  const live=document.body.classList.contains('liveMatch');
- const plan=PLAN.makePlan(out,lastPlan,engine.cleanList(state.owned));
+ const plan=PLAN.makePlan(out,lastPlan,engine.cleanList(state.owned),{dismissed:alertDismissed});
  if(!plan){lastPlan=null;lastPickNames=[];$('quickBuys').innerHTML='<div class="quickEmpty">Add your opponents to see your buy plan. This is not automated gameplay.</div>';return;}
+ // Name what changed the plan: a new alert, or an enemy who just became fed.
+ const fedNames=(out.fed||[]).map(f=>f.hero).join(',');
+ if(plan.priority&&plan.priority.key!==lastPlan?.priority?.key)planEvent=`You died ${plan.priority.deaths} times since ${plan.priority.since}`;
+ else if(fedNames&&!lastFedNames.split(',').includes(out.fed[0].hero))planEvent=`${out.fed[0].hero} is fed`;
+ lastFedNames=fedNames;
  if(live&&lastPickNames.length&&plan.changed){
   for(const name of plan.added)pickHighlights.set(name,Date.now()+PICK_HIGHLIGHT_MS);
   planChange={clock:lastFeedSnapshot?.clock||'',why:planEvent||'match updated'};
@@ -513,8 +539,11 @@ function renderPlan(out){
  lastPickNames=[...new Set([plan.next,...plan.steps,...plan.counters,...plan.gaps].map(r=>r.name))];
  lastPlan=plan;
  const lane=plan.stage==='lane';
- $('quickBuys').innerHTML=[`<div class="nextBuy">${quickCard(plan.next,0,lane?`NEXT BUY · STEP ${plan.done.length+1} OF YOUR LANE PLAN`:'NEXT BUY')}</div>`,lane?lanePlanCard(plan,out)+planTeaser(out):gamePlanCard(plan,out),glanceThen(plan)].join('');
+ const eyebrow=plan.priority?'PRIORITY · NEXT BUY':lane?`NEXT BUY · STEP ${plan.done.length+1} OF YOUR LANE PLAN`:'NEXT BUY';
+ $('quickBuys').innerHTML=[plan.priority?alertCard(plan.priority):'',`<div class="nextBuy${plan.priority?' isPriority':''}">${quickCard(plan.next,0,eyebrow)}</div>`,lane?lanePlanCard(plan,out)+planTeaser(out):gamePlanCard(plan,out),glanceThen(plan)].join('');
  $('quickBuys').querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
+ // Dismiss hides this alert until your next death.
+ $('quickBuys').querySelector('.alertDismiss')?.addEventListener('click',e=>{alertDismissed=e.currentTarget.dataset.alert;planEvent='';renderAdvice();});
 }
 const SCORING_NOTE='The scoring model caps repeated threat evidence per enemy and considers opponent coverage, item pairs on the same enemy, archetype fit, public catalog prices and component discounts. It does not simulate combat, abilities or item-slot availability.';
 function resultCard(r,i){
@@ -560,6 +589,13 @@ function updateMatchView(){
  $('liveStrip').hidden=!live;
  if(live){renderLiveTeam();renderLiveStrip();}
 }
+// Scoreboard signals: kills/deaths/assists and souls on each live enemy row,
+// and a Fed tag on enemies far ahead (see the engine's FED).
+let shownFed='';
+const isFed=hero=>!!hero&&(lastAdvice?.fed||[]).some(f=>f.hero===hero);
+const fedTag=hero=>isFed(hero)?' <span class="fedTag" title="Far ahead in souls, with more kills than deaths: counters to them count for more">Fed</span>':'';
+const shortSouls=n=>n>=1000?`${Math.round(n/100)/10}k`:String(n);
+const kdaLine=s=>s?`<span class="liveKda" title="Kills / deaths / assists · souls">${s.kills}/${s.deaths}/${s.assists} · ${shortSouls(s.souls)}</span>`:'';
 function renderLiveTeam(){
  const now=Date.now();
  $('liveTeam').innerHTML=state.enemies.map((e,i)=>{
@@ -570,9 +606,9 @@ function renderLiveTeam(){
    return `<span class="liveItem${icon?' hasIcon':''}${isNew.has(key)?' liveItemNew':''}" title="${escapeHTML(name)}">${icon?`<img src="${escapeHTML(icon)}" alt="${escapeHTML(name)}">`:''}<span class="liveItemName">${isNew.has(key)?'+ ':''}${escapeHTML(name)}</span></span>`;
   }).join('');
   return [
-   `<div class="liveRow${isNew.size?' liveRowNew':''}">`,
+   `<div class="liveRow${isNew.size?' liveRowNew':''}${isFed(e.hero)?' isFed':''}">`,
    src?`<img class="livePortrait" src="${escapeHTML(src)}" alt="">`:'<span class="livePortrait"></span>',
-   `<div class="liveRowBody"><strong>${escapeHTML(e.hero||'Hero not reported yet')}${newHeroTag(e.hero)}${state.ownLane&&e.lane===state.ownLane?' <span class="laneTag">Your lane</span>':''}</strong>`,
+   `<div class="liveRowBody"><strong>${escapeHTML(e.hero||'Hero not reported yet')}${newHeroTag(e.hero)}${state.ownLane&&e.lane===state.ownLane?' <span class="laneTag">Your lane</span>':''}${fedTag(e.hero)}${kdaLine(e.stats)}</strong>`,
    `<div class="liveItems">${items||'<span class="emptyText">No items yet</span>'}</div></div></div>`
   ].join('');
  }).join('');
@@ -647,8 +683,12 @@ function renderEnemies(){
 }
 function renderAdvice(){
  // The live clock sets the match phase; without one the engine estimates it from your souls.
- const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode,clock:liveWasOn?lastFeedSnapshot?.clock||'':'',buildData:buildDataEnabled()?buildData:null});
+ const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode,clock:liveWasOn?lastFeedSnapshot?.clock||'':'',buildData:buildDataEnabled()?buildData:null,
+  scoreboard:liveWasOn&&lastFeedSnapshot?{deathTimes:lastFeedSnapshot.deathTimes,damage:lastFeedSnapshot.damage}:null});
  lastAdvice=out;
+ // The enemy rows' Fed tags come from this advice: redraw them when that changes.
+ const fedNow=(out.fed||[]).map(f=>f.hero).join(',');
+ if(fedNow!==shownFed){shownFed=fedNow;renderGlanceTeam();if(document.body.classList.contains('liveMatch'))renderLiveTeam();}
  $('phaseSummary').textContent=out.phase?`${out.phase.label}${out.phase.source==='souls'?' (estimated)':''} · ${out.investment?investmentText(out.investment):buildSplit(out.build)} · `:'';
  $('phaseSummary').title=investmentTip(out.investment);
  $('matchLabel').textContent=out.count?`${out.count}/6 enemies`:'No lineup';
