@@ -320,7 +320,7 @@ function network(){
   test(/on:\n  schedule:\n    - cron: '\d+ \d+ \* \* \*'\n  workflow_dispatch:/.test(wf),'runs daily and on manual dispatch');
   test(/permissions:\n  contents: read\n  issues: write\n/.test(wf)&&(wf.match(/secrets\.\w+/g)||[]).join()==='secrets.GITHUB_TOKEN','GITHUB_TOKEN only, with issue write access');
   test(wf.includes('- run: node tests/game-data-review.cjs\n')&&!/npm (ci|install)/.test(wf),'runs the review script with Node built-ins only');
-  test(JSON.parse(read('package.json')).scripts.test.endsWith('node tests/game-data-tests.cjs'),'this suite is part of npm test');
+  test(JSON.parse(read('package.json')).scripts.test.split('&&').map(s=>s.trim()).includes('node tests/game-data-tests.cjs'),'this suite is part of npm test');
 
   finished=true;
   console.log(`PASS: ${total} automatic game data checks (simulated services)`);

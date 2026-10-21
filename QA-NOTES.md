@@ -6,11 +6,16 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 
 - [ ] **Merge this PR, then re-run the QA build.** On GitHub, go to **Actions → Overwolf edition build → Run workflow** with mode **qa**. The installer should be named `Deadlock-Counter-Advisor-Overwolf-Setup-0.13.0.exe`.
 - [ ] **Scan the installer at [virustotal.com](https://www.virustotal.com).** Overwolf won't test an installer that VirusTotal flags.
-- [ ] **Do one full run on the installed build, not dev mode.**
-  - Close the app and rename `%APPDATA%\Deadlock Counter Advisor` so the first run is clean.
-  - Install, accept the policies, go through the intro and the consent step, and play one match through to the end.
-  - Check that the fonts, the tome icon and the gold live dot show. They are new files, and packaging is the step dev mode skips.
-  - Close the app and confirm no process is left in Task Manager.
+- [ ] **Check the installed QA build, without live data.** The QA installer is unsigned. Overwolf's game events only load in an installed build that Overwolf has signed, and Overwolf signs this one for its QA testers only. So on your PC the badge reads "Overwolf game events failed to load", and that's expected. Your dev key doesn't help either: dev mode never works in an installed app.
+  - **Clean first run:** close the app and rename `%APPDATA%\Deadlock Counter Advisor`.
+  - **Install and first run:** accept the policies, then go through the intro and the consent step.
+  - **Theme:** the Dusk fonts, the tome icon in the header, and the taskbar icon. These are new files, and packaging is the step dev mode skips.
+  - **Manual mode:** pick enemy heroes and add items, and the picks update.
+  - **Controls:** glance view (**G**), the **Ctrl+Shift+F12** hotkey and **↗ Move display**.
+  - **Closing:** close the app and confirm no process is left in Task Manager.
+- [ ] **Check live data in dev mode from source.** Set your dev key, then run `npm.cmd run start:overwolf`.
+  - Play one match through to the end. Check the gold live dot, enemy purchases, your souls and items, and glance view.
+  - Then run `npm.cmd run start:overwolf:test-ads` and check that a test ad shows in the ad box.
 - [ ] **Regenerate the dev key** in the Developer Console. The old one was pasted into a chat.
 - [ ] **Update the console listing.**
   - Icons: upload the tome icon and the gray icon. Both are in the design kit (`icon/png/`, `icon/icon-gray.ico`); check Overwolf's current icon sizes.
@@ -46,6 +51,14 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 9. **Offline.** Recommendations keep working. A notice explains that sync, the debrief and update checks need a connection.
 10. **Post-match debrief** (optional). Enter a finished match's ID to compare what you bought with what would have countered the enemy team. It needs internet. The community service it uses limits how many new matches can be loaded per hour.
 
+### Ad box
+
+- One 400×300 container sits at the bottom of the left column in the live and manual views. The left column stays in place beside the picks, and its cards scroll above the box, so the box is always fully visible and never moves.
+- On windows under 900 px tall (1366×680, 1366×728, 1536×824) the left column's box is a 400×60 banner, and enemy rows show item icons on one line (names on hover), so the whole team fits above the box.
+- In glance view the left column is hidden, so that box closes. A second box opens under the enemy rows if the window has room for all of it without scrolling (about 1920×1040 and up); otherwise glance view has no ad.
+- An ad view is created only while its box is fully on screen with no dialog open. **Hide inputs**, the post-match debrief, an open dialog or a window too narrow for the side column close it; it reopens in the same place afterwards.
+- To preview ad behavior locally, start the app with `--test-ad` (`npm run start:overwolf:test-ads`).
+
 ### Settings → Privacy
 
 - **Manage:** opens Overwolf's privacy settings.
@@ -59,7 +72,8 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 - **Network calls**, all for public data and never with account IDs:
   - [deadlock.io](https://deadlock.io): the item and hero catalog, plus artwork.
   - [deadlock-api.com](https://deadlock-api.com): the hero and item list, community builds and item statistics (requested by hero ID), and the match record for a debrief (by the match ID you enter).
-- **Nothing else.** No accounts, no ads and no analytics of our own.
+- **Ads.** One 400×300 Overwolf ad box (`owadview`) at a time: at the bottom of the left column (cid `dca_400x300_main_lb`; a 400×60 banner, cid `dca_400x60_main_lb`, on windows under 900 px tall), or in glance view under the enemy rows when the window is tall enough (cid `dca_400x300_glance`). Ads are not enabled for our app ID yet, so it shows our background. Nothing we hold is passed to Overwolf or advertisers.
+- **Nothing else.** No accounts and no analytics of our own.
 
 ### Known limitations
 

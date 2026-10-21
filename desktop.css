@@ -764,3 +764,41 @@ input::placeholder{color:var(--dca-dim)}
 :root{accent-color:var(--dca-accent)}
 input[type=checkbox]{flex:none;width:18px;height:18px;min-height:0;margin:0;padding:0}
 .toggleRow{flex-direction:row;letter-spacing:0;cursor:pointer}
+/* Overwolf ad box (Overwolf edition): 400x300 at the bottom of the left
+   column. On wide layouts the column stays in place beside the picks and its
+   cards scroll above the box, so the box is always fully visible and never
+   moves. The tome shows through until an ad is served. */
+.adCard{display:grid;place-items:center;padding:0;overflow:hidden}
+.adCard[hidden]{display:none}
+.adSlot{width:400px;height:300px;min-width:400px;min-height:300px;background:transparent url(assets/icon.svg) center/72px no-repeat}
+.adSlot owadview{display:block;width:100%;height:100%}
+@media (min-width:1161px){
+ body.adsOn:not(.focusInputs) .leftPanel{display:flex;flex-direction:column;position:sticky;top:var(--left-top,83px);height:calc(100vh - var(--left-top,83px) - 14px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+ body.adsOn:not(.focusInputs) .leftPanel>*{flex-shrink:0}
+ body.adsOn .leftPanel>.adCard{margin-top:auto;position:sticky;bottom:0;z-index:1}
+ body.adsOn.liveMatch:not(.glanceMode):not(.focusInputs) .workspace{grid-template-columns:minmax(412px,.6fr) minmax(0,1.4fr)}
+}
+/* Hide inputs hides the left column in every view; the live view's own column
+   rule used to keep it showing. The ad box closes with it. */
+body.focusInputs .leftPanel{display:none!important}
+body.focusInputs.liveMatch .workspace{grid-template-columns:minmax(0,1fr)}
+/* Glance view: the ad box sits under the enemy rows when the window has room
+   for it (the script keeps it hidden otherwise, and outside glance view). */
+.glanceAd{width:fit-content;margin-top:12px}
+body:not(.glanceMode) .glanceAd{display:none!important}
+/* Short windows (under 900px tall): the left column's box is a 400x60 banner. */
+.adSlot.adBanner{height:60px;min-height:60px;background-size:36px}
+/* With the ad box on, each enemy is one line (name, then item icons; names
+   on hover, new purchases ringed in gold), so a late-game team fits above it. */
+body.adsOn .liveRow{align-items:center;padding:6px 10px}
+body.adsOn .livePortrait{width:32px;height:32px}
+body.adsOn .liveRowBody{display:flex;align-items:center;gap:8px}
+body.adsOn .liveRowBody strong{flex:0 0 92px;margin:0;overflow-wrap:anywhere}
+body.adsOn .liveRowBody .laneTag{display:block;width:max-content;margin:3px 0 0}
+body.adsOn .liveItems{flex:1;min-width:0;gap:3px}
+body.adsOn .liveItem.hasIcon{padding:2px}
+body.adsOn .liveItem.hasIcon img{width:22px;height:22px}
+body.adsOn .liveItem.hasIcon .liveItemName{display:none}
+body.adsOn .liveItemNew.hasIcon{outline:2px solid var(--dca-gold);outline-offset:1px}
+/* Narrow windows: two lines of icons per enemy, so slightly smaller icons and rows. */
+@media (max-width:1500px){body.adsOn .liveRow{padding:4px 8px}body.adsOn .liveRowBody strong{flex-basis:80px}body.adsOn .liveItem.hasIcon img{width:20px;height:20px}}

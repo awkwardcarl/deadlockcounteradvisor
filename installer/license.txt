@@ -18,7 +18,9 @@ In short:
   the game. You remain responsible for following Valve's rules for Deadlock
   and Steam.
 
-- The app has no accounts, no advertising and no analytics of its own. Your
+- The app has no accounts and no analytics of its own. The Overwolf edition
+  shows ads from Overwolf's ad platform in one ad space; the standard edition
+  shows none. Your
   settings and match details stay on your PC. It connects to deadlock.io
   (item and hero data), deadlock-api.com (post-match records, community builds
   and match statistics; hero IDs only) and GitHub
