@@ -32,7 +32,7 @@ test(main.includes("backgroundColor: '#15141C',"),'window background matches the
 const html=read('index.html');
 const leftPanel=html.slice(html.indexOf('<aside class="leftPanel"'),html.indexOf('</aside>'));
 test(/<section class="card adCard" id="adCard" hidden aria-label="Advertisement">\s*<div class="adSlot" id="adSlot"><\/div>\s*<\/section>\s*$/.test(leftPanel),'the ad box is the last thing in the left column and starts hidden');
-const css=read('desktop.css');
+const css=read('desktop.css'),ui0=read('js/ui.js');
 test(/<div id="glanceTeam" class="glanceTeam" aria-label="Enemy purchases"><\/div>\s*<section class="card adCard glanceAd" id="adCardGlance" hidden aria-label="Advertisement"><div class="adSlot" id="adSlotGlance"><\/div><\/section>/.test(html),'glance view\'s box sits right under the enemy rows and starts hidden');
 test(css.includes('body:not(.glanceMode) .glanceAd{display:none!important}')&&css.includes('.glanceAd{width:fit-content;margin-top:12px}'),'the glance box never shows outside glance view');
 test(css.includes('.adSlot{width:400px;height:300px;min-width:400px;min-height:300px;background:transparent url(assets/icon.svg) center/72px no-repeat}'),'the slot is exactly 400x300 with a transparent background over the fallback tome');
@@ -43,6 +43,9 @@ test(css.includes('body.adsOn.liveMatch:not(.glanceMode):not(.focusInputs) .work
 const twoCol=[...css.matchAll(/([^{}]*\.workspace)\s*\{[^}]*grid-template-columns:\s*minmax\(412px/g)].map(m=>m[1]);
 test(twoCol.length===1&&twoCol.every(sel=>sel.includes(':not(.glanceMode)')&&sel.includes(':not(.focusInputs)')),'the ad layout never applies in glance view or with inputs hidden');
 test(css.includes('body.focusInputs .leftPanel{display:none!important}'),'Hide inputs hides the left column (and the box) in every view');
+test(css.includes('.adSlot.adBanner{height:60px;min-height:60px;')&&ui0.includes('const AD_TALL_MIN=900,AD_BANNER_H=60,AD_BANNER_CID=\'dca_400x60_main_lb\';'),'under 900px tall the left box is a 400x60 banner');
+test(css.includes('body.adsOn .liveRowBody{display:flex;align-items:center;gap:8px}')&&css.includes('body.adsOn .liveItem.hasIcon .liveItemName{display:none}')&&css.includes('body.adsOn .liveItemNew.hasIcon{outline:2px solid var(--dca-gold);outline-offset:1px}'),'with the ad box on, enemy rows are one line of item icons, new purchases still ringed');
+test(ui0.includes('<span class=\"liveItem${icon?\' hasIcon\':\'\'}${isNew.has(key)?\' liveItemNew\':\'\'}\" title=\"${escapeHTML(name)}\">')&&ui0.includes('<span class=\"liveItemName\">'),'item names stay on hover and for items without an icon');
 test(JSON.parse(read('package.json')).scripts['start:overwolf:test-ads']==='ow-electron . --test-ad','a script previews ads with Overwolf\'s --test-ad flag');
 
 // The real lifecycle code, run against a simulated page.
@@ -50,9 +53,10 @@ const ui=read('js/ui.js');
 const code=ui.slice(ui.indexOf("const AD_CID='dca_400x300_main_lb'"),ui.indexOf('async function syncCatalogNow(){'));
 const NONE={left:0,top:0,right:0,bottom:0,width:0,height:0};
 function page({edition='overwolf',ads=true,glance=false}={}){
-  const state={rect:{left:15,top:365,right:415,bottom:665,width:400,height:300},grect:NONE,teamBottom:639,innerH:680,dialog:false,timers:[],listeners:{},vars:{}};
+  const state={rect:{left:15,top:365,right:415,bottom:665,width:400,height:300},grect:NONE,teamBottom:639,innerH:1040,dialog:false,timers:[],listeners:{},vars:{}};
   const children=[],gChildren=[];
-  const slot={getBoundingClientRect:()=>state.rect,append:el=>{el.list=children;children.push(el);}};
+  const slotClasses=new Set();
+  const slot={getBoundingClientRect:()=>state.rect,append:el=>{el.list=children;children.push(el);},classList:{toggle:(c,on)=>on?slotClasses.add(c):slotClasses.delete(c),contains:c=>slotClasses.has(c)}};
   const card={hidden:true},gCard={hidden:true};
   const gSlot={getBoundingClientRect:()=>gCard.hidden?NONE:state.grect,append:el=>{el.list=gChildren;gChildren.push(el);}};
   const team={getBoundingClientRect:()=>({height:110,bottom:state.teamBottom})};
@@ -72,14 +76,14 @@ function page({edition='overwolf',ads=true,glance=false}={}){
   const flush=()=>{while(state.timers.length)state.timers.shift()();};
   const poke=()=>{state.listeners.resize?.();flush();};
   flush();
-  return {api,state,children,card,gChildren,gCard,bodyClasses,poke};
+  return {api,state,children,card,gChildren,gCard,bodyClasses,slotClasses,poke};
 }
 const p=page();
 test(p.api&&!p.card.hidden&&p.bodyClasses.has('adsOn'),'Overwolf edition with ads on: the box shows');
 test(p.children.length===1&&p.children[0].tag==='owadview'&&p.children[0].attrs.cid==='dca_400x300_main_lb','fully on screen: one ad view with the container ID');
 test(p.state.vars['--left-top']==='83px','the left column is pinned where it starts (below the top bar)');
 const firstView=p.children[0];
-p.state.rect={left:15,top:600,right:415,bottom:900,width:400,height:300};p.poke();
+p.state.rect={left:15,top:800,right:415,bottom:1100,width:400,height:300};p.poke();
 test(p.children.length===0,'partly off screen: the ad view closes');
 p.state.rect={left:15,top:365,right:415,bottom:665,width:400,height:300};p.poke();
 test(p.children.length===1&&p.children[0]!==firstView,'back on screen: a new ad view opens (closed and reopened, never hidden)');
@@ -91,6 +95,15 @@ p.state.rect={left:0,top:0,right:0,bottom:0,width:0,height:0};p.poke();
 test(p.children.length===0,'hidden (glance view, Hide inputs, the debrief): the ad view closes');
 p.state.rect={left:15,top:365,right:414,bottom:665,width:399,height:300};p.poke();
 test(p.children.length===0,'squeezed below 400 wide: no ad view');
+// Windows under 900px tall: the left box is Overwolf's 400x60 banner instead.
+const b=page();
+const tallView=b.children[0];
+b.state.innerH=824;b.state.rect={left:15,top:748,right:415,bottom:810,width:400,height:62};b.poke();
+test(b.slotClasses.has('adBanner')&&b.children.length===1&&b.children[0].attrs.cid==='dca_400x60_main_lb'&&b.children[0]!==tallView,'a short window (1536x824): the box becomes a 400x60 banner, closed and reopened at the new size');
+b.state.innerH=1040;b.state.rect={left:15,top:724,right:415,bottom:1024,width:400,height:300};b.poke();
+test(!b.slotClasses.has('adBanner')&&b.children.length===1&&b.children[0].attrs.cid==='dca_400x300_main_lb','a tall window again: back to 400x300');
+const sameView=b.children[0];b.poke();
+test(b.children[0]===sameView,'no size change, no reload: the ad view keeps playing');
 // Glance view: the left box closes; a box under the enemy rows opens only when it fits.
 const g=page({glance:true});
 g.state.innerH=1040;g.poke();
@@ -110,7 +123,7 @@ for(const opts of [{edition:'standard',ads:true},{edition:'overwolf',ads:false},
 
 // Policies say what the box does.
 const privacy=read('docs/privacy.html'),license=read('installer/license.txt');
-test(privacy.includes('<h2>Ads (Overwolf edition)</h2>')&&privacy.includes('reserves one ad space (400 × 300)')&&privacy.includes('in glance view under the enemy team when the window is tall enough. Only one shows at a time.')&&privacy.includes('stays empty until Overwolf turns on ads')&&privacy.includes('including personalized ads'),'Privacy Policy: one ad space in the Overwolf edition, empty until Overwolf turns ads on, consent under Manage');
+test(privacy.includes('<h2>Ads (Overwolf edition)</h2>')&&privacy.includes('reserves one ad space: at the bottom of the left panel (400 × 300')&&privacy.includes('or a 400 × 60 banner on shorter windows')&&privacy.includes('in glance view under the enemy team (400 × 300) when the window is tall enough. Only one shows at a time.')&&privacy.includes('stays empty until Overwolf turns on ads')&&privacy.includes('including personalized ads'),'Privacy Policy: one ad space in the Overwolf edition, empty until Overwolf turns ads on, consent under Manage');
 test(privacy.includes('The standard edition shows no ads.')&&!privacy.includes('no advertising'),'Privacy Policy: no ads in the standard edition, and no leftover "no advertising" claim');
 test(license.includes("The Overwolf edition\n  shows ads from Overwolf's ad platform in one ad space")&&!license.includes('no advertising'),'installer summary matches');
 test(read('QA-NOTES.md').includes('### Ad box')&&read('QA-NOTES.md').includes('npm run start:overwolf:test-ads'),'QA notes describe the box and how to preview it');

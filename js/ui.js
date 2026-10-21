@@ -493,7 +493,7 @@ function renderLiveTeam(){
   const isNew=fresh&&fresh.until>now?fresh.items:new Set();
   const items=engine.cleanList(e.items).map(name=>{
    const key=engine.norm(name),icon=itemIndex.icons.get(key);
-   return `<span class="liveItem${isNew.has(key)?' liveItemNew':''}">${icon?`<img src="${escapeHTML(icon)}" alt="">`:''}${isNew.has(key)?'+ ':''}${escapeHTML(name)}</span>`;
+   return `<span class="liveItem${icon?' hasIcon':''}${isNew.has(key)?' liveItemNew':''}" title="${escapeHTML(name)}">${icon?`<img src="${escapeHTML(icon)}" alt="${escapeHTML(name)}">`:''}<span class="liveItemName">${isNew.has(key)?'+ ':''}${escapeHTML(name)}</span></span>`;
   }).join('');
   return [
    `<div class="liveRow${isNew.size?' liveRowNew':''}">`,
@@ -761,17 +761,28 @@ function applyCatalog(snapshot){
 // it, and it reopens when the box is back. The left column stays put beside
 // the picks (pinned below the top bar) and its cards scroll above the box.
 const AD_CID='dca_400x300_main_lb',AD_GLANCE_CID='dca_400x300_glance',AD_W=400,AD_H=300;
+// On windows under 900px tall the left column's box is Overwolf's 400x60
+// banner instead, so the enemy team still fits above it.
+const AD_TALL_MIN=900,AD_BANNER_H=60,AD_BANNER_CID='dca_400x60_main_lb';
 // Glance box: 12px above it, and the card and page padding below.
 const AD_GLANCE_ROOM=AD_H+12+40;
 function setupAds(){
  const api=window.desktopAPI;
- const slots=[{el:$('adSlot'),card:$('adCard'),cid:AD_CID},{el:$('adSlotGlance'),card:$('adCardGlance'),cid:AD_GLANCE_CID,glance:true}].filter(s=>s.el&&s.card);
+ const slots=[{el:$('adSlot'),card:$('adCard'),cid:AD_CID,h:AD_H,sizes:true},{el:$('adSlotGlance'),card:$('adCardGlance'),cid:AD_GLANCE_CID,h:AD_H,glance:true}].filter(s=>s.el&&s.card);
  if(!slots.some(s=>!s.glance)||api?.edition!=='overwolf'||api?.ads!==true)return null;
  document.body.classList.add('adsOn');
  for(const s of slots)if(!s.glance)s.card.hidden=false;
  let pinned='';
  const pin=()=>{const ws=document.querySelector('.workspace');if(!ws)return;const top=Math.round(ws.getBoundingClientRect().top+window.scrollY+parseFloat(getComputedStyle(ws).paddingTop)||0)+'px';if(top!==pinned){pinned=top;document.documentElement.style.setProperty('--left-top',top);}};
- const fullyVisible=el=>{const r=el.getBoundingClientRect();return r.width>=AD_W&&r.height>=AD_H&&r.top>=0&&r.left>=0&&r.bottom<=window.innerHeight&&r.right<=window.innerWidth&&!document.querySelector('dialog[open]');};
+ const fullyVisible=(el,h)=>{const r=el.getBoundingClientRect();return r.width>=AD_W&&r.height>=h&&r.top>=0&&r.left>=0&&r.bottom<=window.innerHeight&&r.right<=window.innerWidth&&!document.querySelector('dialog[open]');};
+ // Changing size closes the ad view; the box reopens at its new size.
+ const size=s=>{
+  const banner=window.innerHeight<AD_TALL_MIN;
+  if(s.banner===banner)return;
+  if(s.view){s.view.remove();s.view=null;}
+  s.banner=banner;s.h=banner?AD_BANNER_H:AD_H;s.cid=banner?AD_BANNER_CID:AD_CID;
+  s.el.classList.toggle('adBanner',banner);
+ };
  // Glance view shows the box only when it fits below the rows without scrolling.
  const glanceRoom=()=>{
   if(!document.body.classList.contains('glanceMode'))return false;
@@ -782,7 +793,8 @@ function setupAds(){
   pin();
   for(const s of slots){
    if(s.glance)s.card.hidden=!glanceRoom();
-   if(fullyVisible(s.el)){if(!s.view){s.view=document.createElement('owadview');s.view.setAttribute('cid',s.cid);s.el.append(s.view);}}
+   if(s.sizes)size(s);
+   if(fullyVisible(s.el,s.h)){if(!s.view){s.view=document.createElement('owadview');s.view.setAttribute('cid',s.cid);s.el.append(s.view);}}
    else if(s.view){s.view.remove();s.view=null;}
   }
  };

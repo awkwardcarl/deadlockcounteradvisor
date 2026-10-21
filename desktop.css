@@ -786,3 +786,19 @@ body.focusInputs.liveMatch .workspace{grid-template-columns:minmax(0,1fr)}
    for it (the script keeps it hidden otherwise, and outside glance view). */
 .glanceAd{width:fit-content;margin-top:12px}
 body:not(.glanceMode) .glanceAd{display:none!important}
+/* Short windows (under 900px tall): the left column's box is a 400x60 banner. */
+.adSlot.adBanner{height:60px;min-height:60px;background-size:36px}
+/* With the ad box on, each enemy is one line (name, then item icons; names
+   on hover, new purchases ringed in gold), so a late-game team fits above it. */
+body.adsOn .liveRow{align-items:center;padding:6px 10px}
+body.adsOn .livePortrait{width:32px;height:32px}
+body.adsOn .liveRowBody{display:flex;align-items:center;gap:8px}
+body.adsOn .liveRowBody strong{flex:0 0 92px;margin:0;overflow-wrap:anywhere}
+body.adsOn .liveRowBody .laneTag{display:block;width:max-content;margin:3px 0 0}
+body.adsOn .liveItems{flex:1;min-width:0;gap:3px}
+body.adsOn .liveItem.hasIcon{padding:2px}
+body.adsOn .liveItem.hasIcon img{width:22px;height:22px}
+body.adsOn .liveItem.hasIcon .liveItemName{display:none}
+body.adsOn .liveItemNew.hasIcon{outline:2px solid var(--dca-gold);outline-offset:1px}
+/* Narrow windows: two lines of icons per enemy, so slightly smaller icons and rows. */
+@media (max-width:1500px){body.adsOn .liveRow{padding:4px 8px}body.adsOn .liveRowBody strong{flex-basis:80px}body.adsOn .liveItem.hasIcon img{width:20px;height:20px}}
