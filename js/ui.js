@@ -168,6 +168,130 @@ function itemsChanged(target){
 function renderOwned(){
  $('ownedChips').innerHTML=chipList(state.owned,'owned')+'<input class="chipInput" id="owned" data-target="owned" type="text" maxlength="100" list="itemNames" placeholder="Add an item you own…" aria-label="Add an owned item">';
 }
+// Your build (js/build-context.js): a playstyle, an ordered core path and
+// optional items, saved per hero on this PC. It applies only to the hero it was
+// made for: switching hero loads that hero's build. Without the module the
+// editor stays hidden and the picks work as before.
+const BUILD=window.DeadlockBuildContext;
+const PLAYSTYLE_LABELS={balanced:'Balanced',weapon:'Weapon',spirit:'Spirit',support:'Support'};
+const buildStorage=()=>{try{return window.localStorage;}catch(_){return null;}};
+let buildContext=null,buildHero=null;
+const BUILD_HELP='Saved on this PC for this hero only. The next buy follows your core items in order and detours only when the match calls for it.';
+const sameHero=(a,b)=>!!a&&!!b&&engine.norm(a)===engine.norm(b);
+function loadBuild(){
+ buildHero=state.hero||'';
+ buildContext=null;
+ if(!BUILD||!buildHero)return;
+ try{buildContext=BUILD.load(buildStorage(),buildHero);}catch(_){buildContext=null;}
+}
+function saveBuild(next){
+ if(!BUILD||!buildHero)return;
+ try{buildContext=BUILD.save(buildStorage(),buildHero,{...buildContext,...next,hero:buildHero})||buildContext;}catch(_){}
+ $('buildPlanHelp').textContent=BUILD_HELP;
+ renderBuildEditor();renderAdvice();
+}
+// What the engine gets: the saved build, only for the hero you are playing,
+// and only once something is chosen (an empty build changes nothing).
+function activeBuildContext(){
+ const b=buildContext;
+ if(!BUILD||!b||!sameHero(b.hero,state.hero)||!sameHero(buildHero,state.hero))return null;
+ return b.core?.length||b.optional?.length||(b.playstyle&&b.playstyle!=='balanced')?b:null;
+}
+// Reload the editor when your hero changes (picker, live feed, example, reset),
+// and redraw it when your items change (owned core items are ticked off).
+let buildShownKey='';
+function syncBuildEditor(){
+ if(!BUILD)return;
+ if(!sameHero(buildHero,state.hero)&&(buildHero||state.hero))loadBuild();
+ const key=`${buildHero}|${state.owned}|${catalog.items.length}`;
+ if(key!==buildShownKey)renderBuildEditor();
+}
+function buildRow(name,i,list,count,status){
+ const key=engine.norm(name),icon=itemIndex.icons.get(key),label=escapeHTML(name);
+ const tag=status==='owned'?'<span class="buildTag owned">✓ Owned</span>':status!=='unknown'?'':'<span class="buildTag unknown" title="Not in the item list yet: it is kept and applies once a catalog sync knows it">Not in catalog</span>';
+ const move=list==='core'?[
+  `<button type="button" class="buildMove" data-list="core" data-index="${i}" data-dir="-1" aria-label="Move ${label} earlier"${i===0?' disabled':''}>↑</button>`,
+  `<button type="button" class="buildMove" data-list="core" data-index="${i}" data-dir="1" aria-label="Move ${label} later"${i===count-1?' disabled':''}>↓</button>`
+ ].join(''):'';
+ return [
+  `<li class="buildRow${status==='owned'?' isOwned':''}">`,
+  list==='core'?`<span class="buildNum" aria-hidden="true">${i+1}</span>`:'',
+  `<span class="buildArt">${icon?`<img src="${escapeHTML(icon)}" alt="">`:''}</span>`,
+  `<span class="buildName">${label}${tag}</span>`,
+  move,
+  `<button type="button" class="buildRemove" data-list="${list}" data-index="${i}" aria-label="Remove ${label} from ${list==='core'?'core':'optional'} items">×</button></li>`
+ ].join('');
+}
+function renderBuildEditor(){
+ const panel=$('buildPlan');if(!panel)return;
+ panel.hidden=!BUILD;
+ if(!BUILD)return;
+ if(!sameHero(buildHero,state.hero))loadBuild();
+ const b=buildContext||{playstyle:'balanced',core:[],optional:[]};
+ const hero=state.hero||'your hero';
+ // Owned (directly or as a component of an upgrade you own), or not a shop item.
+ let owned=new Set(),unknown=new Set();
+ try{if(buildContext){const r=BUILD.resolve(buildContext,catalog,engine.cleanList(state.owned),buildHero);owned=new Set((r.completed||[]).map(engine.norm));unknown=new Set((r.unknown||[]).map(engine.norm));}}catch(_){}
+ const status=name=>owned.has(engine.norm(name))?'owned':unknown.has(engine.norm(name))?'unknown':'';
+ $('buildPlaystyle').value=PLAYSTYLE_LABELS[b.playstyle]?b.playstyle:'balanced';
+ $('buildPlaystyle').disabled=!buildHero;
+ $('buildCoreList').innerHTML=b.core.length?b.core.map((n,i)=>buildRow(n,i,'core',b.core.length,status(n))).join(''):`<li class="buildEmpty">No core items for ${escapeHTML(hero)} yet.</li>`;
+ $('buildOptionalList').innerHTML=b.optional.length?b.optional.map((n,i)=>buildRow(n,i,'optional',b.optional.length,status(n))).join(''):'<li class="buildEmpty">None. Optional items are never queued for you.</li>';
+ for(const id of ['buildCoreAdd','buildOptionalAdd'])$(id).disabled=!buildHero;
+ $('buildClear').disabled=!b.core.length&&!b.optional.length&&b.playstyle==='balanced';
+ buildShownKey=`${buildHero}|${state.owned}|${catalog.items.length}`;
+ const left=b.core.filter(n=>!owned.has(engine.norm(n))).length;
+ $('buildPlanStatus').textContent=!buildHero?'Choose your hero first':b.core.length?`${hero}: ${b.core.length} core${left<b.core.length?` (${left} to go)`:''} · ${PLAYSTYLE_LABELS[b.playstyle]||'Balanced'}`:`${hero}: no build saved`;
+ panel.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
+}
+function addBuildItem(list,raw){
+ if(!buildContext)return;
+ const names=String(raw||'').split(',').map(x=>engine.resolveItemName(catalog,x)).filter(Boolean);
+ if(!names.length)return;
+ const other=list==='core'?'optional':'core';
+ const into=[...buildContext[list]],from=[...buildContext[other]];
+ for(const name of names){
+  const key=engine.norm(name);
+  // An item lives in one list: adding it to the other moves it.
+  const at=from.findIndex(n=>engine.norm(n)===key);if(at>=0)from.splice(at,1);
+  if(!into.some(n=>engine.norm(n)===key))into.push(name);
+ }
+ const limit=list==='core'?BUILD.MAX_CORE:BUILD.MAX_OPTIONAL;
+ saveBuild({[list]:into,[other]:from});
+ if(Number.isFinite(limit)&&into.length>limit)$('buildPlanHelp').textContent=`A build keeps up to ${limit} ${list} items.`;
+}
+function setupBuildEditor(){
+ const panel=$('buildPlan');if(!panel)return;
+ if(!BUILD){panel.hidden=true;return;}
+ $('buildPlaystyle').addEventListener('change',e=>saveBuild({playstyle:e.target.value}));
+ panel.addEventListener('keydown',e=>{
+  const input=e.target.closest?.('.buildAdd');if(!input)return;
+  if(e.key==='Enter'&&input.value.trim()){e.preventDefault();addBuildItem(input.dataset.list,input.value);input.value='';input.focus();}
+ });
+ // A picked suggestion is added at once, as with the item chips.
+ panel.addEventListener('input',e=>{
+  const input=e.target.closest?.('.buildAdd');if(!input)return;
+  if(e.inputType==='insertReplacementText'||input.value.includes(',')){addBuildItem(input.dataset.list,input.value);input.value='';input.focus();}
+ });
+ panel.addEventListener('click',e=>{
+  const btn=e.target.closest?.('.buildMove,.buildRemove');if(!btn||!buildContext)return;
+  const list=btn.dataset.list,i=Number(btn.dataset.index),items=[...buildContext[list]];
+  if(!(i>=0&&i<items.length))return;
+  if(btn.classList.contains('buildRemove')){
+   items.splice(i,1);saveBuild({[list]:items});
+   ($(`build${list==='core'?'Core':'Optional'}Add`))?.focus();
+   return;
+  }
+  const j=i+Number(btn.dataset.dir);
+  if(j<0||j>=items.length)return;
+  [items[i],items[j]]=[items[j],items[i]];
+  saveBuild({[list]:items});
+  // Keep focus on the moved item's button so it can be moved again.
+  const again=panel.querySelector(`.buildMove[data-list="${list}"][data-index="${j}"][data-dir="${btn.dataset.dir}"]:not([disabled])`)||panel.querySelector(`.buildMove[data-list="${list}"][data-index="${j}"]:not([disabled])`);
+  again?.focus();
+ });
+ $('buildClear').addEventListener('click',()=>{if(window.confirm(`Clear your saved build for ${buildHero}?`))saveBuild({playstyle:'balanced',core:[],optional:[]});});
+}
 // Glance mode: a summary bar, the next buy and the next few buys, in large type.
 // Glance view keeps the enemy team's purchases in sight: portrait, name and
 // item icons, with new purchases ringed as on the main page.
@@ -511,22 +635,83 @@ function alertCard(a){
  const t=alertText(a);
  return `<section class="priorityAlert" role="status"><div class="alertMark" aria-hidden="true">!</div><div class="alertBody"><div class="overline">PRIORITY</div><p><strong>${escapeHTML(t.head)}</strong> ${escapeHTML(t.why)} Get <b>${escapeHTML(a.item.name)}</b>.</p>${a.source==='damage'?'':'<small>Open the in-game damage panel after a death to show who hurt you most.</small>'}</div><button type="button" class="alertDismiss" data-alert="${escapeHTML(a.key)}">Dismiss</button></section>`;
 }
+// Build-first decision (js/plan.js, with your saved build): continue the core
+// path, adapt with one detour and return, or the build is complete. Anything
+// else ('unplanned', or an older plan without a decision) keeps the counter plan.
+const DECISION_KINDS=new Set(['continue','adapt','complete']);
+const buildDecision=plan=>{const d=plan?.decision;return d&&DECISION_KINDS.has(d.kind)?d:null;};
+const THEN_HEADS={continue:'THEN · YOUR BUILD',adapt:'THEN BACK TO YOUR BUILD',complete:'OPTIONAL · YOUR BUILD IS COMPLETE'};
+const DECISION_EYEBROWS={continue:'NEXT BUY · YOUR BUILD',adapt:'DETOUR · NEXT BUY',complete:'OPTIONAL · BUILD COMPLETE'};
+const isCoreStep=(d,r)=>!!r&&d.kind!=='complete'&&[...(Array.isArray(d.path)?d.path.map(x=>x?.name):[]),...(buildContext?.core||[])].some(n=>engine.norm(n)===engine.norm(r.name));
+// The next purchase: the core item when continuing; the detour (the plan's next
+// buy) when adapting; an optional suggestion, if any, once complete.
+function decisionNext(plan,d){
+ if(d.kind==='continue')return d.core||plan.next||null;
+ return plan.next||(d.kind==='adapt'?d.core:null)||null;
+}
+// A pick card for the decision's item: the engine's recommendation, filled in
+// where a core item lacks pick fields. A core item reads as a build step.
+function asPick(r,d){
+ const cost=Number(r.effectiveCost??r.cost)||0;
+ const pick={reasons:[],category:'',affordable:cost<=state.souls,missing:Math.max(0,cost-state.souls),...r,effectiveCost:cost};
+ if(!Array.isArray(pick.reasons))pick.reasons=[];
+ if(d.kind==='continue'||isCoreStep(d,r)&&d.kind!=='adapt')return {...pick,kind:'build',hardCounter:false,reasons:['Next item in your core build',...pick.reasons.filter(x=>x!=='Next item in your core build')]};
+ if(d.kind==='complete'&&Array.isArray(d.optional)&&d.optional.some(x=>x?.name===r.name))return {...pick,kind:'build',hardCounter:false,reasons:['Optional item from your build',...pick.reasons]};
+ return pick;
+}
+function decisionCard(plan,d){
+ const next=decisionNext(plan,d);
+ const warnings=(Array.isArray(d.warnings)?d.warnings:[]).filter(Boolean);
+ const extra=Number(d.extraCost)>0?` <span class="decisionCost" title="Extra souls this detour costs compared with buying your core item directly, after component credit">+${fmt.format(Math.round(d.extraCost))} souls</span>`:'';
+ let overline='YOUR BUILD',head='',sub='';
+ if(d.kind==='adapt'){
+  const back=d.resume||d.core;
+  overline='YOUR BUILD · DETOUR';
+  head=`Detour: <b>${escapeHTML(next?.name||'a counter item')}</b>${back?` — then back to <b>${escapeHTML(back.name)}</b>`:''}${extra}`;
+ }else if(d.kind==='complete'){
+  overline='YOUR BUILD · COMPLETE';
+  head='Your build is complete.';
+  sub=next?'Anything suggested below is optional.':'No further buys from your build. Add core items to keep building.';
+ }else{
+  const step=d.step&&Number(d.step.total)>0?` <span class="decisionStep">Step ${Number(d.step.index)||1} of ${Number(d.step.total)}</span>`:'';
+  head=`Next core item: <b>${escapeHTML(next?.name||'')}</b>${step}`;
+ }
+ // The reason, unless it only repeats the head (the item's name, or "complete").
+ const reason=d.kind==='complete'||!d.reason||d.kind==='continue'&&next&&String(d.reason).includes(next.name)?'':d.reason;
+ const then=d.kind==='complete'?[]:PLAN.thenList(plan).filter(r=>r&&r.name!==next?.name);
+ const path=then.length?`<p class="decisionThen">Then: ${then.map(r=>escapeHTML(r.name)).join(' → ')}</p>`:'';
+ return [
+  `<section class="buildDecision decision-${escapeHTML(d.kind)}" role="status"><div class="overline">${overline}</div>`,
+  `<p class="decisionHead">${head}</p>`,
+  reason?`<p class="decisionReason">${escapeHTML(reason)}</p>`:'',
+  sub?`<p class="decisionReason">${escapeHTML(sub)}</p>`:'',
+  path,
+  warnings.length?`<ul class="decisionWarnings" aria-label="What the advice could not check">${warnings.map(w=>`<li>${escapeHTML(w)}</li>`).join('')}</ul>`:'',
+  `</section>`
+ ].join('');
+}
+// The lane and game plans stay below the build, labeled optional.
+const optionalNote=d=>`<p class="planOptional">${d.kind==='complete'?'Optional: your build is complete. These are extra counter options, not required buys.':'Optional: counter options beside your build. Your core items stay first.'}</p>`;
 // Glance view: the plan as one strip under the next buy.
 function glanceThen(plan){
- const lane=plan.stage==='lane';
- const tiles=lane?[...plan.done.slice(-1).map(name=>({done:true,name})),...plan.steps.slice(plan.priority?0:1)].slice(0,3):PLAN.thenList(plan);
+ const d=buildDecision(plan);
+ const lane=plan.stage==='lane'&&!d;
+ // With your build, the strip follows the core path (back to it after a detour).
+ const tiles=lane?[...plan.done.slice(-1).map(name=>({done:true,name})),...plan.steps.slice(plan.priority?0:1)].slice(0,3):d?PLAN.thenList(plan).filter(Boolean).map(t=>asPick(t,{kind:'then'})):PLAN.thenList(plan);
  if(!tiles.length)return '';
  const tile=t=>{
   if(t.done){const item=itemByName(t.name);return `<div class="thenStep step-done">${stepArt(item?.icon,item?.category)}<div><div class="stepName">${escapeHTML(item?.name||t.name)}</div><div class="stepStatus owned">✓ Owned</div></div></div>`;}
-  const tag=lane?'':stepWhy(t,plan.gaps.includes(t)&&!plan.gapsAreBuilds?'gap':'counter');
+  const tag=lane?'':d?(d.kind==='complete'?'Optional':isCoreStep(d,t)?'Your build':''):stepWhy(t,plan.gaps.includes(t)&&!plan.gapsAreBuilds?'gap':'counter');
   return `<div class="thenStep">${stepArt(t.icon,t.category)}<div><div class="stepName">${escapeHTML(t.name)}</div>${tag?`<span class="thenWhy">${escapeHTML(tag)}</span>`:''}<div class="stepStatus ${t.affordable?'now':'save'}">${t.affordable?'Affordable':`${fmt.format(t.missing)} more`} · ${fmt.format(t.effectiveCost)}</div></div></div>`;
  };
- return `<div class="glanceThen"><div class="overline">${lane?'LANE PLAN · NEXT':'THEN'}</div><div class="thenSteps">${tiles.map(tile).join('')}</div></div>`;
+ const head=d?THEN_HEADS[d.kind]:lane?'LANE PLAN · NEXT':'THEN';
+ return `<div class="glanceThen"><div class="overline">${head}</div><div class="thenSteps">${tiles.map(tile).join('')}</div></div>`;
 }
 function renderPlan(out){
  const live=document.body.classList.contains('liveMatch');
  const plan=PLAN.makePlan(out,lastPlan,engine.cleanList(state.owned),{dismissed:alertDismissed});
- if(!plan){lastPlan=null;lastPickNames=[];$('quickBuys').innerHTML='<div class="quickEmpty">Add your opponents to see your buy plan. This is not automated gameplay.</div>';return;}
+ // A finished build can leave nothing to buy; without a build decision a plan needs a next buy.
+ if(!plan||!plan.next&&!buildDecision(plan)){lastPlan=null;lastPickNames=[];$('quickBuys').innerHTML='<div class="quickEmpty">Add your opponents to see your buy plan. This is not automated gameplay.</div>';return;}
  // Name what changed the plan: a new alert, or an enemy who just became fed.
  const fedNames=(out.fed||[]).map(f=>f.hero).join(',');
  if(plan.priority&&plan.priority.key!==lastPlan?.priority?.key)planEvent=`You died ${plan.priority.deaths} times since ${plan.priority.since}`;
@@ -536,11 +721,18 @@ function renderPlan(out){
   for(const name of plan.added)pickHighlights.set(name,Date.now()+PICK_HIGHLIGHT_MS);
   planChange={clock:lastFeedSnapshot?.clock||'',why:planEvent||'match updated'};
  }
- lastPickNames=[...new Set([plan.next,...plan.steps,...plan.counters,...plan.gaps].map(r=>r.name))];
+ lastPickNames=[...new Set([plan.next,...plan.steps,...plan.counters,...plan.gaps].filter(Boolean).map(r=>r.name))];
  lastPlan=plan;
  const lane=plan.stage==='lane';
  const eyebrow=plan.priority?'PRIORITY · NEXT BUY':lane?`NEXT BUY · STEP ${plan.done.length+1} OF YOUR LANE PLAN`:'NEXT BUY';
- $('quickBuys').innerHTML=[plan.priority?alertCard(plan.priority):'',`<div class="nextBuy${plan.priority?' isPriority':''}">${quickCard(plan.next,0,eyebrow)}</div>`,lane?lanePlanCard(plan,out)+planTeaser(out):gamePlanCard(plan,out),glanceThen(plan)].join('');
+ const decision=buildDecision(plan);
+ if(decision){
+  const next=decisionNext(plan,decision);
+  const label=plan.priority&&decision.kind==='adapt'?'PRIORITY · DETOUR':DECISION_EYEBROWS[decision.kind];
+  // Counter plans stay below, labeled optional; with no enemies there are none.
+  const extras=plan.steps.length||plan.counters.length||plan.gaps.length?optionalNote(decision)+(lane?lanePlanCard(plan,out):gamePlanCard(plan,out)):'';
+  $('quickBuys').innerHTML=[plan.priority?alertCard(plan.priority):'',decisionCard(plan,decision),next?`<div class="nextBuy${plan.priority?' isPriority':''}${decision.kind==='complete'?' isOptional':''}">${quickCard(asPick(next,decision),0,label)}</div>`:'',extras,glanceThen(plan)].join('');
+ }else $('quickBuys').innerHTML=[plan.priority?alertCard(plan.priority):'',`<div class="nextBuy${plan.priority?' isPriority':''}">${quickCard(plan.next,0,eyebrow)}</div>`,lane?lanePlanCard(plan,out)+planTeaser(out):gamePlanCard(plan,out),glanceThen(plan)].join('');
  $('quickBuys').querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{img.hidden=true;}));
  // Dismiss hides this alert until your next death.
  $('quickBuys').querySelector('.alertDismiss')?.addEventListener('click',e=>{alertDismissed=e.currentTarget.dataset.alert;planEvent='';renderAdvice();});
@@ -682,9 +874,11 @@ function renderEnemies(){
  document.querySelectorAll('.remove').forEach(el=>el.addEventListener('click',()=>{state.enemies.splice(Number(el.dataset.index),1);renderEnemies();renderAdvice();persist();}));
 }
 function renderAdvice(){
+ syncBuildEditor();
  // The live clock sets the match phase; without one the engine estimates it from your souls.
+ // Your saved build goes along only when it was made for the hero you are playing.
  const out=engine.recommend(state,catalog,{sort:sortMode,category,affordableOnly:onlyAffordable,strategy:strategyMode,clock:liveWasOn?lastFeedSnapshot?.clock||'':'',buildData:buildDataEnabled()?buildData:null,
-  scoreboard:liveWasOn&&lastFeedSnapshot?{deathTimes:lastFeedSnapshot.deathTimes,damage:lastFeedSnapshot.damage}:null});
+  scoreboard:liveWasOn&&lastFeedSnapshot?{deathTimes:lastFeedSnapshot.deathTimes,damage:lastFeedSnapshot.damage}:null,buildContext:activeBuildContext()});
  lastAdvice=out;
  // The enemy rows' Fed tags come from this advice: redraw them when that changes.
  const fedNow=(out.fed||[]).map(f=>f.hero).join(',');
@@ -936,6 +1130,7 @@ function setup(){
  // Delegated, so the glance bar's buttons work too.
  document.addEventListener('click',e=>{const step=e.target.closest?.('.soulsStep');if(step)setSouls(state.souls+Number(step.dataset.step));});
  setupItemChips();
+ setupBuildEditor();
  setupHeroPicker();
  setupGlance();
  setupNotice();
