@@ -91,7 +91,35 @@ const idOf=name=>catalog.items.find(i=>i.name===name).id;
   test(html.includes('id="buildImportCode"')&&html.includes('id="buildImportGo"')&&html.includes('id="buildPopular"')&&/aria-label="Import a build/.test(html)&&/aria-label="Popular community builds/.test(html),'import controls are present and labelled');
   test(/r\.heroId!==mine/.test(ui)&&/Pick that hero first/.test(ui),'a build for another hero is refused, naming the hero');
   test(/window\.confirm\(`Replace your \$\{buildHero\} build/.test(ui),'replacing an existing build asks first');
-  test(/heroId===mine\?list:\[\]/.test(ui),'popular builds only show for the hero they were fetched for');
+  test(/popularBuilds\.heroId===mine\?popularBuilds\.list:\[\]/.test(ui),'popular builds only show for the hero they were fetched for');
+
+  // 7. The build bar above the buy plan: in view before and during a match.
+  const recomm=html.slice(html.indexOf('class="card recommCard"'),html.indexOf('class="quickHeading"'));
+  test(recomm.includes('id="buildBar"')&&recomm.includes('id="buildPopular"')&&recomm.includes('id="buildImportCode"'),'the build picker sits above the buy plan, not in the folded editor');
+  test(!/body\.liveMatch[^{]*\.buildBar\b/.test(read('desktop.css')),'live match view never hides the build bar');
+  test(/body\.glanceMode \.buildBarPick\{display:none\}/.test(read('desktop.css')),'glance mode keeps only the build line');
+  const els=new Map(),el=()=>({hidden:false,textContent:'',innerHTML:'',attrs:{},classes:new Set(),setAttribute(k,v){this.attrs[k]=v;},classList:{toggle(c,on){on?this.set.add(c):this.set.delete(c);},contains(c){return this.set.has(c);},set:new Set()}});
+  const barCtx=vm.createContext({$:id=>{if(!els.has(id))els.set(id,el());return els.get(id);},BUILD:B,window:{desktopAPI:{importBuild:()=>{}}},state:{hero:''},buildContext:null,heroIdOf:h=>h==='Haze'?13:null});
+  const barSrc=ui.slice(ui.indexOf('const canImport=()=>'),ui.indexOf('// The full editor lives with your hero'));
+  vm.runInContext(barSrc+';this.bar={render:renderBuildBar,set open(v){buildBarOpen=v;},set left(v){buildLeft=v;},set popular(v){popularBuilds=v;}};',barCtx);
+  const $b=id=>els.get(id),bar=barCtx.bar;
+  bar.render();
+  test($b('buildBarTitle').textContent==='Choose your hero to pick a build'&&$b('buildBarPick').hidden&&$b('buildBarEdit').textContent==='Choose hero','pre-match, no hero: says to choose a hero first');
+  barCtx.state.hero='Haze';bar.render();
+  test($b('buildBarTitle').textContent==='No build for Haze yet'&&!$b('buildBarPick').hidden&&!$b('buildImportRow').hidden&&$b('buildPopularRow').hidden&&$b('buildBarChange').hidden&&$b('buildBarEdit').textContent==='Make my own','no build: the picker is open with a build code box and a make-your-own option');
+  test(els.get('buildBar').classList.contains('needsBuild'),'no build: the bar is highlighted');
+  bar.popular={list:[{id:1,name:'A'}],heroId:13};bar.render();
+  test(!$b('buildPopularRow').hidden,'popular builds for this hero appear in the picker');
+  bar.popular={list:[{id:1,name:'A'}],heroId:99};bar.render();
+  test($b('buildPopularRow').hidden,'popular builds fetched for another hero stay hidden');
+  barCtx.buildContext={core:['Headshot Booster','Rapid Rounds'],optional:[],name:'Gun',source:{buildId:42,version:1}};bar.left=1;bar.open=null;bar.render();
+  test($b('buildBarTitle').textContent==='Following "Gun"'&&/1 of 2 core items left · build 42/.test($b('buildBarSub').textContent)&&!els.get('buildBar').classList.contains('needsBuild'),'with a build: what you follow and how far along you are');
+  test($b('buildBarPick').hidden&&!$b('buildBarChange').hidden&&$b('buildBarChange').textContent==='Change build'&&$b('buildBarEdit').textContent==='Edit items','with a build: the picker folds behind Change build, with Edit items beside it');
+  bar.open=true;bar.render();
+  test(!$b('buildBarPick').hidden&&$b('buildBarChange').textContent==='Close'&&$b('buildBarChange').attrs['aria-expanded']==='true','Change build opens the picker');
+  barCtx.window.desktopAPI=null;bar.open=null;barCtx.buildContext=null;bar.render();
+  test($b('buildBarPick').hidden&&$b('buildBarEdit').textContent==='Make my own','without the desktop app: make your own build');
+  test(/function openBuildEditor\(\)\{[\s\S]*?\$\('editLineup'\)\.click\(\)[\s\S]*?\$\('buildPlan'\)\.open=true/.test(ui),'Edit items opens the full editor, unfolding it mid-match');
   test(/<strong>Build import<\/strong>/.test(read('docs/privacy.html'))&&read('docs/privacy.html').includes('Only the build ID is sent'),'the Privacy Policy describes build import');
 
   finished=true;

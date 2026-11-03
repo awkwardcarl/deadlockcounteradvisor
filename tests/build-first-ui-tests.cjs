@@ -64,7 +64,7 @@ Object.assign(ctx,{
  catalog:{items:[{name:'Extra Spirit',cost:800},{name:'Mystic Burst',cost:800},{name:'Improved Spirit',cost:1600,components:['Extra Spirit']},{name:'Spirit Armor',cost:1600}]},
  itemIndex:{known:new Set(['extraspirit','mysticburst','improvedspirit','spiritarmor']),icons:new Map()},
  state:{hero:'Kelvin',owned:'',souls:0},
- renderAdvice:()=>{ctx.advised++;},advised:0
+ renderAdvice:()=>{ctx.advised++;},advised:0,renderBuildBar:()=>{ctx.barRenders++;},barRenders:0
 });
 const editor=ui.slice(ui.indexOf('const BUILD=window.DeadlockBuildContext;'),ui.indexOf('function setupBuildEditor(){'));
 vm.runInContext(editor+';this.api={loadBuild,saveBuild,addBuildItem,activeBuildContext,renderBuildEditor,syncBuildEditor,get ctx(){return buildContext;},get hero(){return buildHero;}};',ctx);
