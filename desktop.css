@@ -938,6 +938,24 @@ body.glanceMode .alertBody small{display:none}
 .buildEmpty{color:var(--dca-dim);font-size:calc(12px * var(--ui-text-multiplier))}
 .buildAdd{width:100%;height:36px;min-height:36px;font-size:calc(12.5px * var(--ui-text-multiplier))}
 .buildPlanBody .supportText{margin:0}
+/* Your build bar, above the buy plan: always in view, before and during a match. */
+.buildBar{border:1px solid var(--dca-avatar-line);border-radius:10px;padding:10px 12px;margin:0 0 12px;background:var(--dca-surface-2);display:flex;flex-direction:column;gap:8px}
+.buildBar.needsBuild{border-color:rgba(var(--dca-accent-rgb),.65);background:rgba(var(--dca-accent-rgb),.08);box-shadow:inset 3px 0 0 var(--dca-accent)}
+.buildBarHead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.buildBarText{display:flex;flex-direction:column;gap:2px;min-width:0}
+.buildBarText strong{font-size:calc(14px * var(--ui-text-multiplier));overflow-wrap:anywhere}
+.buildBarSub{font-size:calc(12px * var(--ui-text-multiplier));color:var(--dca-muted)}
+.buildBarActions{display:flex;gap:6px;flex-wrap:wrap}
+.buildBarActions button{min-height:32px;font-size:calc(12.5px * var(--ui-text-multiplier))}
+.buildBarPick{display:flex;flex-direction:column;gap:6px}
+.buildBarPick[hidden]{display:none}
+.buildPickLabel{flex:0 0 92px;white-space:nowrap;font-size:calc(12px * var(--ui-text-multiplier));color:var(--dca-muted);text-transform:uppercase;letter-spacing:.04em}
+.buildBarMsg{margin:0}
+.buildBarMsg:empty{display:none}
+body.glanceMode .buildBarPick{display:none}
+.buildImportRow{display:flex;gap:6px;align-items:center}
+.buildImportRow input,.buildImportRow select{flex:1;min-width:0;height:36px;min-height:36px;font-size:calc(12.5px * var(--ui-text-multiplier))}
+.buildImportRow button{min-height:36px;min-width:64px;font-size:calc(12.5px * var(--ui-text-multiplier))}
 .buildPlanBody .actionRow{margin:0}
 /* The build decision above the next buy: continue, detour and return, or complete. */
 .buildDecision{padding:12px 16px;border:1px solid rgba(var(--dca-accent-rgb),.55);border-radius:12px;background:rgba(var(--dca-accent-rgb),.08)}

@@ -140,6 +140,19 @@
           <details class="tunePanel" id="tunePanel"><summary>Tune picks</summary>
           <div class="summaryRow"><div class="recommendationFilters"><label>Priority <select id="strategyMode" aria-label="Current purchase priority"><option value="balanced">Balanced counters</option><option value="survive">Survive damage</option><option value="escape">Escape / disables</option><option value="antiheal">Stop sustain</option></select></label><label>Show <select id="sortMode"><option value="smart">Best fit</option><option value="affordable">Affordable first</option><option value="cost">Lowest cost</option></select></label><label>Filter <select id="filterCategory"><option value="all">All categories</option><option value="weapon">Weapon</option><option value="vitality">Vitality</option><option value="spirit">Spirit</option></select></label><label><input type="checkbox" id="affordableOnly"> Affordable only</label></div></div>
           </details>
+          <!-- Your build, before and during a match: what you follow, and where to
+               pick or change it (popular builds, a pasted build code, or your own). -->
+          <section class="buildBar" id="buildBar" hidden aria-labelledby="buildBarTitle">
+            <div class="buildBarHead">
+              <div class="buildBarText"><div class="overline">YOUR BUILD</div><strong id="buildBarTitle">No build selected</strong><span class="buildBarSub" id="buildBarSub"></span></div>
+              <div class="buildBarActions"><button id="buildBarChange" class="iconButton" type="button" aria-expanded="true" aria-controls="buildBarPick">Change build</button><button id="buildBarEdit" class="iconButton" type="button">Edit items</button></div>
+            </div>
+            <div class="buildBarPick" id="buildBarPick">
+              <div class="buildImportRow" id="buildPopularRow" hidden><span class="buildPickLabel">Popular</span><select id="buildPopular" aria-label="Popular community builds for your hero"></select><button id="buildPopularGo" class="addButton" type="button">Use</button></div>
+              <div class="buildImportRow" id="buildImportRow" hidden><span class="buildPickLabel">Build code</span><input id="buildImportCode" type="text" maxlength="300" placeholder="ID from the in-game build browser, or a link" aria-label="Import a build: its in-game build ID, or a link that contains it"><button id="buildImportGo" class="addButton" type="button">Import</button></div>
+            </div>
+            <p class="supportText buildBarMsg" id="buildBarMsg" role="status"></p>
+          </section>
           <div class="quickHeading"><div><div class="overline">BUY PLAN</div><h3>What to buy next</h3></div><small><span id="phaseSummary" class="phaseSummary"></span><span id="evidenceQuality" class="evidenceQuality" role="status">Waiting for matchup</span></small></div>
           <div id="quickBuys" class="advicePlan" aria-live="polite"></div>
           <div id="glanceTeam" class="glanceTeam" aria-label="Enemy purchases"></div>

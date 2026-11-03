@@ -6,8 +6,9 @@
  *  - item statistics from recent matches (all ranks): how often players on
  *    your hero buy each item in each phase and how often they win, plus, for
  *    laning, the same against your lane opponents.
- * Requests carry hero IDs only. Build names, descriptions and author IDs are
- * never kept. Results are cached for 12 hours and used offline when stale.
+ * Requests carry hero IDs only. Descriptions and author IDs are never kept;
+ * the names of the top few builds are, so you can pick one to follow.
+ * Importing one build by its in-game build ID (importBuild) sends only that ID. Results are cached for 12 hours and used offline when stale.
  * Main process only. */
 const https=require('node:https');
 const fs=require('node:fs');
@@ -23,6 +24,7 @@ const MIN_MATCHUP_MATCHES=40;
 const PHASE_WINDOWS=Object.freeze({laning:'&max_bought_at_s=600',mid:'&min_bought_at_s=600&max_bought_at_s=1500',late:'&min_bought_at_s=1500'});
 const ROUTES=[
   /^\/v1\/builds\?hero_id=\d{1,4}&only_latest=true&sort_by=favorites&sort_direction=desc&limit=\d{1,3}&build_language=English&min_unix_timestamp=\d{1,12}$/,
+  /^\/v1\/builds\?build_id=\d{1,10}&only_latest=true$/,
   /^\/v1\/analytics\/item-stats\?hero_ids=\d{1,4}&min_matches=\d{1,6}(?:&min_bought_at_s=\d{1,5})?(?:&max_bought_at_s=\d{1,5})?(?:&enemy_hero_ids=\d{1,4}(?:,\d{1,4}){0,5}&same_lane_filter=true)?$/
 ];
 const routeAllowed=route=>ROUTES.some(rx=>rx.test(route));
@@ -32,6 +34,14 @@ function buildsRoute(heroId,now=Date.now()){
   const since=Math.floor(now/1000)-BUILD_MAX_AGE_DAYS*86400;
   return `/v1/builds?hero_id=${heroId}&only_latest=true&sort_by=favorites&sort_direction=desc&limit=${BUILD_LIMIT}&build_language=English&min_unix_timestamp=${since}`;
 }
+const BUILD_PICKS=8;
+const buildIdOk=id=>Number.isInteger(id)&&id>0&&id<1e10;
+function buildRoute(buildId){return `/v1/builds?build_id=${buildId}&only_latest=true`;}
+// A build name for display: no control, zero-width or text-direction
+// characters, at most 60 characters.
+const HIDDEN=[[0,31],[127,159],[0x200b,0x200f],[0x202a,0x202e],[0x2066,0x2069]];
+const hidden=ch=>{const n=ch.codePointAt(0);return HIDDEN.some(([a,b])=>n>=a&&n<=b);};
+const cleanName=v=>typeof v==='string'?[...v].map(ch=>hidden(ch)?' ':ch).join('').replace(/\s+/g,' ').trim().slice(0,60):'';
 function itemStatsRoute(heroId,phase,enemyIds=[]){
   const vs=enemyIds.length?`&enemy_hero_ids=${enemyIds.join(',')}&same_lane_filter=true`:'';
   return `/v1/analytics/item-stats?hero_ids=${heroId}&min_matches=${enemyIds.length?MIN_MATCHUP_MATCHES:MIN_MATCHES}${PHASE_WINDOWS[phase]}${vs}`;
@@ -70,10 +80,13 @@ const className=(itemsById,id)=>{const c=itemsById?.[String(id)]?.c;return typeo
 function compactBuilds(raw,itemsById){
   const list=(Array.isArray(raw)?raw:[]).slice(0,BUILD_LIMIT);
   const stages={laning:{},mid:{},late:{}};
+  const picks=[];
   let count=0;
   for(const entry of list){
     const categories=entry?.hero_build?.details?.mod_categories;
     if(!Array.isArray(categories)||!categories.length)continue;
+    const hb=entry.hero_build,id=Number(hb.hero_build_id);
+    if(picks.length<BUILD_PICKS&&buildIdOk(id)&&!picks.some(p=>p.id===id))picks.push({id,version:Number(hb.version)||0,name:cleanName(hb.name)||`Build ${id}`});
     const seen={laning:new Set(),mid:new Set(),late:new Set()};
     categories.slice(0,12).forEach((cat,i,all)=>{
       const stage=stageOf(cat?.name,i,all.length);
@@ -85,7 +98,22 @@ function compactBuilds(raw,itemsById){
   }
   // Share of builds that include each item in each stage.
   for(const stage of Object.keys(stages))for(const c of Object.keys(stages[stage]))stages[stage][c]=Math.round(stages[stage][c]/count*100)/100;
-  return {count,stages};
+  return {count,stages,list:picks};
+}
+// One build, ready to follow: its categories in order with item class names
+// (upgrade_*), and whether the author marked each category optional.
+function compactBuild(raw,itemsById){
+  const entry=(Array.isArray(raw)?raw:[]).find(e=>e?.hero_build);
+  const hb=entry?.hero_build;
+  const id=Number(hb?.hero_build_id),heroId=Number(hb?.hero_id);
+  const cats=hb?.details?.mod_categories;
+  if(!buildIdOk(id)||!Number.isInteger(heroId)||!Array.isArray(cats))return null;
+  const categories=cats.slice(0,16).map(cat=>({
+    name:cleanName(cat?.name),optional:cat?.optional===true,
+    items:[...new Set((Array.isArray(cat?.mods)?cat.mods:[]).slice(0,24).map(m=>className(itemsById,m?.ability_id)).filter(Boolean))]
+  })).filter(c=>c.items.length);
+  if(!categories.length)return null;
+  return {buildId:id,version:Number(hb.version)||0,heroId,name:cleanName(hb.name)||`Build ${id}`,categories};
 }
 function compactItemStats(rows,itemsById){
   const out={};
@@ -144,6 +172,17 @@ function createBuildData({userData,readAssets,refreshAssets,fetchJSON=getJSON,no
     inFlight.set(key,job);
     return job;
   }
-  return {get};
+  // A build by its in-game ID (from the build browser or a pasted link). Not
+  // cached: the player asks for it once and saves the result as their build.
+  async function importBuild(buildId){
+    if(!buildIdOk(buildId))return {error:'That is not a build ID'};
+    const items=await itemsById();
+    if(!items)return {error:'Item data is unavailable: sync items & heroes first'};
+    let raw;
+    try{raw=await fetchJSON(buildRoute(buildId));}catch(e){return {error:e.message||'Could not reach the build data service'};}
+    const build=compactBuild(raw,items);
+    return build||{error:`No build found with ID ${buildId}`};
+  }
+  return {get,importBuild};
 }
-module.exports={createBuildData,compactBuilds,compactItemStats,stageOf,buildsRoute,itemStatsRoute,routeAllowed,getJSON,CACHE_MS,PHASE_WINDOWS};
+module.exports={createBuildData,compactBuilds,compactBuild,buildRoute,compactItemStats,stageOf,buildsRoute,itemStatsRoute,routeAllowed,getJSON,CACHE_MS,PHASE_WINDOWS};

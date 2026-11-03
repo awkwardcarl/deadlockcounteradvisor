@@ -26,7 +26,7 @@ test(!/\b(document|localStorage|window)\./.test(read('js/build-context.js')),'pu
 
 // normalize.
 const n0=B.normalize(null,'Shiv');
-test(json(n0)===json({version:1,hero:'Shiv',name:'',playstyle:'balanced',core:[],optional:[]}),'nothing saved: an empty balanced plan for the hero');
+test(json(n0)===json({version:1,hero:'Shiv',name:'',playstyle:'balanced',core:[],optional:[],source:null}),'nothing saved: an empty balanced plan for the hero');
 test(json(B.normalize('junk','Shiv'))===json(n0)&&json(B.normalize([1,2],'Shiv'))===json(n0)&&json(B.normalize(42,'Shiv'))===json(n0),'non-object input is an empty plan');
 const n1=B.normalize({hero:'shiv',name:'  My   build  ',playstyle:'WEAPON',core:['Rapid Rounds',' rapid rounds ',7,null,{},'','Headshot Booster'],optional:['Headshot booster','Extra Health',false]},'Shiv');
 test(n1.hero==='Shiv'&&n1.name==='My build'&&n1.playstyle==='weapon','hero spelling from the request, tidy name, playstyle case-insensitive');
@@ -35,7 +35,7 @@ test(json(n1.optional)==='["Extra Health"]','optional drops non-strings and anyt
 test(B.normalize({playstyle:'tank'},'Shiv').playstyle==='balanced'&&B.normalize({playstyle:3},'Shiv').playstyle==='balanced','unknown playstyle falls back to balanced');
 const many=Array.from({length:40},(_,i)=>'Item '+i);
 const n2=B.normalize({core:many,optional:many.slice().reverse(),name:'x'.repeat(500)},'Shiv');
-test(n2.core.length===12&&n2.optional.length===12&&n2.core[0]==='Item 0','core and optional are capped at 12');
+test(B.MAX_CORE===32&&B.MAX_OPTIONAL===24&&n2.core.length===32&&n2.optional.length===8&&n2.core[0]==='Item 0'&&B.normalize({optional:many},'Shiv').optional.length===24,'core and optional are capped (32 and 24)');
 test(n2.optional.every(x=>!n2.core.includes(x))&&n2.name.length<=60,'optional never repeats core; name is bounded');
 test(B.normalize({core:['y'.repeat(300)]},'Shiv').core[0].length<=60,'item text is bounded');
 test(json(B.normalize({core:'Rapid Rounds, Headshot Booster'},'Shiv').core)==='["Rapid Rounds","Headshot Booster"]','a comma string is accepted as a list');
@@ -54,7 +54,7 @@ test(json(B.load(s,'Shiv'))===json(saved)&&json(B.load(s,'shiv'))===json({...sav
 test(json(B.load(s,'Haze').core)==='["Rapid Rounds"]'&&B.load(s,'Abrams').core.length===0,'per hero: other heroes are kept; an unsaved hero is empty');
 test([...s.map.keys()].join()===B.STORAGE_KEY,'everything lives under the one storage key');
 const stored=JSON.parse(s.map.get(B.STORAGE_KEY));
-test(!('enemies' in stored)&&Object.values(stored.heroes).every(c=>Object.keys(c).sort().join()==='core,hero,name,optional,playstyle,version'),'only build preferences are stored (no match state)');
+test(!('enemies' in stored)&&Object.values(stored.heroes).every(c=>Object.keys(c).sort().join()==='core,hero,name,optional,playstyle,source,version'),'only build preferences are stored (no match state)');
 test(B.save(s,'Shiv',{hero:'Haze',core:['Rapid Rounds']}).core.length===0,'saving another hero\'s context for this hero stores an empty plan');
 const throwing={getItem(){throw new Error('denied');},setItem(){throw new Error('full');}};
 test(B.load(throwing,'Shiv').core.length===0&&B.load(null,'Shiv').core.length===0&&B.load(undefined,'Shiv').hero==='Shiv'&&B.load({},'Shiv').core.length===0,'load tolerates a throwing, missing or odd storage');
@@ -66,7 +66,7 @@ test(json(B.load(bad,'Shiv').core)==='["A"]','saving over corrupt data recovers'
 bad.setItem(B.STORAGE_KEY,JSON.stringify({heroes:{shiv:{hero:'Haze',core:['X']}}}));
 test(B.load(bad,'Shiv').core.length===0,'a stored context naming another hero is not applied');
 bad.setItem(B.STORAGE_KEY,JSON.stringify({heroes:{shiv:{core:Array.from({length:50},(_,i)=>'I'+i),playstyle:'nope'}}}));
-test(B.load(bad,'Shiv').core.length===12&&B.load(bad,'Shiv').playstyle==='balanced','loaded data is re-normalized (bounds, playstyle)');
+test(B.load(bad,'Shiv').core.length===B.MAX_CORE&&B.load(bad,'Shiv').playstyle==='balanced','loaded data is re-normalized (bounds, playstyle)');
 test(B.load(s,'').hero===''&&B.save(memory(),'',{core:['A']}).hero==='','no hero: nothing is stored or loaded');
 
 // resolve against the real catalog.
