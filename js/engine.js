@@ -414,9 +414,49 @@ const clockText=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0
 // The damage panel names heroes its own way (damageby_hero_<name>): match its
 // name to the hero's shown name, an alias, or the internal name in its art.
 const artName=hero=>{const m=/\/heroes\/([a-z0-9_]+?)_(?:card|sm|vertical)/i.exec(String(hero?.portrait||''));return m?norm(m[1]):'';};
+// Build-first tuning. A detour away from your selected build needs observed
+// evidence (enemy purchases at the hard-counter thresholds, or the damage
+// panel) for a threat no item you hold answers (weight coverWeight+), a free
+// slot (slots: an approximation of the inventory size), and a price within
+// reach (laning: LANING_SAVE_CAP; later: detourCost). Hero presence and deaths
+// alone never qualify. damageLead: share of panel damage of one type.
+const BUILD_FIRST={coverWeight:2.4,detourCost:3200,slots:12,candidates:3,damageLead:.6};
+// The extra souls a detour costs before a core item, compared with buying the
+// core item directly: the detour's own price, plus any upgrade credit toward
+// the core item it uses up (buying an upgrade consumes its component), minus
+// credit it adds (the detour is a component of the core item). Souls, never time.
+// detour/core: item names, IDs or {id,name}; owned: your item names.
+function detourExtraCost(catalog,owned,detour,core){
+ const byKey=new Map();for(const i of catalog.items)byKey.set(norm(i.id),i);for(const i of catalog.items)byKey.set(norm(i.name),i);
+ const find=x=>x&&typeof x==='object'?byKey.get(norm(x.id))||byKey.get(norm(x.name)):byKey.get(norm(x));
+ const di=find(detour),ci=find(core),have=new Set(cleanList(owned).map(norm));
+ if(!di||!ci)return Math.max(0,Number(detour?.effectiveCost)||0);
+ const parts=item=>(item.components||[]).map(c=>byKey.get(norm(c))).filter(Boolean);
+ const pay=(item,held)=>{const cost=Math.max(0,Number(item.cost)||0);const credit=parts(item).filter(c=>held.has(norm(c.name))).reduce((best,c)=>Math.max(best,Number(c.cost)||0),0);return Math.max(0,cost-Math.min(cost,credit));};
+ const after=new Set(have);
+ const used=parts(di).filter(c=>have.has(norm(c.name))).sort((a,b)=>(Number(b.cost)||0)-(Number(a.cost)||0))[0];
+ if(used)after.delete(norm(used.name));
+ after.add(norm(di.name));
+ return Math.max(0,pay(di,have)+pay(ci,after)-pay(ci,have));
+}
+// Used only when js/build-context.js is not loaded: the same contract, minimal.
+function fallbackResolve(raw,catalog,owned){
+ const list=x=>[...new Map((Array.isArray(x)?x:String(x||'').split(',')).map(v=>String(v||'').trim()).filter(Boolean).map(v=>[norm(v),v])).values()].slice(0,12);
+ const context={version:1,hero:String(raw?.hero||''),name:String(raw?.name||''),playstyle:String(raw?.playstyle||'balanced'),core:list(raw?.core),optional:[]};
+ context.optional=list(raw?.optional).filter(v=>!context.core.some(c=>norm(c)===norm(v)));
+ const byKey=new Map();for(const i of catalog.items)byKey.set(norm(i.id),i);for(const i of catalog.items)byKey.set(norm(i.name),i);
+ const have=new Set(),stack=owned.map(n=>byKey.get(norm(n))).filter(Boolean);
+ while(stack.length){const it=stack.pop();if(have.has(it))continue;have.add(it);for(const c of it.components||[]){const p=byKey.get(norm(c));if(p)stack.push(p);}}
+ const unknown=[],completed=[],seen=new Set();
+ const pick=l=>l.map(v=>{const it=byKey.get(norm(v));if(!it){unknown.push(v);return null;}if(seen.has(it))return null;seen.add(it);if(have.has(it)){completed.push(it.name);return null;}return it;}).filter(Boolean);
+ const core=pick(context.core),optional=pick(context.optional);
+ return {context,core,optional,unknown,completed};
+}
 function recommend(state,catalog,options={}){
  const enemies=(Array.isArray(state.enemies)?state.enemies:[]).filter(e=>e&&String(e.hero||'').trim()).slice(0,6);
- if(!enemies.length)return {results:[],quickBuys:[],threats:[],patterns:[],abilityTips:[],team:{allies:[],weaponShare:null,lean:null,signals:[]},unknown:[],newHeroes:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
+ // A selected build works without enemies: the plan still follows it.
+ const hasBuild=!!(options.buildContext&&typeof options.buildContext==='object'&&(Array.isArray(options.buildContext.core)?options.buildContext.core.length:String(options.buildContext.core||'').trim()));
+ if(!enemies.length&&!hasBuild)return {results:[],quickBuys:[],threats:[],patterns:[],abilityTips:[],team:{allies:[],weaponShare:null,lean:null,signals:[]},unknown:[],newHeroes:[],count:0,knownItems:0,totalCandidates:0,observedInventories:0,quality:'No matchup data'};
  const heroMap=new Map(catalog.heroes.map(h=>[norm(h.name),h]));
  const itemMap=new Map(catalog.items.map(i=>[norm(i.name),i]));
  const idMap=new Map(catalog.items.map(i=>[String(i.id),i]));
@@ -653,7 +693,7 @@ function recommend(state,catalog,options={}){
  // Build picks: power for your build from the full shop (by category and shop
  // group), excluding items already ranked as counters.
  const counterIds=new Set(all.map(r=>r.id));
- const build=catalog.items.filter(i=>!covered(norm(i.name))&&!counterIds.has(i.id)&&(BUILD_GROUPS[i.group]||(Number(stageShares[i.id])||0)>=.35)).map(item=>{
+ const buildRec=item=>{
   const category=item.category||'vitality';
   const cost=Math.max(0,Number(item.cost)||0);
   const validComponents=(item.components||[]).map(c=>idMap.get(String(c))).filter(c=>c&&owned.has(norm(c.name)));
@@ -677,7 +717,8 @@ function recommend(state,catalog,options={}){
    why:`${reason}. ${item.groupLabel?item.groupLabel+' item':'Shop item'} for the ${PHASE_LABELS[phase.key].toLowerCase()} stage.`,
    caution:'A build-fit heuristic from the item\'s shop category and group, your purchases, the match phase and the investment bonus steps. It does not model exact stat values.',
    confidence:'build fit',heroNotes:[],evidence:['Your build'],ownFit:reason};
- }).map(r=>withTeam(r,{build:true})).sort((a,b)=>b.score-a.score||a.effectiveCost-b.effectiveCost||a.name.localeCompare(b.name));
+ };
+ const build=catalog.items.filter(i=>!covered(norm(i.name))&&!counterIds.has(i.id)&&(BUILD_GROUPS[i.group]||(Number(stageShares[i.id])||0)>=.35)).map(buildRec).map(r=>withTeam(r,{build:true})).sort((a,b)=>b.score-a.score||a.effectiveCost-b.effectiveCost||a.name.localeCompare(b.name));
  // Three picks: the strongest counter and the strongest build item (even if
  // you must save for them), a durability pick when there is a gap, then at
  // least one item you can buy now and one worth saving for, taken from the
@@ -758,11 +799,120 @@ function recommend(state,catalog,options={}){
    tag,label:tag==='bullet'?'weapon damage':'spirit damage',item:answers[0],options:answers};
  }
  const alert=priorityAlert();
+ plan.buildContext=null;
+ if(hasBuild){
+  const bc=buildFirst();
+  if(bc&&bc.ignored)plan.buildContextIgnored=bc.ignored;else plan.buildContext=bc;
+ }
+ // Build-first (see BUILD_FIRST): your selected build's core path, ranked like
+ // any pick, plus the evidence the plan needs to justify ONE temporary detour.
+ function buildFirst(){
+  const raw=options.buildContext;
+  const heroName=ownHero?.name||String(state.hero||'');
+  if(raw.hero&&heroName&&norm(raw.hero)!==norm(heroName))return {ignored:`Saved build is for ${String(raw.hero).slice(0,40)}, not ${heroName}`};
+  const ownedNames=cleanList(state.owned);
+  const BC=root.DeadlockBuildContext&&typeof root.DeadlockBuildContext.resolve==='function'?root.DeadlockBuildContext:null;
+  const resolveWith=r=>BC?BC.resolve(r,catalog,ownedNames,heroName||undefined):fallbackResolve(r,catalog,ownedNames);
+  const full=resolveWith(raw),coreOnly=resolveWith({...raw,optional:[]});
+  const ranked=new Map([...all,...build].map(r=>[String(r.id),r]));
+  const recOf=item=>ranked.get(String(item.id))||withTeam(buildRec(item),{build:true});
+  const core=coreOnly.core.map((item,i)=>({...recOf(item),buildStep:coreOnly.completed.length+i+1}));
+  const optional=full.optional.map(item=>({...recOf(item),optional:true}));
+  // Which item names belong to the core path (owned upgrades of them included).
+  const coreKeys=new Set([...coreOnly.core.map(i=>norm(i.name)),...coreOnly.completed.map(norm)]);
+  const optionalKeys=new Set([...full.optional.map(i=>norm(i.name)),...(full.context.optional||[]).map(norm)]);
+  const partsOf=key=>{const out=new Set(),stack=[itemMap.get(key)];while(stack.length){const it=stack.pop();for(const c of it?.components||[]){const p=idMap.get(String(c));if(p&&!out.has(norm(p.name))){out.add(norm(p.name));stack.push(p);}}}return out;};
+  const isCore=key=>coreKeys.has(key)||[...partsOf(key)].some(k=>coreKeys.has(k));
+  const weightsOf=item=>item?item.weights||COUNTERS[item.id]||null:null;
+  // Recent detours: counter items owned after your latest core item (owned
+  // order is purchase order for manual entry, inventory order for live feeds).
+  let lastCore=-1;ownedNames.forEach((n,i)=>{if(isCore(norm(n)))lastCore=i;});
+  const recentDetours=ownedNames.slice(lastCore+1).filter(n=>{const k=norm(n);return !isCore(k)&&!optionalKeys.has(k)&&!!weightsOf(itemMap.get(k));}).map(n=>itemMap.get(norm(n)).name);
+  // Owned coverage: threats an item you hold (not a consumed component) answers strongly.
+  const coverage={};
+  for(const key of owned){const item=itemMap.get(key),w=weightsOf(item);if(!w)continue;for(const [tag,v] of Object.entries(w))if(Number(v)>=BUILD_FIRST.coverWeight)(coverage[tag]=coverage[tag]||[]).push(item.name);}
+  // Observed threats: tags enemy purchases show, with their buyers.
+  const threats=[...byTag].map(([tag,t])=>{
+   const bought=[...new Set(t.sources.filter(x=>x.kind==='item'||x.kind==='pair').map(x=>String(x.name).split(' · ').pop()))];
+   return {tag,label:TAG_LABELS[tag],score:Math.round(t.score*100)/100,level:threatLevel(t.score),buyers:teamBuyers.get(tag)||0,laneBuyers:laneBuyers.get(tag)||0,purchases:bought.slice(0,6),covered:coverage[tag]||[]};
+  }).filter(x=>x.buyers>0).sort((a,b)=>b.score-a.score);
+  // Damage panel: who dealt your damage in the latest reading (within ALERT.minutes).
+  const damage=(()=>{
+   const sb=options.scoreboard&&typeof options.scoreboard==='object'?options.scoreboard:null;
+   const dmg=sb?.damage&&typeof sb.damage==='object'?sb.damage:null,now=clockMinutes(options.clock),read=dmg?clockMinutes(dmg.clock):null;
+   if(!dmg||read===null||!Array.isArray(dmg.sources)||(now!==null&&(now-read)>ALERT.minutes))return null;
+   const per=new Map();
+   for(const s of dmg.sources.slice(0,12)){
+    const key=norm(s?.source).replace(/^hero(?=.)/,''),alias=norm(resolveHeroName(catalog,key));
+    const i=enemies.findIndex(e=>{const h=heroMap.get(norm(e.hero));return [norm(e.hero),artName(h)].some(n=>n&&(n===key||n===alias));});
+    if(i>=0)per.set(i,(per.get(i)||0)+Math.max(0,Number(s.amount)||0));
+   }
+   const total=Math.max(Number(dmg.total)||0,[...per.values()].reduce((a,b)=>a+b,0));
+   if(!total)return null;
+   const dealt={bullet:0,spirit:0};
+   for(const [i,n] of per)for(const tag in dealt)dealt[tag]+=enemyDamage[i][tag]*n/total;
+   const sum=dealt.bullet+dealt.spirit;
+   const lead=sum>0?(dealt.bullet/sum>=BUILD_FIRST.damageLead?'bullet':dealt.spirit/sum>=BUILD_FIRST.damageLead?'spirit':null):null;
+   return {clock:String(dmg.clock),lead,bullet:sum?Math.round(dealt.bullet/sum*100)/100:0,spirit:sum?Math.round(dealt.spirit/sum*100)/100:0,
+    heroes:[...per].sort((a,b)=>b[1]-a[1]).slice(0,3).map(([i,n])=>({hero:String(enemies[i].hero),share:Math.round(n/total*100)/100}))};
+  })();
+  const slots={used:owned.size,total:BUILD_FIRST.slots,free:Math.max(0,BUILD_FIRST.slots-owned.size)};
+  const nextCore=core[0]||null;
+  const extraCosts={};
+  const priced=r=>{if(nextCore&&!(r.name in extraCosts))extraCosts[r.name]=detourExtraCost(catalog,ownedNames,r,nextCore);return r;};
+  // Why the evidence supports answering `tag` now (empty: it does not).
+  const basisFor=tag=>{
+   const t=byTag.get(tag);if(!t)return [];
+   const need=HARD_COUNTER.damageTags.has(tag)?HARD_COUNTER.damage:HARD_COUNTER.specific;
+   const basis=[];
+   const bought=laneFocus?(laneBuyers.get(tag)||0)>=1&&(laneTags.get(tag)||0)>=need.lane:(teamBuyers.get(tag)||0)>=need.buyers&&t.score>=need.team;
+   if(bought){
+    const seen=[...new Set(t.sources.filter(x=>(x.kind==='item'||x.kind==='pair')&&(!laneFocus||Number(enemies[x.enemy]?.lane)===ownLane)).map(x=>String(x.name).split(' · ').pop()))].slice(0,3);
+    basis.push(`${laneFocus?'Your lane':(teamBuyers.get(tag)||0)+' enemies'} bought into ${TAG_LABELS[tag].toLowerCase()}${seen.length?' ('+seen.join(', ')+')':''}`);
+   }
+   if(damage?.lead===tag&&t.score>=1.2)basis.push(`Damage panel at ${damage.clock}: ${Math.round(damage[tag]*100)}% ${tag==='bullet'?'weapon':'spirit'} damage`);
+   return basis;
+  };
+  const detourCap=phase.key==='laning'?LANING_SAVE_CAP:BUILD_FIRST.detourCost;
+  const blocked=new Set([...coreKeys,...owned]);
+  const candidates=[];
+  if(nextCore&&slots.free>0)for(const r of all){
+   if(candidates.length>=BUILD_FIRST.candidates)break;
+   if(blocked.has(norm(r.name))||r.effectiveCost>detourCap)continue;
+   const w=weightsOf(idMap.get(String(r.id)))||{};
+   const tag=r.tags.find(t=>Number(w[t])>=BUILD_FIRST.coverWeight&&!coverage[t]&&basisFor(t).length);
+   if(!tag)continue;
+   candidates.push(priced({...r,detour:{tag,label:TAG_LABELS[tag],basis:basisFor(tag),resume:nextCore.name,extraCost:0}}));
+  }
+  for(const c of candidates)c.detour.extraCost=extraCosts[c.name];
+  // A priority alert counts only with observed evidence for its damage type
+  // (the damage panel or enemy purchases) that you do not already answer.
+  let alertNote=null;
+  if(alert){
+   const covered=coverage[alert.tag]||[],basis=basisFor(alert.tag);
+   if(alert.source==='damage')basis.unshift(`Damage panel: ${alert.enemies.map(e=>e.hero).join(' and ')} dealt most of your damage`);
+   const justified=!!nextCore&&!covered.length&&basis.length>0;
+   alertNote={deaths:alert.deaths,since:alert.since,tag:alert.tag,label:alert.label,source:alert.source,justified,basis:[...new Set(basis)],covered,
+    reason:justified?`You died ${alert.deaths} times since ${alert.since}; ${basis[0]}`:covered.length?`You died ${alert.deaths} times, but your ${covered.join(', ')} already answers ${alert.label}`:`You died ${alert.deaths} times, but nothing observed points to a missing answer for ${alert.label}`};
+   if(nextCore)for(const r of alert.options)priced(r);
+  }
+  const missing=[];
+  if(!enemies.length)missing.push('No enemies entered: following your build');
+  else{
+   if(!listedItems)missing.push('No enemy purchases observed');
+   else if(enemies.some(e=>!cleanList(e.items).length))missing.push(`Purchases unknown for ${enemies.filter(e=>!cleanList(e.items).length).length} of ${enemies.length} enemies`);
+  }
+  // The damage panel only exists with the live feed; manual entry never has it.
+  if(!damage&&options.scoreboard&&typeof options.scoreboard==='object')missing.push('No recent damage panel reading');
+  if(!slots.free)missing.push('Your item slots are full: a detour would mean selling something');
+  return {context:full.context,core,optional,unknown:coreOnly.unknown.slice(),optionalUnknown:full.unknown.filter(n=>!coreOnly.unknown.includes(n)),completed:coreOnly.completed.slice(),
+   evidence:{enemies:enemies.length,purchases:listedItems,observedInventories,threats,damage,coverage,slots,recentDetours,candidates,alert:alertNote,extraCosts,missing}};
+ }
  const sort=options.sort||'smart';
  if(sort==='affordable')all.sort((a,b)=>Number(b.affordable)-Number(a.affordable)||b.score-a.score);
  else if(sort==='cost')all.sort((a,b)=>a.effectiveCost-b.effectiveCost||b.score-a.score);
  const filtered=all.filter(r=>(!options.category||options.category==='all'||r.category===options.category)&&(!options.affordableOnly||r.affordable));
- const quality=!catalog.complete?'Starter catalog':profiledHeroes===0?'Limited profiles':listedItems>0&&knownItems<listedItems?'Partial item recognition':listedItems===0?'Hero profiles only':'Hero + recognized item evidence';
+ const quality=!enemies.length?'No matchup data':!catalog.complete?'Starter catalog':profiledHeroes===0?'Limited profiles':listedItems>0&&knownItems<listedItems?'Partial item recognition':listedItems===0?'Hero profiles only':'Hero + recognized item evidence';
  // Fed enemies with their scoreboard line, most fed first.
  const fedList=enemies.map((e,i)=>({hero:String(e.hero),weight:fed[i],kills:Number(e.stats?.kills)||0,deaths:Number(e.stats?.deaths)||0,assists:Number(e.stats?.assists)||0,souls:Number(e.stats?.souls)||0})).filter(x=>x.weight>1).sort((a,b)=>b.weight-a.weight||b.souls-a.souls);
  return {results:filtered.slice(0,12),quickBuys,plan,alert,fed:fedList,threats:[...byTag].map(([name,value])=>({name,label:TAG_LABELS[name],value:Math.round(value.score*100)/100,level:threatLevel(value.score),coverage:value.enemies.size})).sort((a,b)=>b.value-a.value),
@@ -776,5 +926,5 @@ function recommend(state,catalog,options={}){
  buildData:{builds:buildCount,stats:Object.keys(statSource).length,matchup:useMatchup},
  unknown,newHeroes,knownItems,listedItems,count:enemies.length,totalCandidates:all.length,observedInventories,quality};
 }
-root.DeadlockEngine={createCatalog,resolveHeroName,NEW_HERO,isNewHero,heroGameId,resolveFeedItems,recommend,FED,ALERT,fedWeights,DEFAULT_INVESTMENT,OPENING_SPENT,OPENING_TIER,LANING_SAVE_CAP,OPENING_SAVE_CAP,HARD_COUNTER,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
+root.DeadlockEngine={BUILD_FIRST,detourExtraCost,createCatalog,resolveHeroName,NEW_HERO,isNewHero,heroGameId,resolveFeedItems,recommend,FED,ALERT,fedWeights,DEFAULT_INVESTMENT,OPENING_SPENT,OPENING_TIER,LANING_SAVE_CAP,OPENING_SAVE_CAP,HARD_COUNTER,matchPhase,clockMinutes,PHASE_TUNING,BUILD_GROUPS,LANE_WEIGHT,itemSuggestions,resolveItemName,threatLevel,cleanList,norm,TAG_LABELS,COUNTERS,ENEMY_GROUPS,MATCHUPS,OWN_AFFINITY,STRATEGY,ABILITY_CUES,PURCHASE_PATTERNS,TEAM_PHASE,ANTI_HEAL,RESIST};
 })(typeof window!=='undefined'?window:globalThis);
