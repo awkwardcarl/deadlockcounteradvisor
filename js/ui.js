@@ -208,13 +208,13 @@ function syncBuildEditor(){
 }
 function buildRow(name,i,list,count,status){
  const key=engine.norm(name),icon=itemIndex.icons.get(key),label=escapeHTML(name);
- const tag=status==='owned'?'<span class="buildTag owned">✓ Owned</span>':status!=='unknown'?'':'<span class="buildTag unknown" title="Not in the item list yet: it is kept and applies once a catalog sync knows it">Not in catalog</span>';
+ const tag=status==='owned'?'<span class="buildTag owned">✓ Owned</span>':status==='passed'?'<span class="buildTag owned" title="You own a later core item, so this one is behind you (sold or skipped)">Behind you</span>':status!=='unknown'?'':'<span class="buildTag unknown" title="Not in the item list yet: it is kept and applies once a catalog sync knows it">Not in catalog</span>';
  const move=list==='core'?[
   `<button type="button" class="buildMove" data-list="core" data-index="${i}" data-dir="-1" aria-label="Move ${label} earlier"${i===0?' disabled':''}>↑</button>`,
   `<button type="button" class="buildMove" data-list="core" data-index="${i}" data-dir="1" aria-label="Move ${label} later"${i===count-1?' disabled':''}>↓</button>`
  ].join(''):'';
  return [
-  `<li class="buildRow${status==='owned'?' isOwned':''}">`,
+  `<li class="buildRow${status==='owned'||status==='passed'?' isOwned':''}">`,
   list==='core'?`<span class="buildNum" aria-hidden="true">${i+1}</span>`:'',
   `<span class="buildArt">${icon?`<img src="${escapeHTML(icon)}" alt="">`:''}</span>`,
   `<span class="buildName">${label}${tag}</span>`,
@@ -230,9 +230,9 @@ function renderBuildEditor(){
  const b=buildContext||{playstyle:'balanced',core:[],optional:[]};
  const hero=state.hero||'your hero';
  // Owned (directly or as a component of an upgrade you own), or not a shop item.
- let owned=new Set(),unknown=new Set();
- try{if(buildContext){const r=BUILD.resolve(buildContext,catalog,engine.cleanList(state.owned),buildHero);owned=new Set((r.completed||[]).map(engine.norm));unknown=new Set((r.unknown||[]).map(engine.norm));}}catch(_){}
- const status=name=>owned.has(engine.norm(name))?'owned':unknown.has(engine.norm(name))?'unknown':'';
+ let owned=new Set(),unknown=new Set(),passed=new Set();
+ try{if(buildContext){const r=BUILD.resolve(buildContext,catalog,engine.cleanList(state.owned),buildHero);owned=new Set((r.completed||[]).map(engine.norm));passed=new Set((r.passed||[]).map(engine.norm));unknown=new Set((r.unknown||[]).map(engine.norm));}}catch(_){}
+ const status=name=>passed.has(engine.norm(name))?'passed':owned.has(engine.norm(name))?'owned':unknown.has(engine.norm(name))?'unknown':'';
  $('buildPlaystyle').value=PLAYSTYLE_LABELS[b.playstyle]?b.playstyle:'balanced';
  $('buildPlaystyle').disabled=!buildHero;
  $('buildCoreList').innerHTML=b.core.length?b.core.map((n,i)=>buildRow(n,i,'core',b.core.length,status(n))).join(''):`<li class="buildEmpty">No core items for ${escapeHTML(hero)} yet.</li>`;
@@ -290,7 +290,56 @@ function setupBuildEditor(){
   const again=panel.querySelector(`.buildMove[data-list="${list}"][data-index="${j}"][data-dir="${btn.dataset.dir}"]:not([disabled])`)||panel.querySelector(`.buildMove[data-list="${list}"][data-index="${j}"]:not([disabled])`);
   again?.focus();
  });
- $('buildClear').addEventListener('click',()=>{if(window.confirm(`Clear your saved build for ${buildHero}?`))saveBuild({playstyle:'balanced',core:[],optional:[]});});
+ $('buildClear').addEventListener('click',()=>{if(window.confirm(`Clear your saved build for ${buildHero}?`))saveBuild({playstyle:'balanced',core:[],optional:[],source:null});});
+ // Import (desktop app only: the main process fetches the build by its ID).
+ const canImport=!!window.desktopAPI?.importBuild&&typeof BUILD.fromCommunity==='function';
+ $('buildImport').hidden=!canImport;
+ if(!canImport)return;
+ const go=()=>{
+  const id=BUILD.parseBuildCode($('buildImportCode').value);
+  if(!id){$('buildPlanHelp').textContent='Paste a build ID (the number shown in the in-game build browser) or a link that contains it.';return;}
+  importBuild(id).then(ok=>{if(ok)$('buildImportCode').value='';});
+ };
+ $('buildImportGo').addEventListener('click',go);
+ $('buildImportCode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go();}});
+ $('buildPopularGo').addEventListener('click',()=>{const id=Number($('buildPopular').value);if(id)importBuild(id);});
+}
+// Replaces this hero's build with an in-game community build. Its sections
+// become core (in order) or optional; the player checks and edits the result.
+let importing=false;
+async function importBuild(id){
+ const help=$('buildPlanHelp');
+ if(importing)return false;
+ if(!buildHero){help.textContent='Choose your hero first, then import a build for them.';return false;}
+ importing=true;$('buildImportGo').disabled=$('buildPopularGo').disabled=true;
+ help.textContent=`Fetching build ${id}…`;
+ try{
+  const r=await window.desktopAPI.importBuild(id);
+  if(!r||r.error){help.textContent=`Could not import build ${id}: ${r?.error||'no answer from the build service'}.`;return false;}
+  const mine=heroIdOf(buildHero);
+  if(mine&&r.heroId!==mine){
+   const theirs=catalog.heroes.find(h=>h.id===r.heroId)?.name;
+   help.textContent=`Build ${id} is for ${theirs||'another hero'}, not ${buildHero}. Pick that hero first to import it.`;return false;
+  }
+  const conv=BUILD.fromCommunity(r,catalog,buildHero,{playstyle:buildContext?.playstyle});
+  if(!conv||!conv.context.core.length&&!conv.context.optional.length){help.textContent=`Build ${id} has no items this app recognizes.`;return false;}
+  const has=buildContext&&(buildContext.core.length||buildContext.optional.length);
+  if(has&&!window.confirm(`Replace your ${buildHero} build with "${conv.context.name}"?`)){help.textContent=BUILD_HELP;return false;}
+  saveBuild(conv.context);
+  const c=conv.context;
+  help.textContent=`Imported "${c.name}" (build ${id}): ${c.core.length} core, ${c.optional.length} optional.${conv.moved?` ${conv.moved} later items moved to optional (a build keeps ${BUILD.MAX_CORE} core).`:''}${conv.dropped?` ${conv.dropped} more left out.`:''} Check the order: core vs optional is a best guess from the build's sections.`;
+  $('buildPlan').open=true;
+  return true;
+ }catch(_){help.textContent=`Could not import build ${id} right now.`;return false;}
+ finally{importing=false;$('buildImportGo').disabled=$('buildPopularGo').disabled=false;}
+}
+// Popular builds for your hero, from the build data the app already fetches.
+function renderBuildPopular(list,heroId){
+ const row=$('buildPopularRow');if(!row)return;
+ const mine=buildHero?heroIdOf(buildHero):null;
+ const picks=Array.isArray(list)&&mine&&heroId===mine?list:[];
+ row.hidden=!picks.length;
+ $('buildPopular').innerHTML=`<option value="">Popular ${escapeHTML(buildHero||'')} builds…</option>`+picks.map(b=>`<option value="${Number(b.id)}">${escapeHTML(b.name)}</option>`).join('');
 }
 // Glance mode: a summary bar, the next buy and the next few buys, in large type.
 // Glance view keeps the enemy team's purchases in sight: portrait, name and
@@ -529,6 +578,7 @@ function requestBuildData(){
  buildDataTimer=setTimeout(async()=>{
   const api=window.desktopAPI,heroId=heroIdOf(state.hero);
   if(!api?.getBuildData||!buildDataEnabled()||!heroId){
+   renderBuildPopular(null,null);
    if(buildData){buildData=null;buildDataKey='';renderAdvice();}
    showBuildDataStatus(api?.getBuildData&&!buildDataEnabled()?'Community builds and match stats are off (Settings → Privacy).':heroId||!api?.getBuildData?'':'Build data needs a synced catalog and a hero.');
    return;
@@ -542,6 +592,7 @@ function requestBuildData(){
    const data=await api.getBuildData(heroId,laneIds);
    if(buildDataKey!==key)return;
    buildData=data&&(data.builds||data.stats)?data:null;
+   renderBuildPopular(buildData?.builds?.list,buildData?.heroId);
    showBuildDataStatus(buildData?`Build data for ${state.hero}: ${buildData.builds?.count||0} popular builds and match stats (all ranks, last 30 days)${buildData.matchup?', plus your lane matchup':''}${buildData.stale?'. Offline: showing saved data':''}.`:data?.error?`Build data unavailable: ${data.error}.`:'');
    renderAdvice();
   }catch(_){if(buildDataKey===key){buildDataKey='';showBuildDataStatus('Build data unavailable right now.');}}

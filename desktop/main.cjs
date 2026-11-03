@@ -268,6 +268,11 @@ app.whenReady().then(() => {
     const ids = Array.isArray(laneIds) ? laneIds.slice(0, 6).map(Number).filter(Number.isInteger) : [];
     return buildData.get(Number(heroId), ids);
   });
+  // Import one build by its in-game build ID: the only thing sent is that ID.
+  ipcMain.handle('builddata:import', (event, buildId) => {
+    if(!trusted(event))throw new Error('Unauthorized caller');
+    return buildData.importBuild(Number(buildId));
+  });
   // The catalog carries fallback hero names from the match service's hero list.
   // Loading never waits on the network: the launch sync (game-data.cjs) also
   // refreshes a hero list saved before investment tables were kept.

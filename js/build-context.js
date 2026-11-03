@@ -4,11 +4,14 @@
  * situational items (never an automatic purchase queue). Saved locally in its
  * own storage key; no match state lives here. Pure and DOM-free: the caller
  * passes the storage object (localStorage or a stand-in) and the catalog.
- * Schema: {version:1, hero, name, playstyle, core:string[], optional:string[]}. */
+ * Schema: {version:1, hero, name, playstyle, core:string[], optional:string[],
+ * source:{buildId,version}|null} (source: the in-game build it was imported from). */
 const VERSION=1;
 const STORAGE_KEY='deadlock-counter-advisor-build-context-v1';
 const PLAYSTYLES=Object.freeze(['balanced','weapon','spirit','support']);
-const MAX_CORE=12,MAX_OPTIONAL=12,MAX_ITEM_LEN=60,MAX_NAME_LEN=60,MAX_HERO_LEN=40,MAX_HEROES=100;
+// Community builds run 25-40 items (early items get sold later), so the core
+// path holds a whole build.
+const MAX_CORE=32,MAX_OPTIONAL=24,MAX_ITEM_LEN=60,MAX_NAME_LEN=60,MAX_HERO_LEN=40,MAX_HEROES=100;
 // Same normalization as the engine: case, spacing and punctuation never matter.
 const norm=x=>String(x||'').normalize('NFKC').toLocaleLowerCase('en-US').replace(/[^\p{L}\p{N}]+/gu,'');
 const text=(x,max)=>typeof x==='string'?x.replace(/\s+/g,' ').trim().slice(0,max).trim():'';
@@ -25,7 +28,8 @@ function itemList(x,max,skip=new Set()){
   }
   return out;
 }
-const empty=hero=>({version:VERSION,hero,name:'',playstyle:'balanced',core:[],optional:[]});
+const empty=hero=>({version:VERSION,hero,name:'',playstyle:'balanced',core:[],optional:[],source:null});
+const buildIdOk=id=>Number.isInteger(id)&&id>0&&id<1e10;
 // A sanitized context for `hero`. A context saved for a different hero is not
 // applied: the result is an empty plan for the requested hero. Without a
 // requested hero the context keeps its own.
@@ -41,6 +45,8 @@ function normalize(raw,hero){
   ctx.core=itemList(src.core,MAX_CORE);
   // An item in the core path is not also optional.
   ctx.optional=itemList(src.optional,MAX_OPTIONAL,new Set(ctx.core.map(norm)));
+  const id=Number(src.source?.buildId);
+  if(buildIdOk(id))ctx.source={buildId:id,version:Math.max(0,Math.floor(Number(src.source.version)||0))};
   return ctx;
 }
 // The stored map {version, heroes:{normHero: context}}; anything unreadable is empty.
@@ -118,8 +124,59 @@ function resolve(raw,catalog,owned,hero){
     }
     return out;
   };
-  const core=pick(context.core),optional=pick(context.optional);
-  return {context,core,optional,unknown,completed};
+  // Your place in the build is the furthest core item you own. Earlier core
+  // items you don't own are behind you (sold, like early items, or skipped):
+  // they count as done and are never suggested again.
+  const coreLeft=pick(context.core),passed=[];
+  let furthest=-1;
+  context.core.forEach((v,i)=>{const item=find(v);if(item?have.has(item):haveText.has(norm(v)))furthest=i;});
+  const core=coreLeft.filter(item=>{
+    const at=context.core.findIndex(v=>find(v)===item);
+    if(at>=0&&at<furthest){passed.push(item.name);completed.push(item.name);return false;}
+    return true;
+  });
+  const optional=pick(context.optional);
+  return {context,core,optional,unknown,completed,passed};
 }
-root.DeadlockBuildContext={VERSION,STORAGE_KEY,PLAYSTYLES,MAX_CORE,MAX_OPTIONAL,normalize,load,save,resolve,norm};
+// A build ID from what the player pasted: the number itself, or a link or
+// text with one ("build 12345", "...?build_id=12345", ".../builds/12345").
+// Ambiguous text (several numbers, none labelled as the build) gives null.
+function parseBuildCode(input){
+  const s=typeof input==='string'?input.trim().slice(0,300):Number.isInteger(input)?String(input):'';
+  if(!s)return null;
+  const pick=v=>{const n=Number(v);return buildIdOk(n)?n:null;};
+  if(/^#?\d{1,10}$/.test(s))return pick(s.replace('#',''));
+  const labelled=s.match(/build(?:s|_?id)?\s*(?:[#:=/-]\s*|\s+)(\d{1,10})(?!\d)/i);
+  if(labelled)return pick(labelled[1]);
+  const nums=s.match(/\d{3,10}/g)||[];
+  return nums.length===1?pick(nums[0]):null;
+}
+// Categories whose name marks them as situational rather than the path.
+const SITUATIONAL=/situational|optional|flex|counter|altern|options?\b|swap|replace|if needed|depending|vs\.?\s/i;
+// A saved build from an in-game build (the main process's compactBuild:
+// {buildId,version,heroId,name,categories:[{name,optional,items:[class ids]}]}).
+// Path categories become core items in order; categories the author marked
+// optional, or named situational, become optional. Core beyond MAX_CORE moves
+// to the front of optional; beyond that is dropped and counted. Items are
+// stored by catalog name (IDs the catalog doesn't know are kept as IDs).
+function fromCommunity(build,catalog,hero,keep={}){
+  if(!build||typeof build!=='object'||!Array.isArray(build.categories))return null;
+  const byId=new Map((catalog?.items||[]).map(i=>[String(i.id),i.name]));
+  const nameOf=id=>byId.get(String(id))||String(id);
+  const core=[],optional=[],seen=new Set();
+  for(const cat of build.categories){
+    const side=cat?.optional===true||SITUATIONAL.test(String(cat?.name||''))?optional:core;
+    for(const id of Array.isArray(cat?.items)?cat.items:[]){
+      const name=nameOf(id),key=norm(name);
+      if(!key||seen.has(key))continue;
+      seen.add(key);side.push(name);
+    }
+  }
+  const spill=core.splice(MAX_CORE);
+  const extra=[...spill,...optional];
+  const ctx=normalize({hero,name:build.name,playstyle:keep.playstyle,core,optional:extra.slice(0,MAX_OPTIONAL),
+    source:{buildId:build.buildId,version:build.version}},hero);
+  return {context:ctx,dropped:Math.max(0,extra.length-MAX_OPTIONAL),moved:spill.length};
+}
+root.DeadlockBuildContext={VERSION,STORAGE_KEY,PLAYSTYLES,MAX_CORE,MAX_OPTIONAL,normalize,load,save,resolve,norm,parseBuildCode,fromCommunity};
 })(typeof window!=='undefined'?window:globalThis);
