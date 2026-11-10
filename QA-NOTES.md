@@ -23,7 +23,7 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
   - Icons: upload the tome icon and the gray icon. Both are in the design kit (`icon/png/`, `icon/icon-gray.ico`); check Overwolf's current icon sizes.
   - Screenshots: use the set below (or shots from a real match, if you prefer).
   - Description: say "Not affiliated with or endorsed by Valve."
-- [ ] **Decide on game art.** Hero portraits and item icons load from deadlock.io at runtime. The design kit says to check Valve's content rules before publishing.
+- [ ] **Decide on game art.** Hero portraits and item icons load from deadlock-api's image server at runtime. The design kit says to check Valve's content rules before publishing.
 - [ ] **Screenshots** for the submission (all 1920×1080) are in `dist/qa-screenshots/` (git-ignored; see **Screenshots** below). They are the app's own page with sample match data, rendered by the screenshot script, so the ad box shows our message instead of an ad.
 - [ ] **Overwolf's submission requirements:**
   - *Tested and follows the docs:* the checklist above.
@@ -79,8 +79,7 @@ Text for the first QA submission in the Overwolf Developer Console. The part und
 
 - **Game events.** Overwolf's Deadlock events, features `game_info` and `match_info` only: the roster (heroes, teams, lanes, souls, kills, deaths, assists), item purchases, match ID, clock and phase, the `death` event, and `incoming_damage` (only while the player has the in-game damage panel open). Player names are used only to match items to players; they are never saved or sent. Scoreboard numbers are not saved.
 - **Network calls**, all for public data and never with account IDs:
-  - [deadlock.io](https://deadlock.io): the item and hero catalog, plus artwork.
-  - [deadlock-api.com](https://deadlock-api.com): the hero and item list, community builds and item statistics (requested by hero ID), the match record for a debrief (by the match ID you enter), and hero artwork from its image server for heroes deadlock.io doesn't list yet.
+  - [deadlock-api.com](https://deadlock-api.com): the item and hero catalog and its artwork (deadlock.io, the source until November 2026, now redirects to SteamDB), community builds and item statistics (requested by hero ID), the match record for a debrief (by the match ID you enter)
 - **Ads.** One 400×300 Overwolf ad box (`owadview`) at a time: at the bottom of the left column (cid `dca_400x300_main_lb`; a 400×60 banner, cid `dca_400x60_main_lb`, on windows under 900 px tall), or in glance view under the enemy rows when the window is tall enough (cid `dca_400x300_glance`). Overwolf ads already serve in our testing. Behind the ad view the box shows our tome and "Counter Advisor is free", which a full-size ad covers. Nothing we hold is passed to Overwolf or advertisers.
 - **Nothing else.** No accounts and no analytics of our own.
 

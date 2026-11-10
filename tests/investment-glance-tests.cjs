@@ -39,7 +39,7 @@ const snapshot=require('./fixtures/catalog-snapshot.json');
 test(addFallbackHeroNames(snapshot,assets).investment===assets.investment&&addFallbackHeroNames(snapshot,none).investment===null&&addFallbackHeroNames(snapshot,null).investment===null,'the catalog carries the tables when the hero list has them');
 const main=read('desktop/main.cjs');
 const {isStale}=require('../desktop/game-data.cjs');
-const fresh={syncedAt:new Date().toISOString()},{investment:_,...oldList}={...assets,fetchedAt:Date.now()};
+const fresh={syncedAt:new Date().toISOString(),source:snapshot.source},{investment:_,...oldList}={...assets,fetchedAt:Date.now()};
 test(isStale(fresh,oldList)&&!isStale(fresh,{...assets,fetchedAt:Date.now()})&&main.includes('setTimeout(()=>void gameData.start(),3000);'),'a hero list saved before this version is refreshed by the launch sync, in the background');
 test(/catalog:get[^]{0,300}return gameData\.current\(\);/.test(main)&&!/catalog:get[^]{0,300}await/.test(main),'catalog loading never waits on the network');
 

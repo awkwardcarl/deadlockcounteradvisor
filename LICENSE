@@ -21,7 +21,6 @@ Third-party material keeps its own license and is not covered by this notice:
 - npm packages listed in package.json: their own licenses.
 - Deadlock and its hero and item names and artwork belong to Valve
   Corporation. This app is not affiliated with or endorsed by Valve.
-- Game data from deadlock.io and deadlock-api.com: subject to those services'
-  terms.
+- Game data from deadlock-api.com: subject to that service's terms.
 
 Permission requests: https://github.com/awkwardcarl/deadlockcounteradvisor/issues

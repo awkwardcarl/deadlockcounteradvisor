@@ -1,20 +1,22 @@
 'use strict';
 /** Public catalog sync: on Sync, and in the background when the cache is a day
- * old or a live match shows something it lacks (desktop/game-data.cjs). Never
- * contacts Deadlock, Steam, or a local process. */
+ * old or a live match shows something it lacks (desktop/game-data.cjs). The
+ * catalog comes from deadlock-api's public asset lists (deadlock.io, the old
+ * source, now redirects to SteamDB). Never contacts Deadlock, Steam, or a
+ * local process. */
 const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
-const {compactSnapshot} = require('../js/snapshot.cjs');
+const {compactSnapshot,SOURCE} = require('../js/snapshot.cjs');
 const {heroArtURL} = require('./match-normalizer.cjs');
-const ORIGIN = 'https://deadlock.io';
-const ROUTES = Object.freeze(['/api/v1/items.json', '/api/v1/heroes.json']);
+const ORIGIN = 'https://api.deadlock-api.com';
+const ROUTES = Object.freeze(['/v1/assets/items', '/v1/assets/heroes']);
 function getJSON(route) {
   if (!ROUTES.includes(route)) return Promise.reject(new Error('Endpoint not allowlisted'));
   return new Promise((resolve,reject) => {
     let completed = false;
     const finish = (err, result) => { if(completed) return;completed=true;err?reject(err):resolve(result); };
-    const req=https.get(ORIGIN+route,{timeout:24000,headers:{'Accept':'application/json','User-Agent':'DeadlockCounterAdvisor/0.4 (catalog sync)'}},res=>{
+    const req=https.get(ORIGIN+route,{timeout:30000,headers:{'Accept':'application/json','User-Agent':'DeadlockCounterAdvisor/0.4 (catalog sync)'}},res=>{
       if (res.statusCode !== 200) { res.resume();return finish(new Error(`Catalog source returned HTTP ${res.statusCode}`)); }
       if (!String(res.headers['content-type']||'').includes('json')) {res.resume();return finish(new Error('Unexpected catalog response type'));}
       let length=0;const chunks=[];
@@ -27,10 +29,17 @@ function getJSON(route) {
   });
 }
 function catalogFile(userData){return path.join(userData,'item-catalog-v0.4.json');}
+// A copy saved from deadlock.io still loads (offline it beats nothing), but its
+// icon paths point at the old site, so game-data.cjs treats it as stale.
+const isCurrentSource=catalog=>catalog?.source===SOURCE;
 function readCache(userData){try {const v=JSON.parse(fs.readFileSync(catalogFile(userData),'utf8'));return v?.version===1 && Array.isArray(v.items) && Array.isArray(v.heroes)?v:null;}catch(_){return null;}}
 async function refresh(userData,fetchJSON=getJSON){
   const [items, heroes]=await Promise.all([fetchJSON(ROUTES[0]),fetchJSON(ROUTES[1])]);
   const snapshot=compactSnapshot(items,heroes);
+  // The lists carry no publish date: generatedAt is when this data was first
+  // seen, kept while the content (its fingerprint) stays the same.
+  const saved=readCache(userData);
+  if(saved&&saved.build===snapshot.build&&isCurrentSource(saved))snapshot.generatedAt=saved.generatedAt;
   const filename=catalogFile(userData),tmp=filename+'.tmp';
   fs.writeFileSync(tmp,JSON.stringify(snapshot),{encoding:'utf8',mode:0o600});
   fs.renameSync(tmp,filename);
@@ -51,4 +60,4 @@ function addFallbackHeroNames(snapshot,assets){
   const heroArt=Object.fromEntries(Object.entries(art).map(([id,url])=>[names[id],heroArtURL(url)]).filter(([name,url])=>typeof name==='string'&&name.trim()&&name.length<=40&&url).map(([name,url])=>[name.trim(),url]));
   return {...snapshot,extraHeroNames,investment,heroArt};
 }
-module.exports={getJSON,refresh,readCache,addFallbackHeroNames,ROUTES};
+module.exports={getJSON,refresh,readCache,addFallbackHeroNames,isCurrentSource,ROUTES};

@@ -1,9 +1,9 @@
 'use strict';
-/** Keeps the item/hero catalog (deadlock.io) and the hero list (deadlock-api's
- * asset lists) current without a click, in the main process: one background
+/** Keeps the item/hero catalog and the hero list (both built from deadlock-api's
+ * asset lists, fetched once per sync) current without a click, in the main process: one background
  * sync at launch when either cache is more than a day old, and one when a live
  * match shows a hero ID or shop item neither cache knows (a game update). Only
- * the two services' fixed asset routes are used, never a match endpoint, and
+ * the two fixed asset routes are used, never a match endpoint, and
  * nothing from the match (player names, account IDs) is sent or stored. A
  * failed sync (offline, say) keeps the saved copies. Settings → Privacy can
  * switch the automatic part off; Sync (and the debrief) still work. */
@@ -19,10 +19,11 @@ const RETRY_MS=60*60*1000;        // content a completed sync couldn't resolve w
 const settingsFile=userData=>path.join(userData,'game-data-settings.json');
 function readAutoSync(userData){try{return JSON.parse(fs.readFileSync(settingsFile(userData),'utf8'))?.autoSync!==false;}catch(_){return true;}}
 function writeAutoSync(userData,on){const file=settingsFile(userData),tmp=file+'.tmp';fs.writeFileSync(tmp,JSON.stringify({version:1,autoSync:on===true}),{encoding:'utf8',mode:0o600});fs.renameSync(tmp,file);}
-// Missing, older than a day, or a hero list saved before investment tables were kept.
+// Missing, older than a day, saved from the old deadlock.io source, or a hero
+// list saved before investment tables were kept.
 function isStale(catalog,assets,now=Date.now()){
   const synced=Date.parse(catalog?.syncedAt||'');
-  return !catalog||!(now-synced<=MAX_AGE_MS)||!assets||!(now-Number(assets.fetchedAt)<=MAX_AGE_MS)||!('investment' in assets)||!('heroArt' in assets);
+  return !catalog||!dataService.isCurrentSource(catalog)||!(now-synced<=MAX_AGE_MS)||!assets||!(now-Number(assets.fetchedAt)<=MAX_AGE_MS)||!('investment' in assets)||!('heroArt' in assets);
 }
 function knownContent(catalog,assets){
   return {heroes:new Set([...(catalog?.heroes||[]).map(h=>String(h.id)),...Object.keys(assets?.heroes||{})]),items:new Set((catalog?.items||[]).map(i=>i.id))};
@@ -48,7 +49,9 @@ function createGameData({userData,onCatalog=()=>{},log=()=>{},now=Date.now,catal
     lastRun=now();
     running=(async()=>{
       let before='';try{before=contentOf(current());}catch(_){}
-      const [items,heroes]=await Promise.allSettled([catalog.refresh(userData),assets.refreshAssets(userData)]);
+      // Both caches are built from the same two lists: each is fetched once.
+      const fetched=new Map(),once=catalog.getJSON?route=>{if(!fetched.has(route))fetched.set(route,catalog.getJSON(route));return fetched.get(route);}:undefined;
+      const [items,heroes]=await Promise.allSettled([catalog.refresh(userData,once),assets.refreshAssets(userData,once)]);
       const error=items.status==='rejected'?items.reason:heroes.status==='rejected'?heroes.reason:null;
       let snapshot=null;
       // Pushed to the window only when what it shows changed.

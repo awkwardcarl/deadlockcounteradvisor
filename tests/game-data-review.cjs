@@ -1,9 +1,7 @@
 'use strict';
 // Daily game-data review (.github/workflows/game-data-review.yml). Fetches the
-// deadlock.io hero and item lists the app syncs (plus deadlock-api's hero
-// list, which names released heroes deadlock.io doesn't list yet: it can lag a
-// patch by days; no match endpoints), diffs them against the
-// curated tables (hero profiles in js/catalog.js; COUNTERS, MATCHUPS,
+// deadlock-api item and hero lists the app syncs (asset routes only, no match
+// endpoints), diffs them against the curated tables (hero profiles in js/catalog.js; COUNTERS, MATCHUPS,
 // ABILITY_CUES and friends in js/engine.js) and the reviewed snapshot
 // (tests/fixtures/catalog-snapshot.json), and opens or updates one issue,
 // "Game data needs review". With no differences it does nothing.
@@ -12,7 +10,6 @@ const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const {getJSON,ROUTES}=require('../desktop/data-service.cjs');
-const matchService=require('../desktop/match-service.cjs');
 const {compactSnapshot}=require('../js/snapshot.cjs');
 const TITLE='Game data needs review';
 const root=path.resolve(__dirname,'..');
@@ -22,22 +19,22 @@ function loadCurated(){
   for(const file of ['js/catalog.js','js/engine.js'])vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),ctx);
   return {base:ctx.DeadlockCatalog,E:ctx.DeadlockEngine};
 }
-// Playable, enabled heroes from deadlock-api's hero list (it also lists
-// unreleased and internal ones).
+// Playable, enabled heroes from the hero list, including ones still in
+// development (the catalog keeps released heroes only; it also lists internal ones).
 async function listedHeroes(fetchJSON){
   const list=await fetchJSON('/v1/assets/heroes');
   return (Array.isArray(list)?list:[]).filter(h=>h&&h.player_selectable===true&&h.disabled!==true&&Number.isInteger(h.id)&&typeof h.name==='string'&&h.name.trim()).map(h=>({id:h.id,name:h.name.trim().slice(0,60)}));
 }
 // live and reviewed are compacted snapshots (js/snapshot.cjs); listed is
-// deadlock-api's playable heroes.
+// the hero list's playable heroes.
 function reviewGameData(live,reviewed,{base,E},listed=[]){
   const norm=E.norm,ids=new Set(live.items.map(i=>i.id)),names=new Set(live.items.map(i=>norm(i.name)));
   const roster=new Set(live.heroes.map(h=>h.name)),kits=new Map(live.heroes.map(h=>[h.name,h.abilities||[]]));
   const has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
   // Released heroes with no reviewed profile (archetype tags).
   const onSite=new Set(live.heroes.map(h=>norm(h.name))),siteIds=new Set(live.heroes.map(h=>h.id));
-  const extra=listed.filter(h=>!onSite.has(norm(h.name))&&!siteIds.has(h.id)).map(h=>({...h,source:'deadlock-api'}));
-  const heroes=[...live.heroes,...extra].filter(h=>!(base.heroes[h.name]||[]).length).map(h=>({name:h.name,id:h.id,why:has(base.heroes,h.name)?'no archetype tags':'not in the hero profiles',source:h.source||'deadlock.io'}));
+  const extra=listed.filter(h=>!onSite.has(norm(h.name))&&!siteIds.has(h.id)).map(h=>({...h,source:'in development'}));
+  const heroes=[...live.heroes,...extra].filter(h=>!(base.heroes[h.name]||[]).length).map(h=>({name:h.name,id:h.id,why:has(base.heroes,h.name)?'no archetype tags':'not in the hero profiles',source:h.source||'released'}));
   const released=new Set([...roster,...extra.map(h=>h.name)]);
   // Curated references: item IDs and shop names.
   const idTables={COUNTERS:Object.keys(E.COUNTERS),OWN_AFFINITY:Object.keys(E.OWN_AFFINITY),'MATCHUPS items':[...new Set(Object.values(E.MATCHUPS).flatMap(m=>Object.keys(m.items)))],
@@ -66,15 +63,15 @@ function issueBody(diff,live,reviewed){
   const section=(title,list)=>list.length?[`### ${title} (${list.length})`,...list.map(x=>'- '+x),'']:[];
   return [
     '<!-- game-data-review -->',
-    `The daily check found game data the curated tables don't cover yet. Live: deadlock.io build ${md(live.build||'unknown')} (generated ${md(String(live.generatedAt).slice(0,10))}). Reviewed snapshot: build ${md(reviewed.build||'unknown')}.`,
+    `The daily check found game data the curated tables don't cover yet. Live: deadlock-api (${md(live.build||'unknown')}). Reviewed snapshot: build ${md(reviewed.build||'unknown')}.`,
     '',
     'The app already picks these up on its own (names, prices and icons, with counters based on what players buy). Reviewed profiles and rules ship with a release.',
     '',
-    ...section('Heroes without a reviewed profile',diff.heroes.map(h=>`**${md(h.name)}** (ID ${h.id}): ${h.why} in \`js/catalog.js\`${h.source==='deadlock-api'?' (not on deadlock.io yet; named by deadlock-api)':''}`)),
+    ...section('Heroes without a reviewed profile',diff.heroes.map(h=>`**${md(h.name)}** (ID ${h.id}): ${h.why} in \`js/catalog.js\`${h.source==='in development'?' (in development; not released yet)':''}`)),
     ...section('Shop items new since the reviewed snapshot',diff.items.map(i=>`**${md(i.name)}** (\`${i.id}\`): ${i.category}, tier ${i.tier}${i.group?`, group \`${i.group}\``:''}`)),
     ...section('Curated entries that no longer match the game',diff.stale),
     ...section('Shop groups without a threat mapping',diff.groups.map(g=>`\`${g.group}\` (${g.count} ${g.count===1?'item':'items'}): add it to \`ENEMY_GROUPS\` in \`js/engine.js\``)),
-    'When done: update the curated tables, run `npm run fixture:update` so the snapshot marks this build as reviewed, then `npm test`. This issue is updated while differences remain; close it once the release ships.'
+    'When done: update the curated tables (a new item\'s shop group goes in `js/shop-groups.json`), run `npm run fixture:update` so the snapshot marks this build as reviewed, then `npm test`. This issue is updated while differences remain; close it once the release ships.'
   ].join('\n');
 }
 // One open issue with this title: opened, updated when its text changes, or left alone.
@@ -93,11 +90,10 @@ async function upsertIssue(body,{token,repo,fetchImpl=globalThis.fetch,api='http
   const made=await call('POST',`/repos/${repo}/issues`,{title:TITLE,body});
   return {action:'opened',number:made.number};
 }
-async function main({argv=process.argv.slice(2),env=process.env,fetchJSON=getJSON,fetchAssets=matchService.getJSON,fetchImpl=globalThis.fetch,log=console.log}={}){
+async function main({argv=process.argv.slice(2),env=process.env,fetchJSON=getJSON,fetchImpl=globalThis.fetch,log=console.log}={}){
   const [items,heroes]=await Promise.all(ROUTES.map(route=>fetchJSON(route)));
   const live=compactSnapshot(items,heroes);
-  let listed=[];
-  try{listed=await listedHeroes(fetchAssets);}catch(e){log(`deadlock-api hero list unavailable (${e.message}); checking deadlock.io only.`);}
+  const listed=await listedHeroes(async()=>heroes);
   const reviewed=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures','catalog-snapshot.json'),'utf8'));
   const diff=reviewGameData(live,reviewed,loadCurated(),listed);
   if(!hasDiff(diff)){log(`Game data (build ${live.build||'unknown'}) matches the curated tables; nothing to do.`);return {action:'none'};}

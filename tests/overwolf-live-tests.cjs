@@ -229,7 +229,7 @@ process.on('exit',code=>{if(!finished&&code===0){console.error('Tests stopped be
   let intercept;const fakeSession={setPermissionRequestHandler(){},webRequest:{onBeforeRequest:cb=>{intercept=cb;}}};
   security.registerOfflineRestrictions(fakeSession,details=>details.webContentsId===7);
   const decide=(url,id,type='xhr')=>{let r;intercept({url,webContentsId:id,resourceType:type},x=>{r=x;});return r.cancel;};
-  test(decide('https://example.org/x',7)===true&&decide('https://deadlock.io/assets/game/panorama/images/heroes/x.png',7,'image')===false,'app window: network blocked except allowlisted images');
+  test(decide('https://example.org/x',7)===true&&decide('https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/x.png',7,'image')===false,'app window: network blocked except allowlisted images');
   test(decide('https://content.overwolf.com/monsdk/electron/latest/cmp/x.html',3,'mainFrame')===false&&decide('https://api.overwolf.com/verify',undefined)===false,'Overwolf runtime pages and main-process requests are not blocked');
   security.registerOfflineRestrictions(fakeSession);
   test(decide('https://content.overwolf.com/x',3)===true,'without a window check, everything stays locked (previous behavior)');
