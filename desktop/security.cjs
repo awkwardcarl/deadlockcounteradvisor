@@ -2,14 +2,12 @@
 // Electron onBeforeRequest MUST invoke callback. The page itself makes no network
 // requests: catalog sync, the debrief and build data are fetched by the main
 // process from fixed, allow-listed public routes.
-// Image paths are restricted to the providers' game artwork directories:
-// deadlock.io's panorama images, and deadlock-api's hero card art (for heroes
-// deadlock.io doesn't list yet).
+// Images are restricted to deadlock-api's game artwork folder (item icons and
+// hero portraits). deadlock.io, the old source, now redirects to SteamDB.
 function permittedImageURL(url){
  try{
   const u=new URL(url);if(u.search||u.hash)return false;
-  if(u.origin==='https://deadlock.io')return /^\/assets\/game\/panorama\/images\/[\w\/.\-]+\.png$/.test(u.pathname);
-  if(u.origin==='https://assets-bucket.deadlock-api.com')return /^\/assets-api-res\/images\/heroes\/[\w.\-]+\.png$/.test(u.pathname);
+  if(u.origin==='https://assets-bucket.deadlock-api.com')return /^\/assets-api-res\/images\/[\w\/.\-]+\.png$/.test(u.pathname)&&!u.pathname.includes('..');
   return false;
  }catch(_){return false;}
 }

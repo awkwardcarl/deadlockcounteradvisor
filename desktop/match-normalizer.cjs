@@ -34,8 +34,8 @@ function compactInvestment(raw){
   }
   return Object.keys(out).length===3?out:null;
 }
-// Hero card art from deadlock-api's image server, for heroes deadlock.io's
-// catalog doesn't list yet (it lags game patches). Only that folder, .png only.
+// Hero card art from deadlock-api's image server, for heroes the saved
+// catalog doesn't list yet. Only that folder, .png only.
 const HERO_ART=/^https:\/\/assets-bucket\.deadlock-api\.com\/assets-api-res\/images\/heroes\/[\w.-]+\.png$/;
 const heroArtURL=url=>typeof url==='string'&&HERO_ART.test(url)?url:'';
 function compactAssets(itemsRaw,heroesRaw){

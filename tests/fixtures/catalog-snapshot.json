@@ -1,6 +1,6 @@
 {
  "version": 1,
- "source": "deadlock.io game-tracking",
+ "source": "deadlock-api assets",
  "generatedAt": "2026-10-15T19:15:18.873Z",
  "syncedAt": "2026-10-17T14:20:56.643Z",
  "build": "client-6785",
@@ -13,7 +13,7 @@
    "category": "spirit",
    "group": "ECharges",
    "groupLabel": "Charges",
-   "icon": "/assets/game/panorama/images/items/spirit/extra_charge_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/extra_charge.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -28,7 +28,7 @@
    "category": "spirit",
    "group": "EMoreSpirit",
    "groupLabel": "More Spirit",
-   "icon": "/assets/game/panorama/images/items/spirit/extra_spirit_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/extra_spirit.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -44,7 +44,7 @@
    "category": "spirit",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/spirit/goose_egg_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/goose_egg.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -57,7 +57,7 @@
    "category": "spirit",
    "group": "EBurstDamage",
    "groupLabel": "Burst Damage",
-   "icon": "/assets/game/panorama/images/items/spirit/mystic_burst_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/mystic_burst.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -72,7 +72,7 @@
    "category": "spirit",
    "group": "ESpiritRange",
    "groupLabel": "Spirit Range",
-   "icon": "/assets/game/panorama/images/items/spirit/mystic_reach_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/mystic_reach.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -88,7 +88,7 @@
    "category": "spirit",
    "group": "EMiscSpirit",
    "groupLabel": "Misc Spirit",
-   "icon": "/assets/game/panorama/images/items/spirit/mystic_regen_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/mystic_regen.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -103,7 +103,7 @@
    "category": "spirit",
    "group": "EAntiGun",
    "groupLabel": "Anti Gun",
-   "icon": "/assets/game/panorama/images/items/spirit/rusted_barrel_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/rusted_barrel.png",
    "active": true,
    "components": [],
    "upgrades": [
@@ -118,7 +118,7 @@
    "category": "spirit",
    "group": "EMeleeSpirit",
    "groupLabel": "Melee Spirit",
-   "icon": "/assets/game/panorama/images/items/spirit/spirit_strike_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/spirit_strike.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -133,7 +133,7 @@
    "category": "spirit",
    "group": "ESpiritRange",
    "groupLabel": "Spirit Range",
-   "icon": "/assets/game/panorama/images/items/spirit/arcane_surge_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/arcane_surge.png",
    "active": false,
    "components": [
     "upgrade_improved_stamina"
@@ -148,7 +148,7 @@
    "category": "spirit",
    "group": "EMiscSpirit",
    "groupLabel": "Misc Spirit",
-   "icon": "/assets/game/panorama/images/items/spirit/bullet_resist_shredder_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/bullet_resist_shredder.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -161,7 +161,7 @@
    "category": "spirit",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/spirit/cold_front_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/cold_front.png",
    "active": true,
    "components": [],
    "upgrades": [
@@ -176,7 +176,7 @@
    "category": "spirit",
    "group": "ECooldown",
    "groupLabel": "Cooldown",
-   "icon": "/assets/game/panorama/images/items/spirit/improved_cooldown_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/improved_cooldown.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -191,7 +191,7 @@
    "category": "spirit",
    "group": "EDuration",
    "groupLabel": "Duration",
-   "icon": "/assets/game/panorama/images/items/spirit/duration_extender_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/duration_extender.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -206,7 +206,7 @@
    "category": "spirit",
    "group": "EMoreSpirit",
    "groupLabel": "More Spirit",
-   "icon": "/assets/game/panorama/images/items/spirit/improved_spirit_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/improved_spirit.png",
    "active": false,
    "components": [
     "upgrade_improved_spirit"
@@ -223,7 +223,7 @@
    "category": "spirit",
    "group": "ESlowingMagic",
    "groupLabel": "Slowing Magic",
-   "icon": "/assets/game/panorama/images/items/spirit/mystic_slow_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/mystic_slow.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -238,7 +238,7 @@
    "category": "spirit",
    "group": "EMagicVulnerability",
    "groupLabel": "Magic Vulnerability",
-   "icon": "/assets/game/panorama/images/items/spirit/mystic_vulnerability_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/mystic_vulnerability.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -253,7 +253,7 @@
    "category": "spirit",
    "group": "EBurstDamage",
    "groupLabel": "Burst Damage",
-   "icon": "/assets/game/panorama/images/items/spirit/quicksilver_reload_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/quicksilver_reload.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -268,7 +268,7 @@
    "category": "spirit",
    "group": "ECrownControl",
    "groupLabel": "Crown Control",
-   "icon": "/assets/game/panorama/images/items/spirit/slowing_hex_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/slowing_hex.png",
    "active": true,
    "components": [],
    "upgrades": [
@@ -283,7 +283,7 @@
    "category": "spirit",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/spirit/spirit_sap_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/spirit_sap.png",
    "active": true,
    "components": [],
    "upgrades": [
@@ -298,7 +298,7 @@
    "category": "spirit",
    "group": "ESlowingMagic",
    "groupLabel": "Slowing Magic",
-   "icon": "/assets/game/panorama/images/items/spirit/suppressor_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/suppressor.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -311,7 +311,7 @@
    "category": "spirit",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/spirit/decay_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/decay.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -324,7 +324,7 @@
    "category": "spirit",
    "group": "EAntiGun",
    "groupLabel": "Anti Gun",
-   "icon": "/assets/game/panorama/images/items/spirit/disarming_hex_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/disarming_hex.png",
    "active": true,
    "components": [
     "upgrade_withering_whip"
@@ -339,7 +339,7 @@
    "category": "spirit",
    "group": "ESpiritRange",
    "groupLabel": "Spirit Range",
-   "icon": "/assets/game/panorama/images/items/spirit/greater_expansion_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/greater_expansion.png",
    "active": false,
    "components": [
     "upgrade_magic_reach"
@@ -354,7 +354,7 @@
    "category": "spirit",
    "group": "ECrownControl",
    "groupLabel": "Crown Control",
-   "icon": "/assets/game/panorama/images/items/spirit/knockdown_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/knockdown.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -367,7 +367,7 @@
    "category": "spirit",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/spirit/radiant_regeneration_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/radiant_regeneration.png",
    "active": false,
    "components": [
     "upgrade_mystic_regeneration"
@@ -382,7 +382,7 @@
    "category": "spirit",
    "group": "ECharges",
    "groupLabel": "Charges",
-   "icon": "/assets/game/panorama/images/items/spirit/rapid_recharge_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/rapid_recharge.png",
    "active": false,
    "components": [
     "upgrade_extra_charge"
@@ -397,7 +397,7 @@
    "category": "spirit",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/spirit/silence_glyph_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/silence_glyph.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -410,7 +410,7 @@
    "category": "spirit",
    "group": "EMeleeSpirit",
    "groupLabel": "Melee Spirit",
-   "icon": "/assets/game/panorama/images/items/spirit/spirit_snatch_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/spirit_snatch.png",
    "active": false,
    "components": [
     "upgrade_acolytes_glove"
@@ -425,7 +425,7 @@
    "category": "spirit",
    "group": "ECooldown",
    "groupLabel": "Cooldown",
-   "icon": "/assets/game/panorama/images/items/spirit/superior_cooldown_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/superior_cooldown.png",
    "active": false,
    "components": [
     "upgrade_magic_tempo"
@@ -442,7 +442,7 @@
    "category": "spirit",
    "group": "EDuration",
    "groupLabel": "Duration",
-   "icon": "/assets/game/panorama/images/items/spirit/superior_duration_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/superior_duration.png",
    "active": false,
    "components": [
     "upgrade_arcane_extension"
@@ -457,7 +457,7 @@
    "category": "spirit",
    "group": "EMoreSpirit",
    "groupLabel": "More Spirit",
-   "icon": "/assets/game/panorama/images/items/spirit/surge_of_power_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/surge_of_power.png",
    "active": false,
    "components": [
     "upgrade_improved_spirit"
@@ -472,7 +472,7 @@
    "category": "spirit",
    "group": "EBurstDamage",
    "groupLabel": "Burst Damage",
-   "icon": "/assets/game/panorama/images/items/spirit/tankbuster_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/tankbuster.png",
    "active": false,
    "components": [
     "upgrade_magic_burst"
@@ -487,7 +487,7 @@
    "category": "spirit",
    "group": "EMiscSpirit",
    "groupLabel": "Misc Spirit",
-   "icon": "/assets/game/panorama/images/items/spirit/torment_pulse_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/torment_pulse.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -500,7 +500,7 @@
    "category": "spirit",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/spirit/arctic_blast_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/arctic_blast.png",
    "active": true,
    "components": [
     "upgrade_cold_front"
@@ -515,7 +515,7 @@
    "category": "spirit",
    "group": "EMoreSpirit",
    "groupLabel": "More Spirit",
-   "icon": "/assets/game/panorama/images/items/spirit/boundless_spirit_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/boundless_spirit.png",
    "active": false,
    "components": [
     "upgrade_soaring_spirit"
@@ -530,7 +530,7 @@
    "category": "spirit",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/spirit/curse_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/curse.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -543,7 +543,7 @@
    "category": "spirit",
    "group": "ECooldown",
    "groupLabel": "Cooldown",
-   "icon": "/assets/game/panorama/images/items/spirit/echo_shard_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/echo_shard.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -556,7 +556,7 @@
    "category": "spirit",
    "group": "EMagicVulnerability",
    "groupLabel": "Magic Vulnerability",
-   "icon": "/assets/game/panorama/images/items/spirit/escalating_exposure_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/escalating_exposure.png",
    "active": false,
    "components": [
     "upgrade_magic_vulnerability"
@@ -571,7 +571,7 @@
    "category": "spirit",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/spirit/ethereal_shift_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/ethereal_shift.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -584,7 +584,7 @@
    "category": "spirit",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/spirit/focus_lens_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/focus_lens.png",
    "active": true,
    "components": [
     "upgrade_spirit_sap"
@@ -599,7 +599,7 @@
    "category": "spirit",
    "group": "EBurstDamage",
    "groupLabel": "Burst Damage",
-   "icon": "/assets/game/panorama/images/items/spirit/lightning_scroll_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/lightning_scroll.png",
    "active": false,
    "components": [
     "upgrade_magic_slow"
@@ -614,7 +614,7 @@
    "category": "spirit",
    "group": "EDuration",
    "groupLabel": "Duration",
-   "icon": "/assets/game/panorama/images/items/spirit/magic_carpet_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/magic_carpet.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -627,7 +627,7 @@
    "category": "spirit",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/spirit/mercurial_magnum_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/mercurial_magnum.png",
    "active": false,
    "components": [
     "upgrade_quick_silver"
@@ -642,7 +642,7 @@
    "category": "spirit",
    "group": "ESlowingMagic",
    "groupLabel": "Slowing Magic",
-   "icon": "/assets/game/panorama/images/items/spirit/mystic_reverb_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/mystic_reverb.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -655,7 +655,7 @@
    "category": "spirit",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/spirit/refresher_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/refresher.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -668,7 +668,7 @@
    "category": "spirit",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/spirit/scourge_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/scourge.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -681,7 +681,7 @@
    "category": "spirit",
    "group": "EDuration",
    "groupLabel": "Duration",
-   "icon": "/assets/game/panorama/images/items/spirit/spirit_burn_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/spirit_burn.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -694,7 +694,7 @@
    "category": "spirit",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/spirit/transcendent_cooldown_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/transcendent_cooldown.png",
    "active": false,
    "components": [
     "upgrade_cooldown_reduction"
@@ -709,7 +709,7 @@
    "category": "spirit",
    "group": "ECrownControl",
    "groupLabel": "Crown Control",
-   "icon": "/assets/game/panorama/images/items/spirit/vortex_web_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/vortex_web.png",
    "active": true,
    "components": [
     "upgrade_containment"
@@ -724,7 +724,7 @@
    "category": "vitality",
    "group": "EMoreHealth",
    "groupLabel": "More Health",
-   "icon": "/assets/game/panorama/images/items/vitality/extra_health_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/extra_health.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -740,7 +740,7 @@
    "category": "vitality",
    "group": "ERevitalization",
    "groupLabel": "Revitalization",
-   "icon": "/assets/game/panorama/images/items/vitality/extra_regen_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/extra_regen.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -755,7 +755,7 @@
    "category": "vitality",
    "group": "EMovementAndAgility",
    "groupLabel": "Movement and Agility",
-   "icon": "/assets/game/panorama/images/items/vitality/extra_stamina_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/extra_stamina.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -772,7 +772,7 @@
    "category": "vitality",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/vitality/grit_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/grit.png",
    "active": true,
    "components": [],
    "upgrades": [
@@ -790,7 +790,7 @@
    "category": "vitality",
    "group": "EHealing",
    "groupLabel": "Healing",
-   "icon": "/assets/game/panorama/images/items/vitality/healing_rite_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/healing_rite.png",
    "active": true,
    "components": [],
    "upgrades": [
@@ -806,7 +806,7 @@
    "category": "vitality",
    "group": "EMelee",
    "groupLabel": "Melee",
-   "icon": "/assets/game/panorama/images/items/vitality/melee_lifesteal_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/melee_lifesteal.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -821,7 +821,7 @@
    "category": "vitality",
    "group": "EMelee",
    "groupLabel": "Melee",
-   "icon": "/assets/game/panorama/images/items/vitality/rebuttal_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/rebuttal.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -834,7 +834,7 @@
    "category": "vitality",
    "group": "EMovementAndAgility",
    "groupLabel": "Movement and Agility",
-   "icon": "/assets/game/panorama/images/items/vitality/sprint_boots_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/sprint_boots.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -851,7 +851,7 @@
    "category": "vitality",
    "group": "EBulletProtection",
    "groupLabel": "Bullet Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/battle_vest_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/battle_vest.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -864,7 +864,7 @@
    "category": "vitality",
    "group": "ELifesteal",
    "groupLabel": "Lifesteal",
-   "icon": "/assets/game/panorama/images/items/vitality/bullet_lifesteal_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/bullet_lifesteal.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -881,7 +881,7 @@
    "category": "vitality",
    "group": "EDebuffs",
    "groupLabel": "Debuffs",
-   "icon": "/assets/game/panorama/images/items/vitality/debuff_reducer_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/debuff_reducer.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -897,7 +897,7 @@
    "category": "vitality",
    "group": "ESpiritProtection",
    "groupLabel": "Spirit Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/enchanters_emblem_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/enchanters_emblem.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -910,7 +910,7 @@
    "category": "vitality",
    "group": "EMovementAndAgility",
    "groupLabel": "Movement and Agility",
-   "icon": "/assets/game/panorama/images/items/vitality/enduring_speed_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/enduring_speed.png",
    "active": false,
    "components": [
     "upgrade_sprint_booster"
@@ -927,7 +927,7 @@
    "category": "vitality",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/vitality/guardian_ward_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/guardian_ward.png",
    "active": true,
    "components": [
     "upgrade_grit"
@@ -944,7 +944,7 @@
    "category": "vitality",
    "group": "EAntiHealing",
    "groupLabel": "Anti Healing",
-   "icon": "/assets/game/panorama/images/items/vitality/healbane_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/healbane.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -957,7 +957,7 @@
    "category": "vitality",
    "group": "ERevitalization",
    "groupLabel": "Revitalization",
-   "icon": "/assets/game/panorama/images/items/vitality/healing_booster_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/healing_booster.png",
    "active": false,
    "components": [
     "upgrade_endurance"
@@ -974,7 +974,7 @@
    "category": "vitality",
    "group": "ERevitalization",
    "groupLabel": "Revitalization",
-   "icon": "/assets/game/panorama/images/items/vitality/reactive_barrier_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/reactive_barrier.png",
    "active": false,
    "components": [
     "upgrade_grit"
@@ -991,7 +991,7 @@
    "category": "vitality",
    "group": "ERevitalization",
    "groupLabel": "Revitalization",
-   "icon": "/assets/game/panorama/images/items/vitality/restorative_locket_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/restorative_locket.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1004,7 +1004,7 @@
    "category": "vitality",
    "group": "EBulletProtection",
    "groupLabel": "Bullet Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/return_fire_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/return_fire.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1017,7 +1017,7 @@
    "category": "vitality",
    "group": "ELifesteal",
    "groupLabel": "Lifesteal",
-   "icon": "/assets/game/panorama/images/items/vitality/spirit_lifesteal_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/spirit_lifesteal.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1034,7 +1034,7 @@
    "category": "vitality",
    "group": "EAdditionalProtection",
    "groupLabel": "Additional Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/spirit_shielding_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/spirit_shielding.png",
    "active": false,
    "components": [
     "upgrade_grit"
@@ -1049,7 +1049,7 @@
    "category": "vitality",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/vitality/trophy_collector_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/trophy_collector.png",
    "active": false,
    "components": [
     "upgrade_sprint_booster"
@@ -1064,7 +1064,7 @@
    "category": "vitality",
    "group": "EAdditionalProtection",
    "groupLabel": "Additional Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/weapon_shielding_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/weapon_shielding.png",
    "active": false,
    "components": [
     "upgrade_grit"
@@ -1079,7 +1079,7 @@
    "category": "vitality",
    "group": "EBulletProtection",
    "groupLabel": "Bullet Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/bullet_resilience_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/bullet_resilience.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1092,7 +1092,7 @@
    "category": "vitality",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/vitality/counterspell_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/counterspell.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1105,7 +1105,7 @@
    "category": "vitality",
    "group": "EDebuffs",
    "groupLabel": "Debuffs",
-   "icon": "/assets/game/panorama/images/items/vitality/debuff_remover_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/debuff_remover.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1118,7 +1118,7 @@
    "category": "vitality",
    "group": "EMoreHealth",
    "groupLabel": "More Health",
-   "icon": "/assets/game/panorama/images/items/vitality/fortitude_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/fortitude.png",
    "active": false,
    "components": [
     "upgrade_health"
@@ -1133,7 +1133,7 @@
    "category": "vitality",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/vitality/fury_trance_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/fury_trance.png",
    "active": true,
    "components": [
     "upgrade_vampire"
@@ -1148,7 +1148,7 @@
    "category": "vitality",
    "group": "EHealing",
    "groupLabel": "Healing",
-   "icon": "/assets/game/panorama/images/items/vitality/healing_nova_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/healing_nova.png",
    "active": true,
    "components": [
     "upgrade_health_stimpak"
@@ -1163,7 +1163,7 @@
    "category": "vitality",
    "group": "EMelee",
    "groupLabel": "Melee",
-   "icon": "/assets/game/panorama/images/items/vitality/lifestrike_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/lifestrike.png",
    "active": false,
    "components": [
     "upgrade_lifestrike_gauntlets"
@@ -1178,7 +1178,7 @@
    "category": "vitality",
    "group": "EMovementAndAgility",
    "groupLabel": "Movement and Agility",
-   "icon": "/assets/game/panorama/images/items/vitality/majestic_leap_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/majestic_leap.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1191,7 +1191,7 @@
    "category": "vitality",
    "group": "EAdditionalProtection",
    "groupLabel": "Additional Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/metal_skin_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/metal_skin.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1204,7 +1204,7 @@
    "category": "vitality",
    "group": "EHealing",
    "groupLabel": "Healing",
-   "icon": "/assets/game/panorama/images/items/vitality/rescue_beam_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/rescue_beam.png",
    "active": true,
    "components": [
     "upgrade_health_stimpak"
@@ -1219,7 +1219,7 @@
    "category": "vitality",
    "group": "ESpiritProtection",
    "groupLabel": "Spirit Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/spirit_resilience_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/spirit_resilience.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1232,7 +1232,7 @@
    "category": "vitality",
    "group": "EMovementAndAgility",
    "groupLabel": "Movement and Agility",
-   "icon": "/assets/game/panorama/images/items/vitality/stamina_mastery_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/stamina_mastery.png",
    "active": false,
    "components": [
     "upgrade_improved_stamina"
@@ -1247,7 +1247,7 @@
    "category": "vitality",
    "group": "EAdditionalProtection",
    "groupLabel": "Additional Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/veil_walker_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/veil_walker.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1260,7 +1260,7 @@
    "category": "vitality",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/vitality/warp_stone_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/warp_stone.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1273,7 +1273,7 @@
    "category": "vitality",
    "group": "ESpiritProtection",
    "groupLabel": "Spirit Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/cheat_death_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/cheat_death.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1286,7 +1286,7 @@
    "category": "vitality",
    "group": "EMoreHealth",
    "groupLabel": "More Health",
-   "icon": "/assets/game/panorama/images/items/vitality/colossus_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/colossus.png",
    "active": true,
    "components": [
     "upgrade_health"
@@ -1301,7 +1301,7 @@
    "category": "vitality",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/vitality/divine_barrier_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/divine_barrier.png",
    "active": true,
    "components": [
     "upgrade_guardian_ward"
@@ -1316,7 +1316,7 @@
    "category": "vitality",
    "group": "EAdditionalProtection",
    "groupLabel": "Additional Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/diviners_kevlar_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/diviners_kevlar.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1329,7 +1329,7 @@
    "category": "vitality",
    "group": "ERevitalization",
    "groupLabel": "Revitalization",
-   "icon": "/assets/game/panorama/images/items/vitality/healing_tempo_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/healing_tempo.png",
    "active": false,
    "components": [
     "upgrade_healing_booster"
@@ -1344,7 +1344,7 @@
    "category": "vitality",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/vitality/indomitable_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/indomitable.png",
    "active": false,
    "components": [
     "upgrade_vex_barrier"
@@ -1359,7 +1359,7 @@
    "category": "vitality",
    "group": "ELifesteal",
    "groupLabel": "Lifesteal",
-   "icon": "/assets/game/panorama/images/items/vitality/infuser_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/infuser.png",
    "active": true,
    "components": [
     "upgrade_health_stealing_magic"
@@ -1374,7 +1374,7 @@
    "category": "vitality",
    "group": "EDebuffs",
    "groupLabel": "Debuffs",
-   "icon": "/assets/game/panorama/images/items/vitality/inhibitor_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/inhibitor.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1387,7 +1387,7 @@
    "category": "vitality",
    "group": "EMovementAndAgility",
    "groupLabel": "Movement and Agility",
-   "icon": "/assets/game/panorama/images/items/vitality/juggernaut_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/juggernaut.png",
    "active": false,
    "components": [
     "upgrade_cardio_calibrator"
@@ -1402,7 +1402,7 @@
    "category": "vitality",
    "group": "ELifesteal",
    "groupLabel": "Lifesteal",
-   "icon": "/assets/game/panorama/images/items/vitality/leech_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/leech.png",
    "active": false,
    "components": [
     "upgrade_vampire",
@@ -1418,7 +1418,7 @@
    "category": "vitality",
    "group": "ESpiritProtection",
    "groupLabel": "Spirit Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/phantom_strike_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/phantom_strike.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1431,7 +1431,7 @@
    "category": "vitality",
    "group": "EBulletProtection",
    "groupLabel": "Bullet Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/plated_armor_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/plated_armor.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1444,7 +1444,7 @@
    "category": "vitality",
    "group": "EAdditionalProtection",
    "groupLabel": "Additional Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/siphon_bullets_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/siphon_bullets.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1457,7 +1457,7 @@
    "category": "vitality",
    "group": "ESpiritProtection",
    "groupLabel": "Spirit Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/spellbreaker_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/spellbreaker.png",
    "active": false,
    "components": [
     "upgrade_debuff_reducer"
@@ -1472,7 +1472,7 @@
    "category": "vitality",
    "group": "EMoreHealth",
    "groupLabel": "More Health",
-   "icon": "/assets/game/panorama/images/items/vitality/unstoppable_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/unstoppable.png",
    "active": true,
    "components": [
     "upgrade_debuff_reducer"
@@ -1487,7 +1487,7 @@
    "category": "vitality",
    "group": "ELifesteal",
    "groupLabel": "Lifesteal",
-   "icon": "/assets/game/panorama/images/items/vitality/vampiric_burst_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/vampiric_burst.png",
    "active": true,
    "components": [
     "upgrade_vampire"
@@ -1502,7 +1502,7 @@
    "category": "vitality",
    "group": "ESpiritProtection",
    "groupLabel": "Spirit Protection",
-   "icon": "/assets/game/panorama/images/items/vitality/witchmail_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/witchmail.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1515,7 +1515,7 @@
    "category": "weapon",
    "group": "EWeaponRange",
    "groupLabel": "Weapon Range",
-   "icon": "/assets/game/panorama/images/items/weapon/close_quarters_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/close_quarters.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1530,7 +1530,7 @@
    "category": "weapon",
    "group": "EMagazines",
    "groupLabel": "Magazines",
-   "icon": "/assets/game/panorama/images/items/weapon/basic_magazine_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/basic_magazine.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1546,7 +1546,7 @@
    "category": "weapon",
    "group": "EHeadshotEnthusiasts",
    "groupLabel": "Headshot Enthusiasts",
-   "icon": "/assets/game/panorama/images/items/weapon/headshot_booster_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/headshot_booster.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1561,7 +1561,7 @@
    "category": "weapon",
    "group": "EBulletVelocity",
    "groupLabel": "Bullet Velocity",
-   "icon": "/assets/game/panorama/images/items/weapon/high_velocity_rounds_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/high_velocity_rounds.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1579,7 +1579,7 @@
    "category": "weapon",
    "group": "EMisc",
    "groupLabel": "Misc",
-   "icon": "/assets/game/panorama/images/items/weapon/monster_rounds_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/monster_rounds.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1594,7 +1594,7 @@
    "category": "weapon",
    "group": "ERateOfFire",
    "groupLabel": "Rate Of Fire",
-   "icon": "/assets/game/panorama/images/items/weapon/rapid_rounds_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/rapid_rounds.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1610,7 +1610,7 @@
    "category": "weapon",
    "group": "EHealing",
    "groupLabel": "Healing",
-   "icon": "/assets/game/panorama/images/items/weapon/restorative_shot_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/restorative_shot.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1623,7 +1623,7 @@
    "category": "weapon",
    "group": "EMagazines",
    "groupLabel": "Magazines",
-   "icon": "/assets/game/panorama/images/items/weapon/active_reload_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/active_reload.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1636,7 +1636,7 @@
    "category": "weapon",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/weapon/fleetfoot_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/fleetfoot.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1649,7 +1649,7 @@
    "category": "weapon",
    "group": "EMagazines",
    "groupLabel": "Magazines",
-   "icon": "/assets/game/panorama/images/items/weapon/intensifying_magazine_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/intensifying_magazine.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1662,7 +1662,7 @@
    "category": "weapon",
    "group": "EMisc",
    "groupLabel": "Misc",
-   "icon": "/assets/game/panorama/images/items/weapon/kinetic_dash_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/kinetic_dash.png",
    "active": false,
    "components": [
     "upgrade_improved_stamina"
@@ -1677,7 +1677,7 @@
    "category": "weapon",
    "group": "EBulletVelocity",
    "groupLabel": "Bullet Velocity",
-   "icon": "/assets/game/panorama/images/items/weapon/long_range_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/long_range.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1692,7 +1692,7 @@
    "category": "weapon",
    "group": "ETankingBullets",
    "groupLabel": "Tanking Bullets",
-   "icon": "/assets/game/panorama/images/items/weapon/melee_charge_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/melee_charge.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1707,7 +1707,7 @@
    "category": "weapon",
    "group": "ESpiritSlinger",
    "groupLabel": "Spirit Slinger",
-   "icon": "/assets/game/panorama/images/items/weapon/mystic_shot_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/mystic_shot.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1720,7 +1720,7 @@
    "category": "weapon",
    "group": "EBulletVelocity",
    "groupLabel": "Bullet Velocity",
-   "icon": "/assets/game/panorama/images/items/weapon/opening_rounds_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/opening_rounds.png",
    "active": false,
    "components": [
     "upgrade_high_velocity_mag"
@@ -1735,7 +1735,7 @@
    "category": "weapon",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/weapon/recharging_rounds_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/recharging_rounds.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1748,7 +1748,7 @@
    "category": "weapon",
    "group": "ESlowingBullets",
    "groupLabel": "Slowing Bullets",
-   "icon": "/assets/game/panorama/images/items/weapon/slowing_bullets_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/slowing_bullets.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1763,7 +1763,7 @@
    "category": "weapon",
    "group": "ESpiritSlinger",
    "groupLabel": "Spirit Slinger",
-   "icon": "/assets/game/panorama/images/items/weapon/spirit_shredder_bullets_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/spirit_shredder_bullets.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1778,7 +1778,7 @@
    "category": "weapon",
    "group": "EBulletVelocity",
    "groupLabel": "Bullet Velocity",
-   "icon": "/assets/game/panorama/images/items/weapon/split_shot_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/split_shot.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1791,7 +1791,7 @@
    "category": "weapon",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/weapon/backstabber_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/backstabber.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1804,7 +1804,7 @@
    "category": "weapon",
    "group": "ERateOfFire",
    "groupLabel": "Rate Of Fire",
-   "icon": "/assets/game/panorama/images/items/weapon/swift_striker_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/swift_striker.png",
    "active": false,
    "components": [
     "upgrade_rapid_rounds"
@@ -1819,7 +1819,7 @@
    "category": "weapon",
    "group": "EMagazines",
    "groupLabel": "Magazines",
-   "icon": "/assets/game/panorama/images/items/weapon/titanic_magazine_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/titanic_magazine.png",
    "active": false,
    "components": [
     "upgrade_clip_size"
@@ -1834,7 +1834,7 @@
    "category": "weapon",
    "group": "EHeadshotEnthusiasts",
    "groupLabel": "Headshot Enthusiasts",
-   "icon": "/assets/game/panorama/images/items/weapon/weakening_headshot_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/weakening_headshot.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -1849,7 +1849,7 @@
    "category": "weapon",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/weapon/alchemical_fire_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/alchemical_fire.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1862,7 +1862,7 @@
    "category": "weapon",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/weapon/alchemical_seal_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/alchemical_seal.png",
    "active": false,
    "components": [
     "upgrade_magic_reach"
@@ -1877,7 +1877,7 @@
    "category": "weapon",
    "group": "ETankingBullets",
    "groupLabel": "Tanking Bullets",
-   "icon": "/assets/game/panorama/images/items/weapon/berserker_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/berserker.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -1890,7 +1890,7 @@
    "category": "weapon",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/weapon/blood_tribute_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/blood_tribute.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1903,7 +1903,7 @@
    "category": "weapon",
    "group": "ERateOfFire",
    "groupLabel": "Rate Of Fire",
-   "icon": "/assets/game/panorama/images/items/weapon/burst_fire_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/burst_fire.png",
    "active": false,
    "components": [
     "upgrade_rapid_rounds"
@@ -1918,7 +1918,7 @@
    "category": "weapon",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/weapon/cultist_sacrifice_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/cultist_sacrifice.png",
    "active": true,
    "components": [
     "upgrade_non_player_bonus"
@@ -1933,7 +1933,7 @@
    "category": "weapon",
    "group": "EMagazines",
    "groupLabel": "Magazines",
-   "icon": "/assets/game/panorama/images/items/weapon/escalating_resilience_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/escalating_resilience.png",
    "active": false,
    "components": [
     "upgrade_clip_size"
@@ -1948,7 +1948,7 @@
    "category": "weapon",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/weapon/express_shot_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/express_shot.png",
    "active": false,
    "components": [
     "upgrade_high_velocity_mag"
@@ -1963,7 +1963,7 @@
    "category": "weapon",
    "group": "EHeadshotEnthusiasts",
    "groupLabel": "Headshot Enthusiasts",
-   "icon": "/assets/game/panorama/images/items/weapon/headhunter_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/headhunter.png",
    "active": false,
    "components": [
     "upgrade_headshot_booster"
@@ -1978,7 +1978,7 @@
    "category": "weapon",
    "group": "EActives",
    "groupLabel": "Actives",
-   "icon": "/assets/game/panorama/images/items/weapon/heroic_aura_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/heroic_aura.png",
    "active": true,
    "components": [],
    "upgrades": []
@@ -1991,7 +1991,7 @@
    "category": "weapon",
    "group": "EMisc",
    "groupLabel": "Misc",
-   "icon": "/assets/game/panorama/images/items/weapon/hollow_point_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/hollow_point.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -2004,7 +2004,7 @@
    "category": "weapon",
    "group": "EWeaponRange",
    "groupLabel": "Weapon Range",
-   "icon": "/assets/game/panorama/images/items/weapon/hunters_aura_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/hunters_aura.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -2017,7 +2017,7 @@
    "category": "weapon",
    "group": "EWeaponRange",
    "groupLabel": "Weapon Range",
-   "icon": "/assets/game/panorama/images/items/weapon/point_blank_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/point_blank.png",
    "active": false,
    "components": [
     "upgrade_close_range"
@@ -2032,7 +2032,7 @@
    "category": "weapon",
    "group": "EWeaponRange",
    "groupLabel": "Weapon Range",
-   "icon": "/assets/game/panorama/images/items/weapon/shadow_weave_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/shadow_weave.png",
    "active": true,
    "components": [
     "upgrade_sprint_booster"
@@ -2047,7 +2047,7 @@
    "category": "weapon",
    "group": "EBulletVelocity",
    "groupLabel": "Bullet Velocity",
-   "icon": "/assets/game/panorama/images/items/weapon/sharp_shooter_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/sharp_shooter.png",
    "active": false,
    "components": [
     "upgrade_long_range",
@@ -2063,7 +2063,7 @@
    "category": "weapon",
    "group": "ESpiritSlinger",
    "groupLabel": "Spirit Slinger",
-   "icon": "/assets/game/panorama/images/items/weapon/spellslinger_headshots_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/spellslinger_headshots.png",
    "active": false,
    "components": [
     "upgrade_tech_defense_shredders"
@@ -2078,7 +2078,7 @@
    "category": "weapon",
    "group": "ESpiritSlinger",
    "groupLabel": "Spirit Slinger",
-   "icon": "/assets/game/panorama/images/items/weapon/tesla_bullets_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/tesla_bullets.png",
    "active": false,
    "components": [],
    "upgrades": [
@@ -2093,7 +2093,7 @@
    "category": "weapon",
    "group": "EMisc",
    "groupLabel": "Misc",
-   "icon": "/assets/game/panorama/images/items/weapon/toxic_bullets_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/toxic_bullets.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -2106,7 +2106,7 @@
    "category": "weapon",
    "group": "EBulletVelocity",
    "groupLabel": "Bullet Velocity",
-   "icon": "/assets/game/panorama/images/items/weapon/weighted_shots_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/weighted_shots.png",
    "active": false,
    "components": [
     "upgrade_slowing_bullets"
@@ -2121,7 +2121,7 @@
    "category": "weapon",
    "group": "EBulletVelocity",
    "groupLabel": "Bullet Velocity",
-   "icon": "/assets/game/panorama/images/items/weapon/armor_piercing_rounds_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/armor_piercing_rounds.png",
    "active": false,
    "components": [
     "upgrade_high_velocity_mag"
@@ -2136,7 +2136,7 @@
    "category": "weapon",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/weapon/capacitor_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/capacitor.png",
    "active": true,
    "components": [
     "upgrade_chain_lightning"
@@ -2151,7 +2151,7 @@
    "category": "weapon",
    "group": "EHeadshotEnthusiasts",
    "groupLabel": "Headshot Enthusiasts",
-   "icon": "/assets/game/panorama/images/items/weapon/crippling_headshot_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/crippling_headshot.png",
    "active": false,
    "components": [
     "upgrade_headshot_booster2"
@@ -2166,7 +2166,7 @@
    "category": "weapon",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/weapon/crushing_fists_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/crushing_fists.png",
    "active": false,
    "components": [
     "upgrade_melee_charge"
@@ -2181,7 +2181,7 @@
    "category": "weapon",
    "group": "ETankingBullets",
    "groupLabel": "Tanking Bullets",
-   "icon": "/assets/game/panorama/images/items/weapon/frenzy_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/frenzy.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -2194,7 +2194,7 @@
    "category": "weapon",
    "group": "ESlowingBullets",
    "groupLabel": "Slowing Bullets",
-   "icon": "/assets/game/panorama/images/items/weapon/glass_cannon_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/glass_cannon.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -2207,7 +2207,7 @@
    "category": "weapon",
    "group": "EMisc",
    "groupLabel": "Misc",
-   "icon": "/assets/game/panorama/images/items/weapon/lucky_shot_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/lucky_shot.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -2220,7 +2220,7 @@
    "category": "weapon",
    "group": "ERateOfFire",
    "groupLabel": "Rate Of Fire",
-   "icon": "/assets/game/panorama/images/items/weapon/ricochet_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/ricochet.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -2233,7 +2233,7 @@
    "category": "weapon",
    "group": "EWeaponRange",
    "groupLabel": "Weapon Range",
-   "icon": "/assets/game/panorama/images/items/weapon/silencer_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/silencer.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -2246,7 +2246,7 @@
    "category": "weapon",
    "group": "",
    "groupLabel": "",
-   "icon": "/assets/game/panorama/images/items/weapon/spell_slinger_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/spell_slinger.png",
    "active": false,
    "components": [],
    "upgrades": []
@@ -2259,7 +2259,7 @@
    "category": "weapon",
    "group": "ESpiritSlinger",
    "groupLabel": "Spirit Slinger",
-   "icon": "/assets/game/panorama/images/items/weapon/spiritual_overflow_psd.png",
+   "icon": "https://assets-bucket.deadlock-api.com/assets-api-res/images/items/weapon/spiritual_overflow.png",
    "active": false,
    "components": [
     "upgrade_health_stealing_magic"
@@ -2272,7 +2272,7 @@
    "id": 1,
    "name": "Infernus",
    "slug": "infernus",
-   "portrait": "/assets/game/panorama/images/heroes/inferno_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/inferno_card.png",
    "tags": [
     "Arsonist",
     "Explosive",
@@ -2290,7 +2290,7 @@
    "id": 2,
    "name": "Seven",
    "slug": "seven",
-   "portrait": "/assets/game/panorama/images/heroes/gigawatt_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/gigawatt_card.png",
    "tags": [
     "High Voltage",
     "Merciless",
@@ -2308,7 +2308,7 @@
    "id": 3,
    "name": "Vindicta",
    "slug": "vindicta",
-   "portrait": "/assets/game/panorama/images/heroes/hornet_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/hornet_card.png",
    "tags": [
     "Sniper",
     "Soaring",
@@ -2326,7 +2326,7 @@
    "id": 4,
    "name": "Lady Geist",
    "slug": "lady-geist",
-   "portrait": "/assets/game/panorama/images/heroes/spectre_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/spectre_card.png",
    "tags": [
     "Lifesteal",
     "Self Damage",
@@ -2344,7 +2344,7 @@
    "id": 6,
    "name": "Abrams",
    "slug": "abrams",
-   "portrait": "/assets/game/panorama/images/heroes/bull_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/bull_card.png",
    "tags": [
     "Tank",
     "Brawler",
@@ -2362,7 +2362,7 @@
    "id": 7,
    "name": "Wraith",
    "slug": "wraith",
-   "portrait": "/assets/game/panorama/images/heroes/wraith_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/wraith_card.png",
    "tags": [
     "Duelist",
     "Isolator",
@@ -2380,7 +2380,7 @@
    "id": 8,
    "name": "McGinnis",
    "slug": "mcginnis",
-   "portrait": "/assets/game/panorama/images/heroes/engineer_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/engineer_card.png",
    "tags": [
     "Inventor",
     "Support",
@@ -2398,7 +2398,7 @@
    "id": 10,
    "name": "Paradox",
    "slug": "paradox",
-   "portrait": "/assets/game/panorama/images/heroes/chrono_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/chrono_card.png",
    "tags": [
     "Calculated",
     "Disruptor",
@@ -2416,7 +2416,7 @@
    "id": 11,
    "name": "Dynamo",
    "slug": "dynamo",
-   "portrait": "/assets/game/panorama/images/heroes/sumo_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/sumo_card.png",
    "tags": [
     "Teamplay",
     "Initiator",
@@ -2434,7 +2434,7 @@
    "id": 12,
    "name": "Kelvin",
    "slug": "kelvin",
-   "portrait": "/assets/game/panorama/images/heroes/kelvin_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/kelvin_card.png",
    "tags": [
     "Protector",
     "Explorer",
@@ -2452,7 +2452,7 @@
    "id": 13,
    "name": "Haze",
    "slug": "haze",
-   "portrait": "/assets/game/panorama/images/heroes/haze_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/haze_card.png",
    "tags": [
     "Assassin",
     "Stealthy",
@@ -2470,7 +2470,7 @@
    "id": 14,
    "name": "Holliday",
    "slug": "holliday",
-   "portrait": "/assets/game/panorama/images/heroes/astro_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/astro_card.png",
    "tags": [
     "Crackshot",
     "Explosive",
@@ -2488,7 +2488,7 @@
    "id": 15,
    "name": "Bebop",
    "slug": "bebop",
-   "portrait": "/assets/game/panorama/images/heroes/bebop_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/bebop_card.png",
    "tags": [
     "Hook",
     "Bomb",
@@ -2506,7 +2506,7 @@
    "id": 16,
    "name": "Calico",
    "slug": "calico",
-   "portrait": "/assets/game/panorama/images/heroes/nano_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/nano_card.png",
    "tags": [
     "Tricksy",
     "Slippery",
@@ -2524,7 +2524,7 @@
    "id": 17,
    "name": "Grey Talon",
    "slug": "grey-talon",
-   "portrait": "/assets/game/panorama/images/heroes/archer_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/archer_card.png",
    "tags": [
     "Precision",
     "Hunter",
@@ -2541,8 +2541,8 @@
   {
    "id": 18,
    "name": "Mo & Krill",
-   "slug": "mo-and-krill",
-   "portrait": "/assets/game/panorama/images/heroes/digger_card_psd.png",
+   "slug": "mo-krill",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/digger_card.png",
    "tags": [
     "Tag-Team",
     "Initiator",
@@ -2560,7 +2560,7 @@
    "id": 19,
    "name": "Shiv",
    "slug": "shiv",
-   "portrait": "/assets/game/panorama/images/heroes/shiv_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/shiv_card.png",
    "tags": [
     "Rage",
     "Bleed",
@@ -2578,7 +2578,7 @@
    "id": 20,
    "name": "Ivy",
    "slug": "ivy",
-   "portrait": "/assets/game/panorama/images/heroes/tengu_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/tengu_card.png",
    "tags": [
     "Team-up",
     "Disruptor",
@@ -2596,7 +2596,7 @@
    "id": 25,
    "name": "Warden",
    "slug": "warden",
-   "portrait": "/assets/game/panorama/images/heroes/warden_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/warden_card.png",
    "tags": [
     "Initiator",
     "Fearless",
@@ -2614,7 +2614,7 @@
    "id": 27,
    "name": "Yamato",
    "slug": "yamato",
-   "portrait": "/assets/game/panorama/images/heroes/yamato_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/yamato_card.png",
    "tags": [
     "Relentless",
     "Acrobatics",
@@ -2632,7 +2632,7 @@
    "id": 31,
    "name": "Lash",
    "slug": "lash",
-   "portrait": "/assets/game/panorama/images/heroes/lash_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/lash_card.png",
    "tags": [
     "Initiator",
     "High-Flying",
@@ -2650,7 +2650,7 @@
    "id": 35,
    "name": "Viscous",
    "slug": "viscous",
-   "portrait": "/assets/game/panorama/images/heroes/viscous_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/viscous_card.png",
    "tags": [
     "Evasive",
     "Disruptor",
@@ -2668,7 +2668,7 @@
    "id": 50,
    "name": "Pocket",
    "slug": "pocket",
-   "portrait": "/assets/game/panorama/images/heroes/synth_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/synth_card.png",
    "tags": [
     "Trickster",
     "Burst Damage",
@@ -2686,7 +2686,7 @@
    "id": 52,
    "name": "Mirage",
    "slug": "mirage",
-   "portrait": "/assets/game/panorama/images/heroes/mirage_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/mirage_card.png",
    "tags": [
     "Bodyguard",
     "Traveller",
@@ -2704,7 +2704,7 @@
    "id": 58,
    "name": "Vyper",
    "slug": "vyper",
-   "portrait": "/assets/game/panorama/images/heroes/kali_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/kali_card.png",
    "tags": [
     "Gunner",
     "Slippery",
@@ -2722,7 +2722,7 @@
    "id": 60,
    "name": "Sinclair",
    "slug": "sinclair",
-   "portrait": "/assets/game/panorama/images/heroes/magician_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/magician_card.png",
    "tags": [
     "Trickster",
     "Copycat",
@@ -2740,7 +2740,7 @@
    "id": 63,
    "name": "Mina",
    "slug": "mina",
-   "portrait": "/assets/game/panorama/images/heroes/vampirebat_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/vampirebat_card.png",
    "tags": [
     "Harasser",
     "Nimble",
@@ -2758,7 +2758,7 @@
    "id": 64,
    "name": "Drifter",
    "slug": "drifter",
-   "portrait": "/assets/game/panorama/images/heroes/drifter_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/drifter_card.png",
    "tags": [
     "Stalker",
     "Bloodthirsty",
@@ -2776,7 +2776,7 @@
    "id": 65,
    "name": "Venator",
    "slug": "venator",
-   "portrait": "/assets/game/panorama/images/heroes/priest_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/priest_card.png",
    "tags": [
     "Devout",
     "Arms Expert",
@@ -2794,7 +2794,7 @@
    "id": 66,
    "name": "Victor",
    "slug": "victor",
-   "portrait": "/assets/game/panorama/images/heroes/frank_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/frank_card.png",
    "tags": [
     "You",
     "Can't",
@@ -2812,7 +2812,7 @@
    "id": 67,
    "name": "Paige",
    "slug": "paige",
-   "portrait": "/assets/game/panorama/images/heroes/bookworm_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/bookworm_card.png",
    "tags": [
     "Helpful",
     "Protector",
@@ -2830,7 +2830,7 @@
    "id": 69,
    "name": "The Doorman",
    "slug": "the-doorman",
-   "portrait": "/assets/game/panorama/images/heroes/doorman_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/doorman_card.png",
    "tags": [
     "Disorienting",
     "Map Control",
@@ -2848,7 +2848,7 @@
    "id": 72,
    "name": "Billy",
    "slug": "billy",
-   "portrait": "/assets/game/panorama/images/heroes/punkgoat_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/punkgoat_card.png",
    "tags": [
     "Punk",
     "Chaotic",
@@ -2866,7 +2866,7 @@
    "id": 76,
    "name": "Graves",
    "slug": "graves",
-   "portrait": "/assets/game/panorama/images/heroes/necro_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/necro_card.png",
    "tags": [
     "Morbid",
     "Area Denial",
@@ -2884,7 +2884,7 @@
    "id": 77,
    "name": "Apollo",
    "slug": "apollo",
-   "portrait": "/assets/game/panorama/images/heroes/fencer_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/fencer_card.png",
    "tags": [
     "Finesse",
     "Mobility",
@@ -2902,7 +2902,7 @@
    "id": 78,
    "name": "Deadman Danny",
    "slug": "deadman-danny",
-   "portrait": "/assets/game/panorama/images/heroes/deadpack_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/deadpack_card.png",
    "tags": [
     "Reckless",
     "High-flying",
@@ -2920,7 +2920,7 @@
    "id": 79,
    "name": "Rem",
    "slug": "rem",
-   "portrait": "/assets/game/panorama/images/heroes/familiar_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/familiar_card.png",
    "tags": [
     "Helpful",
     "Tiny",
@@ -2938,7 +2938,7 @@
    "id": 80,
    "name": "Silver",
    "slug": "silver",
-   "portrait": "/assets/game/panorama/images/heroes/werewolf_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/werewolf_card.png",
    "tags": [
     "Feral",
     "Hot Mess",
@@ -2956,7 +2956,7 @@
    "id": 81,
    "name": "Celeste",
    "slug": "celeste",
-   "portrait": "/assets/game/panorama/images/heroes/unicorn_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/unicorn_card.png",
    "tags": [
     "Performer",
     "Disruptive",
@@ -2974,7 +2974,7 @@
    "id": 84,
    "name": "Rat King",
    "slug": "rat-king",
-   "portrait": "/assets/game/panorama/images/heroes/ratking_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/ratking_card.png",
    "tags": [
     "Scrappy",
     "Regal",
@@ -2992,7 +2992,7 @@
    "id": 85,
    "name": "Solomon",
    "slug": "solomon",
-   "portrait": "/assets/game/panorama/images/heroes/chessmaster_card_psd.png",
+   "portrait": "https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/chessmaster_card.png",
    "tags": [
     "Strategist",
     "Focused",

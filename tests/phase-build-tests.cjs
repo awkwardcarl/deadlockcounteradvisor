@@ -100,6 +100,6 @@ const violetOut=E.recommend({hero:'Shiv',souls:3000,owned:'',enemies:[{hero:'Vio
 test(violetOut.unknown.includes('No reviewed combat profile for Violet')&&violetOut.quickBuys.length>0,'an unprofiled new hero still counts through her items');
 const main=read('desktop/main.cjs');
 const gameData=read('desktop/game-data.cjs');
-test(gameData.includes('catalog.addFallbackHeroNames(catalog.readCache(userData),assets.readAssets(userData))')&&gameData.includes('Promise.allSettled([catalog.refresh(userData),assets.refreshAssets(userData)])')&&main.includes('return gameData.current();')&&main.includes('return gameData.syncNow();'),'catalog carries fallback hero names; Sync refreshes the hero list too');
+test(gameData.includes('catalog.addFallbackHeroNames(catalog.readCache(userData),assets.readAssets(userData))')&&gameData.includes('Promise.allSettled([catalog.refresh(userData,once),assets.refreshAssets(userData,once)])')&&main.includes('return gameData.current();')&&main.includes('return gameData.syncNow();'),'catalog carries fallback hero names; Sync refreshes the hero list too');
 
 console.log(`PASS: ${total} phase, build, enemy-item and new-hero checks`);

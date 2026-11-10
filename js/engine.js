@@ -133,9 +133,12 @@ const ENEMY_GROUPS={
 const TAG_LABELS={spirit:'Spirit pressure',bullet:'Weapon damage',burst:'Burst damage',control:'Disables',sustain:'Healing / sustain',slow:'Slows',mobility:'Mobile enemies',sustained:'Extended fights',range:'Long-range poke',area:'Area damage',support:'Team utility'};
 const cleanList=x=>Array.isArray(x)?x.map(v=>String(v||'').trim()).filter(Boolean):String(x||'').split(',').map(v=>v.trim()).filter(Boolean);
 const norm=x=>String(x||'').normalize('NFKC').toLocaleLowerCase('en-US').replace(/[^\p{L}\p{N}]+/gu,'');
-const iconPath=x=>typeof x==='string'&&/^\/assets\/game\/panorama\/images\/[\w\/.\-]+\.png$/.test(x)?'https://deadlock.io'+x:'';
-// Hero card art from deadlock-api's image server, for heroes deadlock.io's
-// catalog doesn't list yet (the main process keeps it with the hero list).
+// Item icons and hero portraits: deadlock-api's image server, .png only. A
+// catalog saved from deadlock.io (relative paths to a site that now redirects)
+// shows no art until the next sync replaces it.
+const iconPath=x=>typeof x==='string'&&!x.includes('..')&&/^https:\/\/assets-bucket\.deadlock-api\.com\/assets-api-res\/images\/[\w\/.\-]+\.png$/.test(x)?x:'';
+// Hero card art from the same server, kept with the hero list, for heroes the
+// saved catalog doesn't list yet.
 const heroArtPath=x=>typeof x==='string'&&/^https:\/\/assets-bucket\.deadlock-api\.com\/assets-api-res\/images\/heroes\/[\w.-]+\.png$/.test(x)?x:'';
 // Live feeds can use old or internal hero names (Overwolf sends "VIPER" for
 // Vyper). Match the name first, then the game's hero ID (synced catalog only),

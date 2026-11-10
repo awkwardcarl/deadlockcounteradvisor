@@ -23,28 +23,32 @@ ok(!E.recommend({hero:'Kelvin',souls:1600,enemies:[]},starter).results.length,'n
 ok(E.recommend({hero:'Kelvin',souls:1600,enemies:[{hero:'Mystery',items:'No such item'}]},starter).unknown.length>0,'unknowns explicitly warned');
 ok(Object.keys(E.COUNTERS).length>=25,'curated counter rules expanded');ok(Object.keys(E.MATCHUPS).length>=12,'specific hero matchup reviews');ok(Object.keys(E.OWN_AFFINITY).length>=8,'player hero archetype purchase fit');
 ok(E.norm('Mo & Krill')==='mokrill','normalization stable');
-const {compactSnapshot,imagePath}=require('../js/snapshot.cjs');
-const validItems=Array.from({length:156},(_,i)=>({id:'upgrade_test_'+i,displayName:{english:'Test Item '+i},shop:{isPublicShopItem:true,category:i%3===0?'weapon':i%3===1?'vitality':'spirit',cost:i%4===0?800:i%4===1?1600:i%4===2?3200:6400,tier:i%4+1,groupId:'EHealing',componentIds:[],upgradeIds:[]},activation:{isActive:false},assets:{shopIcon:{publicPath:'/assets/game/panorama/images/items/vitality/test_psd.png'}}}));
-validItems[0]={...validItems[0],id:'upgrade_tech_purge',displayName:{english:'Spirit Resilience'}};
-validItems[1]={...validItems[1],id:'upgrade_weapon_shielding',displayName:{english:'Weapon Shielding'}};
-validItems[2]={...validItems[2],id:'upgrade_healbane',displayName:{english:'Healbane'}};
-const validHeroes=Array.from({length:41},(_,i)=>({heroId:i+1,slug:'hero-'+i,displayName:{english:i===0?'Kelvin':i===1?'Haze':'Hero '+i},status:'released',playerSelectable:true,disabled:false,assets:{card:{publicPath:'/assets/game/panorama/images/heroes/kelvin_card_psd.png'}}}));
-const snapshot=compactSnapshot({items:validItems,source:{generatedAt:'2026-10-15T19:15:18Z',buildId:'client-6785'}},{heroes:validHeroes});
+const {compactSnapshot,imageURL}=require('../js/snapshot.cjs');
+// deadlock-api /v1/assets/items and /v1/assets/heroes shapes.
+const validItems=Array.from({length:156},(_,i)=>({type:'upgrade',id:5000+i,class_name:'upgrade_test_'+i,name:'Test Item '+i,shopable:true,item_slot_type:i%3===0?'weapon':i%3===1?'vitality':'spirit',cost:i%4===0?800:i%4===1?1600:i%4===2?3200:6400,item_tier:i%4+1,is_active_item:false,shop_image:'https://assets-bucket.deadlock-api.com/assets-api-res/images/items/vitality/test.png'}));
+validItems[0]={...validItems[0],class_name:'upgrade_tech_purge',name:'Spirit Resilience'};
+validItems[1]={...validItems[1],class_name:'upgrade_weapon_shielding',name:'Weapon Shielding'};
+validItems[2]={...validItems[2],class_name:'upgrade_healbane',name:'Healbane'};
+const validHeroes=Array.from({length:41},(_,i)=>({id:i+1,name:i===0?'Kelvin':i===1?'Haze':'Hero '+i,player_selectable:true,disabled:false,in_development:false,images:{icon_hero_card:'https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/kelvin_card.png'}}));
+const snapshot=compactSnapshot(validItems,validHeroes);
 approxEqual(snapshot.items.length,156,'complete public item catalog');
 approxEqual(snapshot.heroes.length,41,'released selectable roster');
 ok(snapshot.heroes[0].portrait.includes('kelvin'),'hero portrait saved');
 ok(snapshot.items[1].cost===1600,'shop cost from source');
 ok(snapshot.items[2].category==='spirit','shop category from source');
-ok(imagePath({publicPath:'https://evil.example/x'})==='', 'asset paths must be relative safe paths');
-ok(imagePath({publicPath:'/assets/game/panorama/images/heroes/haze.png'})!=='','valid image path retained');
-validHeroes.push({heroId:100,displayName:{english:'Unreleased'},status:'development',playerSelectable:false});
-const v2=compactSnapshot({items:validItems},{heroes:validHeroes});
-ok(!v2.heroes.find(h=>h.name==='Unreleased'),'development roster excluded');
+ok(imageURL('https://evil.example/x.png')===''&&imageURL('/assets/game/panorama/images/heroes/haze.png')==='', 'art only from the deadlock-api image server');
+ok(imageURL('https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/haze_card.png')!=='','valid image URL retained');
+validHeroes.push({id:100,name:'Unreleased',player_selectable:false},{id:101,name:'In Testing',player_selectable:true,in_development:true});
+validItems.push({...validItems[3],class_name:'upgrade_legendary_x',name:'Legendary',cost:9999,item_tier:5});
+const v2=compactSnapshot(validItems,validHeroes);
+ok(!v2.heroes.find(h=>h.name==='Unreleased'||h.name==='In Testing'),'unselectable and in-development heroes excluded');
+ok(!v2.items.find(i=>i.id==='upgrade_legendary_x'),'unbuyable 9999-soul legendaries excluded');
+assert.throws(()=>compactSnapshot([],[]));tests++;
 assert.throws(()=>compactSnapshot({items:[]},{heroes:[]}));tests++;
 const live=E.createCatalog(context.DeadlockCatalog,snapshot);
 ok(live.complete,'complete flag');
 approxEqual(live.items.length,156,'all items available in runtime');
-ok(live.heroes.find(h=>h.name==='Haze').portrait.startsWith('https://deadlock.io/'),'image url allowlisted');
+ok(live.heroes.find(h=>h.name==='Haze').portrait.startsWith('https://assets-bucket.deadlock-api.com/'),'image url allowlisted');
 result=E.recommend({hero:'Kelvin',souls:1600,owned:'',enemies:[{hero:'Haze',items:'Test Item 9'}]},live);
 ok(result.results.some(r=>r.id==='upgrade_weapon_shielding'),'bullet protection candidate available');
 ok(result.results.every(r=>Number.isFinite(r.cost)&&r.cost>0),'every recommendation sourced current price');
@@ -62,17 +66,18 @@ assert.throws(()=>replay(Array(301).fill({})));tests++;
 ok(replay([...replayData.slice(0,2),event('items_1',{player_name:'Someone else',items:[{name:'Leech'}]})]).enemies[0].items==='','replay never joins items to a different player');
 ok(replay({events:replayData}).enemies.length===1,'replay accepts an {events:[...]} wrapper');
 const security=require('../desktop/security.cjs');
-ok(security.permittedImageURL('https://deadlock.io/assets/game/panorama/images/heroes/kelvin.png'),'provider imagery permitted');
-for(const url of ['http://deadlock.io/assets/game/panorama/images/heroes/x.png','https://deadlock.io/api/v1/items.json','https://evil.example/assets/game/panorama/images/x.png','http://127.0.0.1:3000/test','https://deadlock.io/assets/game/../../admin.png']) {ok(!security.permittedImageURL(url),'external network not image-approved '+url);}
+ok(security.permittedImageURL('https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/kelvin_card.png')&&security.permittedImageURL('https://assets-bucket.deadlock-api.com/assets-api-res/images/items/spirit/echo_shard.png'),'provider imagery permitted');
+for(const url of ['http://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/x.png','https://deadlock.io/assets/game/panorama/images/heroes/x.png','https://api.deadlock-api.com/v1/assets/items','https://assets-bucket.deadlock-api.com/assets-api-res/models/x.png','https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/x.png?x=1','https://evil.example/assets-api-res/images/x.png','http://127.0.0.1:3000/test','https://assets-bucket.deadlock-api.com/assets-api-res/images/../../admin.png']) {ok(!security.permittedImageURL(url),'external network not image-approved '+url);}
 let interceptor,permission;
 security.registerOfflineRestrictions({setPermissionRequestHandler:cb=>{permission=cb;},webRequest:{onBeforeRequest:cb=>{interceptor=cb;}}});
 for(const [url,type,blocked] of [
  ['file:///C:/application/index.html','mainFrame',false],
  ['https://example.org/','mainFrame',true],
  ['http://localhost:3030/','xmlhttprequest',true],
- ['https://deadlock.io/api/v1/items.json','xmlhttprequest',true],
- ['https://deadlock.io/assets/game/panorama/images/heroes/x.png','image',false],
- ['https://deadlock.io/assets/game/panorama/images/heroes/x.png','script',true],
+ ['https://api.deadlock-api.com/v1/assets/items','xmlhttprequest',true],
+ ['https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/x.png','image',false],
+ ['https://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/x.png','script',true],
+ ['https://deadlock.io/assets/game/panorama/images/heroes/x.png','image',true],
  ['wss://example.org/socket','websocket',true]]){
  let called=0,result;interceptor({url,resourceType:type},r=>{called++;result=r;});ok(called===1&&result.cancel===blocked,'network callback '+url+' '+type);
 }

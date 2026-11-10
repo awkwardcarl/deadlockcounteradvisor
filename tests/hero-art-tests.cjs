@@ -1,8 +1,7 @@
 'use strict';
-// Hero art for heroes deadlock.io's catalog doesn't list yet (it lags game
-// patches: Baba, Violet and Nurse Harrow were missing): card art from
-// deadlock-api's image server, kept with the hero list and used only where a
-// hero has no portrait of its own.
+// Hero art for heroes the saved catalog doesn't list (in development, or newer
+// than the last sync): card art from deadlock-api's image server, kept with
+// the hero list and used only where a hero has no portrait of its own.
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
@@ -40,30 +39,31 @@ test(JSON.stringify(addFallbackHeroNames(snapshot,null).heroArt)==='{}'&&JSON.st
 const gd=read('desktop/game-data.cjs');
 test(gd.includes("||!('investment' in assets)||!('heroArt' in assets);"),'a hero list saved before this version refreshes once');
 
-// Engine catalog: deadlock.io portraits win; the art fills the gaps.
+// Engine catalog: the catalog's own portraits win; the art fills the gaps.
 const ctx=vm.createContext({});
 for(const file of ['js/catalog.js','js/engine.js'])vm.runInContext(read(file),ctx);
 const E=ctx.DeadlockEngine;
 const catalog=E.createCatalog(ctx.DeadlockCatalog,handed);
 const hero=name=>catalog.heroes.find(h=>h.name===name);
-test(!snapshot.heroes.some(h=>h.name==='Baba')&&hero('Baba')?.portrait===BUCKET+'baba_card.png','Baba (not in deadlock.io\'s catalog) gets deadlock-api\'s card art');
+test(!snapshot.heroes.some(h=>h.name==='Baba')&&hero('Baba')?.portrait===BUCKET+'baba_card.png','Baba (not in the catalog) gets the hero list\'s card art');
 test(hero('Nurse Harrow')?.portrait===BUCKET+'nurse_sm.png','Nurse Harrow too');
-test(hero('Shiv').portrait.startsWith('https://deadlock.io/assets/game/panorama/images/'),'a hero deadlock.io has keeps deadlock.io\'s portrait');
+test(hero('Shiv').portrait===snapshot.heroes.find(h=>h.name==='Shiv').portrait&&hero('Shiv').portrait.startsWith(BUCKET),'a hero the catalog has keeps its own portrait');
 test(catalog.heroArt[E.norm('Nurse Harrow')]===BUCKET+'nurse_sm.png','the catalog keeps the art by normalized name for any other hero');
 const bad=E.createCatalog(ctx.DeadlockCatalog,{...snapshot,heroArt:{Baba:'https://evil.example/x.png'}});
 test(!bad.heroes.find(h=>h.name==='Baba').portrait&&Object.keys(bad.heroArt).length===0,'art from anywhere else is ignored');
 const ui=read('js/ui.js');
 test(ui.includes('function portrait(name){return catalog.heroes.find(h=>h.name===name)?.portrait||catalog.heroArt?.[engine.norm(name)]||\'\';}'),'portraits fall back to the art for any hero name');
 
-// The page and the network lock allow that one folder, images only.
+// The page and the network lock allow deadlock-api's image folder, images only.
 const security=require('../desktop/security.cjs');
-test(security.permittedImageURL(BUCKET+'baba_card.png')&&security.permittedImageURL('https://deadlock.io/assets/game/panorama/images/heroes/kelvin.png'),'hero art and deadlock.io art may load');
-test(['https://assets-bucket.deadlock-api.com/assets-api-res/images/items/x.png','https://assets-bucket.deadlock-api.com/other/x.png',BUCKET+'x.png?a=1',BUCKET+'x.webp','http://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/x.png','https://api.deadlock-api.com/v1/assets/heroes'].every(u=>!security.permittedImageURL(u)),'nothing else from deadlock-api loads in the page');
+test(security.permittedImageURL(BUCKET+'baba_card.png')&&security.permittedImageURL('https://assets-bucket.deadlock-api.com/assets-api-res/images/items/x.png'),'hero art and item icons may load');
+test(!security.permittedImageURL('https://deadlock.io/assets/game/panorama/images/heroes/kelvin.png'),'deadlock.io art (the site now redirects) does not');
+test(['https://assets-bucket.deadlock-api.com/other/x.png','https://assets-bucket.deadlock-api.com/assets-api-res/models/x.png',BUCKET+'x.png?a=1',BUCKET+'x.webp','http://assets-bucket.deadlock-api.com/assets-api-res/images/heroes/x.png','https://api.deadlock-api.com/v1/assets/heroes'].every(u=>!security.permittedImageURL(u)),'nothing else from deadlock-api loads in the page');
 const html=read('index.html');
-test(html.includes("img-src 'self' data: https://deadlock.io https://assets-bucket.deadlock-api.com;")&&html.includes("connect-src 'none'"),'the page policy allows the art host for images only; still no page requests');
+test(html.includes("img-src 'self' data: https://assets-bucket.deadlock-api.com;")&&html.includes("connect-src 'none'"),'the page policy allows the art host for images only; still no page requests');
 
 // Privacy Policy names the new image source.
 const privacy=read('docs/privacy.html');
-test(privacy.includes('plus hero artwork from its image server for heroes deadlock.io doesn’t list yet')&&privacy.includes('Effective October 21, 2026'),'the Privacy Policy names the hero art source, with a new date');
+test(privacy.includes('the public item and hero lists from <a href="https://deadlock-api.com">deadlock-api.com</a>, plus item and hero artwork from its image server.')&&!privacy.includes('deadlock.io')&&privacy.includes('Effective November 10, 2026'),'the Privacy Policy names deadlock-api as the catalog and art source, with a new date');
 
 console.log(`PASS: ${total} hero art checks`);
